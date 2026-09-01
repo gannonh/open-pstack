@@ -52,6 +52,15 @@ Run these commands inside Claude Code:
 /reload-plugins
 ```
 
+Or from your shell:
+
+```shell
+claude plugin marketplace add gannonh/open-pstack
+claude plugin install pstack@open-pstack
+```
+
+The shell path has no reload step; the plugin loads when the next Claude Code session starts.
+
 ### Codex
 
 Run these commands in your shell:
