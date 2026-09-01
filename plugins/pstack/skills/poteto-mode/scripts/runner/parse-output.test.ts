@@ -94,6 +94,67 @@ describe("parseProviderOutput", () => {
     );
   });
 
+  it("normalizes Cursor's display name into a comparable model stem", () => {
+    const parsed = parseProviderOutput(
+      "cursor",
+      [
+        JSON.stringify({
+          type: "system",
+          subtype: "init",
+          model: "Cursor Grok 4.6 Extra High",
+          session_id: "cursor-session",
+          permissionMode: "plan",
+        }),
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          result: "CURSOR_OK",
+          session_id: "cursor-session",
+          usage: {
+            inputTokens: 25,
+            outputTokens: 6,
+            cacheReadTokens: 3,
+            cacheWriteTokens: 0,
+          },
+        }),
+      ].join("\n"),
+      "",
+      "cursor-grok-4.6"
+    );
+    expect(parsed).toMatchObject({
+      text: "CURSOR_OK",
+      reportedModel: "cursor-grok-4.6-extra-high",
+      sessionId: "cursor-session",
+      usage: {
+        inputTokens: 25,
+        cachedInputTokens: 3,
+        cacheCreationInputTokens: 0,
+        outputTokens: 6,
+      },
+      costUsd: null,
+    });
+    expect(
+      reportedModelMatches("cursor-grok-4.6", parsed.reportedModel)
+    ).toBe(true);
+  });
+
+  it("rejects a Cursor error result", () => {
+    expect(() =>
+      parseProviderOutput(
+        "cursor",
+        JSON.stringify({
+          type: "result",
+          subtype: "error",
+          is_error: true,
+          result: "boom",
+        }),
+        "",
+        "cursor-grok-4.6"
+      )
+    ).toThrow("error result");
+  });
+
   it("selects the requested Claude model when usage includes a side model", () => {
     const parsed = parseProviderOutput(
       "claude",

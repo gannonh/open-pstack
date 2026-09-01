@@ -27,7 +27,8 @@ const name = process.argv[1].split("/").at(-1);
 const isPreflight =
   (name === "claude" && args[0] === "auth") ||
   (name === "codex" && args[0] === "login") ||
-  (name === "grok" && args[0] === "models");
+  (name === "grok" && args[0] === "models") ||
+  (name === "cursor-agent" && args[0] === "models");
 const stage = isPreflight ? "preflight" : "model";
 const startedPath = isPreflight
   ? process.env.FAKE_PREFLIGHT_STARTED_PATH
@@ -63,6 +64,14 @@ if (name === "claude" && args[0] === "auth") {
 }
 if (name === "codex" && args[0] === "login") {
   console.log("Logged in using ChatGPT");
+  process.exit(0);
+}
+if (name === "cursor-agent" && args[0] === "models") {
+  if (process.env.FAKE_CURSOR_MISSING_MODEL === "1") {
+    console.log("Available models\\n\\ncursor-grok-4.5-xhigh - Cursor Grok 4.5 Extra High");
+    process.exit(0);
+  }
+  console.log("Available models\\n\\ncursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High");
   process.exit(0);
 }
 if (name === "grok" && args[0] === "models") {
@@ -109,7 +118,10 @@ if (stage === "model" && process.env.FAKE_SELF_SIGNAL) {
   process.kill(process.pid, process.env.FAKE_SELF_SIGNAL);
   await Bun.sleep(5_000);
 }
-if (name === "claude") {
+if (name === "cursor-agent") {
+  console.log(JSON.stringify({type:"system",subtype:"init",model:"Cursor Grok 4.6 Extra High",session_id:"cu1",permissionMode:"plan"}));
+  console.log(JSON.stringify({type:"result",subtype:"success",is_error:false,result:"CURSOR_OK",session_id:"cu1",usage:{inputTokens:25,outputTokens:6,cacheReadTokens:3,cacheWriteTokens:0}}));
+} else if (name === "claude") {
   console.log(JSON.stringify({result:"CLAUDE_OK",session_id:"c1",usage:{input_tokens:10,output_tokens:2},total_cost_usd:0.01,modelUsage:{[model]:{}}}));
 } else if (name === "codex") {
   console.log(JSON.stringify({type:"thread.started",thread_id:"o1"}));
@@ -137,12 +149,14 @@ function options(provider: Provider, suffix: string = provider): RunnerOptions {
       ? "claude-fable-5"
       : provider === "codex"
         ? "gpt-5.6-sol"
-        : "grok-4.6";
+        : provider === "cursor"
+          ? "cursor-grok-4.6"
+          : "grok-4.6";
   return {
     parent,
     provider,
     model,
-    effort: provider === "grok" ? "xhigh" : "max",
+    effort: provider === "grok" || provider === "cursor" ? "xhigh" : "max",
     mode: "read-only",
     promptPath: join(scratch, "prompt.md"),
     cwd: scratch,
@@ -216,7 +230,7 @@ beforeEach(() => {
   bin = join(scratch, "bin");
   mkdirSync(bin);
   writeFileSync(join(scratch, "prompt.md"), "Return the marker.");
-  for (const name of ["claude", "codex", "grok"]) makeExecutable(name);
+  for (const name of ["claude", "codex", "grok", "cursor-agent"]) makeExecutable(name);
   previousPath = process.env.PATH;
   process.env.PATH = `${bin}:${dirname(process.execPath)}:${previousPath ?? ""}`;
   delete process.env.FAKE_TIMEOUT;
@@ -236,6 +250,7 @@ beforeEach(() => {
   delete process.env.FAKE_GROK_TRANSIENT_UNAUTH_PATH;
   delete process.env.FAKE_GROK_PREFLIGHT_LOG_PATH;
   delete process.env.FAKE_GROK_MISSING_MODEL;
+  delete process.env.FAKE_CURSOR_MISSING_MODEL;
   delete process.env.FAKE_DESCENDANT_HOLDS_PIPES_MS;
   delete process.env.FAKE_DESCENDANT_PID_PATH;
   delete process.env.FAKE_SELF_SIGNAL;
@@ -260,6 +275,7 @@ afterEach(() => {
   delete process.env.FAKE_GROK_TRANSIENT_UNAUTH_PATH;
   delete process.env.FAKE_GROK_PREFLIGHT_LOG_PATH;
   delete process.env.FAKE_GROK_MISSING_MODEL;
+  delete process.env.FAKE_CURSOR_MISSING_MODEL;
   delete process.env.FAKE_DESCENDANT_HOLDS_PIPES_MS;
   delete process.env.FAKE_DESCENDANT_PID_PATH;
   delete process.env.FAKE_SELF_SIGNAL;
@@ -267,7 +283,7 @@ afterEach(() => {
 });
 
 describe("runLane", () => {
-  for (const provider of ["claude", "codex", "grok"] as const) {
+  for (const provider of ["claude", "codex", "grok", "cursor"] as const) {
     it(`executes and receipts the ${provider} external lane`, async () => {
       const input = options(provider);
       const result = await runLane(input);
@@ -285,6 +301,47 @@ describe("runLane", () => {
       });
     });
   }
+
+  it("verifies the Cursor family stem from the init event and pins the composed id", async () => {
+    const input = options("cursor");
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(0);
+    const recorded = receipt(input.receiptPath);
+    expect(recorded).toMatchObject({
+      status: "complete",
+      model: "cursor-grok-4.6",
+      effort: "xhigh",
+      reportedModel: "cursor-grok-4.6-extra-high",
+      modelVerified: true,
+      modelEvidence: "provider-report",
+      preflight: {
+        status: "passed",
+        evidence: "authenticated; model cursor-grok-4.6-xhigh available",
+      },
+    });
+    expect(recorded.argv).toEqual(
+      expect.arrayContaining(["--model", "cursor-grok-4.6-xhigh"])
+    );
+  });
+
+  it("classifies a Cursor listing without the composed id as unavailable-model", async () => {
+    process.env.FAKE_CURSOR_MISSING_MODEL = "1";
+    const modelStarted = join(scratch, "cursor-missing-model.started");
+    process.env.FAKE_MODEL_STARTED_PATH = modelStarted;
+    const input = options("cursor", "cursor-missing-model");
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(69);
+    expect(existsSync(input.outputPath)).toBe(false);
+    expect(existsSync(modelStarted)).toBe(false);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "unavailable-model",
+      model: "cursor-grok-4.6",
+      reportedModel: null,
+      modelVerified: false,
+      modelEvidence: null,
+      preflight: { status: "failed" },
+    });
+  });
 
   it("records Codex's exact argv without fabricating a reported model", async () => {
     const input = options("codex");

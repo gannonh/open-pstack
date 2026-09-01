@@ -24,14 +24,18 @@ function normalizedUsage(value: unknown): NormalizedUsage | null {
   const usage = object(value);
   if (usage === null) return null;
   const result: NormalizedUsage = {
-    inputTokens: finiteNumber(usage.input_tokens),
+    inputTokens: finiteNumber(usage.input_tokens ?? usage.inputTokens),
     cachedInputTokens: finiteNumber(
-      usage.cached_input_tokens ?? usage.cache_read_input_tokens
+      usage.cached_input_tokens ??
+        usage.cache_read_input_tokens ??
+        usage.cacheReadTokens
     ),
     cacheCreationInputTokens: finiteNumber(
-      usage.cache_creation_input_tokens ?? usage.cache_write_input_tokens
+      usage.cache_creation_input_tokens ??
+        usage.cache_write_input_tokens ??
+        usage.cacheWriteTokens
     ),
-    outputTokens: finiteNumber(usage.output_tokens),
+    outputTokens: finiteNumber(usage.output_tokens ?? usage.outputTokens),
     reasoningTokens: finiteNumber(
       usage.reasoning_tokens ?? usage.reasoning_output_tokens
     ),
@@ -147,6 +151,55 @@ function parseCodex(stdout: string): ParsedOutput {
   };
 }
 
+// Cursor's init event reports a display name ("Cursor Grok 4.6 Extra High"),
+// not a model id. Kebab-casing it makes the family stem comparable with
+// reportedModelMatches: "Cursor Grok 4.6 Low" -> "cursor-grok-4.6-low".
+function kebabModel(display: string): string {
+  return display.trim().toLowerCase().replace(/\s+/g, "-");
+}
+
+function parseCursor(stdout: string): ParsedOutput {
+  let reportedModel: string | null = null;
+  let sessionId: string | null = null;
+  let result: JsonObject | null = null;
+  for (const line of stdout.split("\n")) {
+    if (line.trim().length === 0) continue;
+    let raw: unknown;
+    try {
+      raw = JSON.parse(line);
+    } catch {
+      throw new Error("cursor-agent emitted a non-JSON event");
+    }
+    const event = object(raw);
+    if (event === null) continue;
+    if (event.type === "system" && event.subtype === "init") {
+      const display = nullableString(event.model);
+      if (display !== null) reportedModel = kebabModel(display);
+      sessionId = nullableString(event.session_id) ?? sessionId;
+    }
+    if (event.type === "result") result = event;
+  }
+
+  if (result === null) {
+    throw new Error("cursor-agent result did not contain a terminal event");
+  }
+  if (result.is_error === true || result.subtype !== "success") {
+    throw new Error("cursor-agent reported an error result");
+  }
+  const text = nullableString(result.result);
+  if (text === null) {
+    throw new Error("cursor-agent result did not contain final text");
+  }
+
+  return {
+    text,
+    reportedModel,
+    sessionId: nullableString(result.session_id) ?? sessionId,
+    usage: normalizedUsage(result.usage),
+    costUsd: finiteNumber(result.total_cost_usd) ?? null,
+  };
+}
+
 export function parseProviderOutput(
   provider: Provider,
   stdout: string,
@@ -160,6 +213,8 @@ export function parseProviderOutput(
       return parseCodex(stdout);
     case "grok":
       return parseGrok(stdout, requestedModel);
+    case "cursor":
+      return parseCursor(stdout);
   }
 }
 

@@ -27,7 +27,16 @@ export function preflightCommand(provider: Provider): CommandSpec {
       };
     case "grok":
       return { command: "grok", args: ["models"], stdin: "none" };
+    case "cursor":
+      return { command: "cursor-agent", args: ["models"], stdin: "none" };
   }
+}
+
+// Cursor encodes reasoning effort in the model id itself; there is no
+// separate effort flag. The matrix pins the exact Cursor stem (for example
+// `cursor-grok-4.6`) and the launcher appends the requested effort.
+export function cursorCliModel(model: string, effort: Effort): string {
+  return `${model}-${effort}`;
 }
 
 function claudeDeniedTools(mode: AccessMode): string {
@@ -145,6 +154,22 @@ export function invocationCommand(options: RunnerOptions): CommandSpec {
           "--verbatim",
         ],
         stdin: "none",
+      };
+    case "cursor":
+      return {
+        command: "cursor-agent",
+        args: [
+          "-p",
+          "--output-format",
+          "stream-json",
+          "--model",
+          cursorCliModel(options.model, options.effort),
+          ...(options.mode === "read-only"
+            ? ["--mode", "plan"]
+            : ["--force"]),
+          "--trust",
+        ],
+        stdin: "prompt",
       };
   }
 }

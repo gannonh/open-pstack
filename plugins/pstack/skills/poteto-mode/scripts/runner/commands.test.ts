@@ -113,6 +113,24 @@ describe("invocationCommand", () => {
     ]);
   });
 
+  it("pins Cursor's composed model id, plan mode, and stream-json output", () => {
+    const spec = invocationCommand(
+      options({ provider: "cursor", model: "cursor-grok-4.6", effort: "xhigh" })
+    );
+    expect(spec.command).toBe("cursor-agent");
+    expect(spec.stdin).toBe("prompt");
+    expect(spec.args).toEqual([
+      "-p",
+      "--output-format",
+      "stream-json",
+      "--model",
+      "cursor-grok-4.6-xhigh",
+      "--mode",
+      "plan",
+      "--trust",
+    ]);
+  });
+
   it("uses bounded write modes without blanket bypasses", () => {
     const codex = invocationCommand(options({ mode: "isolated-write" }));
     expect(codex.args).toEqual(
@@ -132,6 +150,19 @@ describe("invocationCommand", () => {
       ])
     );
     expect(grok.args).not.toContain("--always-approve");
+
+    const cursor = invocationCommand(
+      options({
+        provider: "cursor",
+        model: "cursor-grok-4.6",
+        effort: "xhigh",
+        mode: "isolated-write",
+      })
+    );
+    expect(cursor.args).toEqual(
+      expect.arrayContaining(["--force", "--trust"])
+    );
+    expect(cursor.args).not.toContain("--mode");
 
     const claude = invocationCommand(
       options({ provider: "claude", model: "claude-fable-5", mode: "isolated-write" })
@@ -167,6 +198,14 @@ describe("invocationCommand", () => {
         flag: (effort: "low" | "medium" | "high") => [
           "--reasoning-effort",
           effort,
+        ],
+      },
+      {
+        provider: "cursor" as const,
+        model: "cursor-grok-4.6",
+        flag: (effort: "low" | "medium" | "high") => [
+          "--model",
+          `cursor-grok-4.6-${effort}`,
         ],
       },
     ];

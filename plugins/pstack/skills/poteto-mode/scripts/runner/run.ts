@@ -9,7 +9,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { invocationCommand, preflightCommand, type CommandSpec } from "./commands.ts";
+import {
+  cursorCliModel,
+  invocationCommand,
+  preflightCommand,
+  type CommandSpec,
+} from "./commands.ts";
 import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
 import type {
   Provider,
@@ -369,11 +374,13 @@ function preflightPassed(provider: Provider, model: string, result: ProcessResul
       return /logged in/i.test(combined);
     case "grok":
       return /logged in/i.test(combined) && combined.includes(model);
+    case "cursor":
+      return combined.includes(model);
   }
 }
 
 function successfulPreflightEvidence(provider: Provider, model: string): string {
-  return provider === "grok"
+  return provider === "grok" || provider === "cursor"
     ? `authenticated; model ${model} available`
     : "authenticated";
 }
@@ -395,7 +402,7 @@ function preflightFailureStatus(
 ): ReceiptStatus {
   const status = unavailableStatus(value);
   if (status !== "child-failed") return status;
-  return provider === "grok" && !value.includes(model)
+  return (provider === "grok" || provider === "cursor") && !value.includes(model)
     ? "unavailable-model"
     : "unauthenticated";
 }
@@ -526,6 +533,11 @@ async function executeLane(
   const startedAt = new Date(started).toISOString();
   const prompt = readFileSync(options.promptPath, "utf8");
   const env = childEnvironment(options.provider);
+  // Cursor's preflight listing carries composed model-effort ids, so the
+  // availability check must look for the exact id the invocation will pin.
+  const preflightModel = options.provider === "cursor"
+    ? cursorCliModel(options.model, options.effort)
+    : options.model;
   const executable = Bun.which(invocation.command, {
     PATH: env.PATH,
     cwd: options.cwd,
@@ -619,9 +631,9 @@ async function executeLane(
     cancellation
   );
   let rawPreflightEvidence = evidence(`${preflightResult.stdout}\n${preflightResult.stderr}`);
-  let passed = preflightPassed(options.provider, options.model, preflightResult);
+  let passed = preflightPassed(options.provider, preflightModel, preflightResult);
   let preflightEvidence = passed
-    ? successfulPreflightEvidence(options.provider, options.model)
+    ? successfulPreflightEvidence(options.provider, preflightModel)
     : rawPreflightEvidence;
 
   if (
@@ -629,7 +641,7 @@ async function executeLane(
     !passed &&
     preflightResult.cancelledBy === null &&
     !preflightResult.timedOut &&
-    preflightFailureStatus(options.provider, options.model, rawPreflightEvidence) ===
+    preflightFailureStatus(options.provider, preflightModel, rawPreflightEvidence) ===
       "unauthenticated"
   ) {
     preflightState = {
@@ -663,11 +675,11 @@ async function executeLane(
       cancellation
     );
     rawPreflightEvidence = evidence(`${preflightResult.stdout}\n${preflightResult.stderr}`);
-    passed = preflightPassed(options.provider, options.model, preflightResult);
+    passed = preflightPassed(options.provider, preflightModel, preflightResult);
     preflightEvidence = retriedPreflightEvidence(
       firstPreflightEvidence,
       passed
-        ? successfulPreflightEvidence(options.provider, options.model)
+        ? successfulPreflightEvidence(options.provider, preflightModel)
         : rawPreflightEvidence,
       passed
     );
@@ -690,7 +702,7 @@ async function executeLane(
     const completed = Date.now();
     const preflightFailure = preflightFailureStatus(
       options.provider,
-      options.model,
+      preflightModel,
       rawPreflightEvidence
     );
     const status: ReceiptStatus = preflightResult.cancelledBy !== null
