@@ -1,5 +1,7 @@
 # Upstream synchronization
 
+This fork (`gannonh/open-pstack`) tracks [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) as its direct upstream (`git remote add upstream https://github.com/ericlitman/open-pstack.git`), carrying the cursor-provider delta described in `CHANGES.md` 1.3.0 on top. The rest of this file documents how open-pstack itself tracks Lauren's original pstack.
+
 open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main/pstack) while adapting Cursor-specific primitives for Claude Code and Codex.
 
 ## Current sync point
@@ -34,7 +36,7 @@ No output means the tracked pstack tree has not changed. This comparison does no
 
 ## Incorporate a change
 
-1. Create or update a GitHub issue in `ericlitman/open-pstack` and branch from current `main`.
+1. Create or update a GitHub issue (in `gannonh/open-pstack` for fork-delta work, `ericlitman/open-pstack` otherwise) and branch from current `main`.
 2. Read each upstream pstack commit in order. Bring over its intent and content, then apply only the Claude Code and Codex substitutions documented in `CHANGES.md`.
 3. Keep one shared `plugins/pstack/skills/` tree. Put harness translation in the existing `codex-tools.md` and provider routing in `provider-dispatch.md`; do not fork a skill per harness.
 4. Update the commit and version in this file, the affected provenance rows in `NOTICE.md`, and `README-UPSTREAM.md` when upstream changes it.

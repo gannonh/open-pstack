@@ -1,8 +1,8 @@
 # open-pstack
 
-[![CI](https://github.com/ericlitman/open-pstack/actions/workflows/ci.yml/badge.svg)](https://github.com/ericlitman/open-pstack/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/ericlitman/open-pstack)](https://github.com/ericlitman/open-pstack/releases/latest)
-[![MIT license](https://img.shields.io/github/license/ericlitman/open-pstack)](LICENSE)
+[![CI](https://github.com/gannonh/open-pstack/actions/workflows/ci.yml/badge.svg)](https://github.com/gannonh/open-pstack/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/gannonh/open-pstack)](https://github.com/gannonh/open-pstack/releases/latest)
+[![MIT license](https://img.shields.io/github/license/gannonh/open-pstack)](LICENSE)
 
 **Open Pstack brings [Lauren Tan (@poteto)](https://x.com/poteto)'s [pstack](https://github.com/cursor/plugins/tree/main/pstack) to Claude Code and Codex.** Its job is to stay as close to her original work as possible while translating the parts that depend on Cursor.
 
@@ -11,6 +11,14 @@ Lauren built pstack from the skills she uses to ship code at Cursor. In a [55-mi
 > If you want to go fast, go deep first.
 
 Open Pstack is an unofficial community project that makes pstack work in Claude Code and Codex. If Cursor is your main coding environment, use [Lauren's original pstack](https://github.com/cursor/plugins/tree/main/pstack). If Claude Code or Codex is your main coding environment, use this repository.
+
+## About this fork
+
+This repository is [gannonh](https://github.com/gannonh)'s fork of [ericlitman/open-pstack](https://github.com/ericlitman/open-pstack). It tracks that project as its upstream and changes one thing:
+
+- **Grok runs through Cursor's CLI.** Upstream routes the Grok review lane through the standalone Grok Build CLI (`grok`), which requires its own Grok subscription. This fork adds a fourth `cursor` provider to the external model runner, so the Grok family runs through `cursor-agent` on a Cursor subscription instead. The descriptor is `cursor:cursor-grok-4.6@<effort>`; the runner invokes `cursor-agent -p --model cursor-grok-4.6-<effort>`, proves availability through the `cursor-agent models` listing before the model starts, and verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so its selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
+
+The change and its rationale are recorded in [CHANGES.md](CHANGES.md) under 1.3.0. The runner change lives on the [`feat/cursor-provider`](https://github.com/gannonh/open-pstack/tree/feat/cursor-provider) branch in a form intended for an upstream pull request; everything else here stays byte-identical to upstream to keep pulls cheap.
 
 ## What pstack does
 
@@ -32,14 +40,14 @@ pstack does not ask you to trust an agent on day one. It helps the agent leave e
 
 ## Install
 
-You need a current Claude Code or Codex installation. For the full four-model review, install and sign in to the Claude Code, Codex, and Grok command-line tools. [Bun](https://bun.sh) runs the small local tool that starts models outside the app you are using. You can still use the core workflows with fewer models.
+You need a current Claude Code or Codex installation. For the full four-model review, install and sign in to the Claude Code, Codex, and Cursor (`cursor-agent`) command-line tools. [Bun](https://bun.sh) runs the small local tool that starts models outside the app you are using. You can still use the core workflows with fewer models.
 
 ### Claude Code
 
 Run these commands inside Claude Code:
 
 ```text
-/plugin marketplace add ericlitman/open-pstack
+/plugin marketplace add gannonh/open-pstack
 /plugin install pstack@open-pstack
 /reload-plugins
 ```
@@ -49,7 +57,7 @@ Run these commands inside Claude Code:
 Run these commands in your shell:
 
 ```shell
-codex plugin marketplace add ericlitman/open-pstack --ref main
+codex plugin marketplace add gannonh/open-pstack --ref main
 codex plugin add pstack@open-pstack
 ```
 
@@ -80,7 +88,7 @@ In Codex, ask:
 Use pstack:setup-pstack to configure pstack.
 ```
 
-Setup checks the models you can actually run, shows how each one will start, and asks before saving the choices. The current default group uses Fable 5, GPT-5.6 Sol, Grok 4.6, and Opus 5.
+Setup checks the models you can actually run, shows how each one will start, and asks before saving the choices. The current default group uses Fable 5, GPT-5.6 Sol, Grok 4.6 (through Cursor), and Opus 5.
 
 ### 2. Use poteto-mode
 
@@ -132,7 +140,7 @@ Both apps read the same pstack skills. Only the way they start those skills and 
 | --- | --- | --- |
 | Start poteto-mode | Claude loads a small startup instruction that can route non-trivial work into it. You can also run `/pstack:poteto-mode` yourself. | Ask for `pstack:poteto-mode` by name. Codex does not load the Claude startup instruction. |
 | Runs inside the app | Claude models stay inside Claude Code. | The Sol model stays inside Codex. |
-| Other models | Codex and Grok run through their signed-in command-line tools. | Claude and Grok run through their signed-in command-line tools. |
+| Other models | Codex runs through its signed-in CLI; Grok runs through the signed-in Cursor CLI. | Claude runs through its signed-in CLI; Grok runs through the signed-in Cursor CLI. |
 | Skills and workflows | Shared with Codex. | Shared with Claude Code. |
 
 Grok can take part in a multi-model review. You cannot use Grok as the main app running pstack.
@@ -151,7 +159,7 @@ This repository also keeps:
 
 ## Staying close to Lauren's pstack
 
-Open Pstack 1.2.0 tracks pstack 0.14.3 at Cursor commit [`bdf7aa355337897f167153e05069aca505dae17c`](https://github.com/cursor/plugins/commit/bdf7aa355337897f167153e05069aca505dae17c).
+This fork's 1.3.0 builds on Open Pstack 1.2.0, which tracks pstack 0.14.3 at Cursor commit [`bdf7aa355337897f167153e05069aca505dae17c`](https://github.com/cursor/plugins/commit/bdf7aa355337897f167153e05069aca505dae17c).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Claude Code and Codex package built from it.
 
@@ -159,7 +167,7 @@ In this repository, “upstream” means Lauren's original pstack. Open Pstack d
 
 ## Contributing
 
-Fixes for Claude Code or Codex and help bringing over new pstack releases are welcome. Search [GitHub Issues](https://github.com/ericlitman/open-pstack/issues) before opening a new issue. For larger behavior changes, explain why the change belongs in Open Pstack instead of Lauren's original project.
+Issues about the `cursor` provider or anything else in this fork's delta belong in [this fork's issues](https://github.com/gannonh/open-pstack/issues). Everything else belongs in [Open Pstack's issues](https://github.com/ericlitman/open-pstack/issues), and new pstack behavior belongs in Lauren's original project whenever possible.
 
 Read [UPSTREAM.md](UPSTREAM.md) before changing content brought over from Lauren's pstack. Pull requests must keep one shared skill tree for Claude Code and Codex and pass the repository's tests, type checks, plugin validation, and static checks.
 

@@ -17,7 +17,7 @@ This is not a verbatim copy. Skill bodies have been edited so every Cursor-speci
 This repo ships as a Claude Code marketplace containing one plugin (`pstack`).
 
 ```text
-/plugin marketplace add ericlitman/open-pstack
+/plugin marketplace add gannonh/open-pstack
 /plugin install pstack@open-pstack
 /reload-plugins
 ```
@@ -29,7 +29,7 @@ The plugin auto-fires through a `SessionStart` hook on startup, `/clear`, and po
 The same plugin carries a `.codex-plugin/plugin.json` manifest and a root `.agents/plugins/marketplace.json`. Install it through the Codex marketplace:
 
 ```shell
-codex plugin marketplace add ericlitman/open-pstack --ref main
+codex plugin marketplace add gannonh/open-pstack --ref main
 codex plugin add pstack@open-pstack
 ```
 
@@ -43,7 +43,7 @@ multi_agent = true
 For local plugin development, you can clone the repository and link its skills directly:
 
 ```shell
-git clone https://github.com/ericlitman/open-pstack
+git clone https://github.com/gannonh/open-pstack
 cd open-pstack
 for s in plugins/pstack/skills/*/; do ln -s "$PWD/$s" ~/.agents/skills/"$(basename "$s")"; done
 ```
