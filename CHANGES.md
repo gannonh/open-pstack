@@ -2,6 +2,10 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## 1.3.0 (gannonh fork) syncs to Cursor pstack 0.14.8
+
+The fork tracks Cursor pstack 0.14.8 at `7314f723a487ec406b6369fe5865ba034cfed166`. The only pstack change after 0.14.7 is `7314f72`, which replaces `assets/logo.png` with a 512x512 image under 512 KiB; the shared asset is updated verbatim. The manifest version bump is Cursor's and does not change the open-pstack version.
+
 ## 1.3.0 (gannonh fork) routes the Grok family through Cursor's CLI
 
 The external runner gains a fourth provider, `cursor`, which invokes `cursor-agent` in print mode so a Cursor subscription can serve the Grok lanes without a standalone grok CLI. Cursor encodes reasoning effort in the model id, so the launcher composes `<model>-<effort>` (for example `cursor-grok-4.6-xhigh`), proves availability through the `cursor-agent models` listing before the model ever starts, and verifies the family stem from the stream-json init event's reported display name. Read-only maps to Cursor plan mode; isolated-write maps to `--force` inside the lane's dedicated worktree. The grok matrix row now pins `cursor:cursor-grok-4.6` with selectable efforts ending at `xhigh` because Cursor serves no `max` tier for that stem. The standalone `grok` provider remains supported for directly subscribed Grok Build CLIs. No fallback was added: a missing composed id is an `unavailable-model` dropout, and the launcher still never substitutes a provider.
