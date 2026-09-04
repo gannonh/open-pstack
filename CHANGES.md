@@ -2,9 +2,9 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
-## 1.3.0 (gannonh fork) syncs to Cursor pstack 0.14.8
+## 1.3.1 (gannonh fork) merges Open Pstack 1.3.0 and syncs to Cursor pstack 0.14.8
 
-The fork tracks Cursor pstack 0.14.8 at `7314f723a487ec406b6369fe5865ba034cfed166`. The only pstack change after 0.14.7 is `7314f72`, which replaces `assets/logo.png` with a 512x512 image under 512 KiB; the shared asset is updated verbatim. The manifest version bump is Cursor's and does not change the open-pstack version.
+The fork merges Open Pstack 1.3.0 (rolling `claude:fable` and `claude:opus` aliases, Cursor pstack 0.14.7) on top of its `cursor` provider and takes the next number so the fork and upstream release lines never share one. The fork tracks Cursor pstack 0.14.8 at `7314f723a487ec406b6369fe5865ba034cfed166`. The only pstack change after 0.14.7 is `7314f72`, which replaces `assets/logo.png` with a 512x512 image under 512 KiB; the shared asset is updated verbatim. The manifest version bump is Cursor's and does not change the open-pstack version.
 
 ## 1.3.0 (gannonh fork) routes the Grok family through Cursor's CLI
 

@@ -1,6 +1,6 @@
 # Upstream synchronization
 
-This fork (`gannonh/open-pstack`) tracks [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) as its direct upstream (`git remote add upstream https://github.com/ericlitman/open-pstack.git`), carrying the cursor-provider delta described in `CHANGES.md` 1.3.0 on top. The rest of this file documents how open-pstack itself tracks Lauren's original pstack.
+This fork (`gannonh/open-pstack`) tracks [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) as its direct upstream (`git remote add upstream https://github.com/ericlitman/open-pstack.git`), carrying the cursor-provider delta described in `CHANGES.md` (fork entries 1.3.0 and 1.3.1) on top. Fork versions increment past the upstream version they include so the two release lines never share a number. The rest of this file documents how open-pstack itself tracks Lauren's original pstack.
 
 open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main/pstack) while adapting Cursor-specific primitives for Claude Code and Codex.
 
@@ -12,9 +12,9 @@ open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main
 | Path | `pstack/` |
 | Commit | `7314f723a487ec406b6369fe5865ba034cfed166` |
 | Upstream version | `0.14.8` |
-| open-pstack version | `1.3.0` |
+| open-pstack version | `1.3.1` |
 
-The table above is the current Cursor sync point. This fork carries the 0.14.8 sync on top of Open Pstack 1.3.0. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
+The table above is the current Cursor sync point. Fork release 1.3.1 carries the 0.14.8 sync on top of Open Pstack 1.3.0. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
 
 ## Upstream-only exclusions
 
