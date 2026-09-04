@@ -18,7 +18,7 @@ const TOP_BOX = /^- \[[ xX]\] (.*)$/;
 /**
  * @typedef {object} PerfLead
  * @property {string} lead
- * @property {"nonempty" | "trunk-first" | "numeric"} payload
+ * @property {"nonempty" | "dual-sided" | "interleaved" | "trunk-first" | "numeric"} payload
  */
 
 /**
@@ -28,6 +28,7 @@ const TOP_BOX = /^- \[[ xX]\] (.*)$/;
  * @property {boolean} [opensWithRule]
  * @property {string} [save]
  * @property {string} [passWhen]
+ * @property {string} [regressionLane]
  * @property {readonly PerfLead[]} [leads]
  * @property {RegExp} [nonePattern]
  * @property {string} [gatedRest]
@@ -80,14 +81,15 @@ const PR_BLOCKS = Object.freeze([
     opensWithRule: true,
     save: "Save `",
     passWhen: "Pass when",
+    regressionLane: "Regression lane against trunk",
   },
   {
     name: "Verify, perf.",
     shape: "ordered-leads",
     opensWithRule: true,
     leads: [
-      { lead: "Metric.", payload: "nonempty" },
-      { lead: "Probe.", payload: "nonempty" },
+      { lead: "Metric.", payload: "dual-sided" },
+      { lead: "Probe.", payload: "interleaved" },
       { lead: "Baseline.", payload: "trunk-first" },
       { lead: "Rule.", payload: "numeric" },
     ],
@@ -264,6 +266,20 @@ function hasPayload(rest, kind) {
   switch (kind) {
     case "nonempty":
       return /[A-Za-z0-9<]/.test(rest);
+    case "dual-sided":
+      return (
+        /[A-Za-z0-9<]/.test(rest) &&
+        /\btrunk\b/i.test(rest) &&
+        /\bhead\b/i.test(rest)
+      );
+    case "interleaved":
+      return (
+        /[A-Za-z0-9<]/.test(rest) &&
+        /\btrunk\b/i.test(rest) &&
+        /\bhead\b/i.test(rest) &&
+        /\binterleaved\b/i.test(rest) &&
+        /\bmetric\b/i.test(rest)
+      );
     case "trunk-first":
       return (
         /[A-Za-z0-9<]/.test(rest) &&
@@ -274,6 +290,24 @@ function hasPayload(rest, kind) {
       return /\d/.test(rest);
     default:
       return true;
+  }
+}
+
+/**
+ * @param {PerfLead["payload"]} kind
+ */
+function payloadWhy(kind) {
+  switch (kind) {
+    case "numeric":
+      return "names no numeric failure threshold";
+    case "trunk-first":
+      return "names no trunk-first baseline";
+    case "dual-sided":
+      return "names no dual-sided trunk/head metric";
+    case "interleaved":
+      return "names no interleaved trunk/head probe";
+    default:
+      return "has no payload";
   }
 }
 
@@ -452,6 +486,17 @@ function checkLanes(prTitle, live, spec, fail) {
     }
     const laneNo = match[1];
     numbers.push(Number(laneNo));
+    const required = spec.regressionLane;
+    if (
+      Number(laneNo) === 1 &&
+      required !== undefined &&
+      (!lane.text.includes(required) || !/\bhead\b/i.test(lane.text))
+    ) {
+      fail(
+        lane.n,
+        `${prTitle}: lane 1 is not the regression lane against trunk`,
+      );
+    }
     if (!namedScreenshot(lane.text, save)) {
       fail(lane.n, `${prTitle}: lane ${laneNo} names no screenshot`);
     }
@@ -490,13 +535,7 @@ function checkOrderedLeads(prTitle, heading, spec, fail) {
     if (!specLead) continue;
     const rest = box.text.slice(specLead.lead.length).trim();
     if (hasPayload(rest, specLead.payload)) continue;
-    const why =
-      specLead.payload === "numeric"
-        ? "names no numeric failure threshold"
-        : specLead.payload === "trunk-first"
-          ? "names no trunk-first baseline"
-          : "has no payload";
-    fail(box.n, `${prTitle}: ${specLead.lead} ${why}`);
+    fail(box.n, `${prTitle}: ${specLead.lead} ${payloadWhy(specLead.payload)}`);
   }
 }
 

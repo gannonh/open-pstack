@@ -70,6 +70,7 @@ function contractPhrases(): string[] {
     if (block.leads) phrases.push(...block.leads.map((item) => item.lead));
     if (block.save) phrases.push(block.save);
     if (block.passWhen) phrases.push(block.passWhen);
+    if (block.regressionLane) phrases.push(block.regressionLane);
     if (block.gatedRest) phrases.push(block.gatedRest);
     if (block.gatedStarts) phrases.push(...block.gatedStarts);
     if (block.shape === "lanes") {
@@ -177,8 +178,8 @@ describe("check-plan", () => {
     );
     const mutated = replaceOnce(
       withLaneNest,
-      "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved.>\n",
-      "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved.>\n  - [ ] Warm the cache first.\n",
+      "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved. Both sides must produce the metric.>\n",
+      "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved. Both sides must produce the metric.>\n  - [ ] Warm the cache first.\n",
     );
     expect(problemsOf(mutated)).toEqual([]);
   });
@@ -186,8 +187,8 @@ describe("check-plan", () => {
   it("accepts capital-X checked boxes", () => {
     const mutated = replaceOnce(
       skeleton,
-      "- [ ] Lane 1. <Scenario.> Save `<slug>.png`. Pass when <predicate>.",
-      "- [X] Lane 1. <Scenario.> Save `<slug>.png`. Pass when <predicate>.",
+      "- [ ] Lane 1. Regression lane against trunk. Run <the same load-bearing scenario> at trunk and head. If trunk lacks the feature, record that and gate <the behavior the diff adds plus the end state the user waits for>. Save `<slug>.png`. Pass when <predicate>.",
+      "- [X] Lane 1. Regression lane against trunk. Run <the same load-bearing scenario> at trunk and head. If trunk lacks the feature, record that and gate <the behavior the diff adds plus the end state the user waits for>. Save `<slug>.png`. Pass when <predicate>.",
     );
     expect(problemsOf(mutated)).toEqual([]);
   });
@@ -340,6 +341,15 @@ describe("check-plan", () => {
       "live box is not a lane",
     ],
     [
+      "a generic Lane 1 in place of the trunk regression lane",
+      replaceOnce(
+        skeleton,
+        "- [ ] Lane 1. Regression lane against trunk. Run <the same load-bearing scenario> at trunk and head. If trunk lacks the feature, record that and gate <the behavior the diff adds plus the end state the user waits for>. Save `<slug>.png`. Pass when <predicate>.",
+        "- [ ] Lane 1. <Scenario.> Save `<slug>.png`. Pass when <predicate>.",
+      ),
+      "lane 1 is not the regression lane against trunk",
+    ],
+    [
       "a hard-coded Cursor Grok string",
       replaceOnce(
         skeleton,
@@ -350,7 +360,7 @@ describe("check-plan", () => {
     ],
     [
       "incomplete perf evidence",
-      replaceOnce(skeleton, "- [ ] Rule. <Head against trunk, with the number that fails, such as 20.>\n", ""),
+      replaceOnce(skeleton, "- [ ] Rule. <Head against trunk, with the number that fails, such as 20. If the scenarios differ, add absolute budgets for the diff-added work and the user-visible end state instead of an invalid ratio.>\n", ""),
       "perf boxes are",
     ],
     [
@@ -368,17 +378,39 @@ describe("check-plan", () => {
     ],
     [
       "an empty Metric payload",
-      replaceOnce(skeleton, "- [ ] Metric. <What is measured.>", "- [ ] Metric."),
-      "Metric. has no payload",
+      replaceOnce(
+        skeleton,
+        "- [ ] Metric. <What is measured at both trunk and head. If trunk lacks the feature, also name the diff-added work and the end-to-end state the user waits for.>",
+        "- [ ] Metric.",
+      ),
+      "Metric. names no dual-sided trunk/head metric",
+    ],
+    [
+      "a Metric payload that names only the head",
+      replaceOnce(
+        skeleton,
+        "- [ ] Metric. <What is measured at both trunk and head. If trunk lacks the feature, also name the diff-added work and the end-to-end state the user waits for.>",
+        "- [ ] Metric. p95 latency at head only.",
+      ),
+      "Metric. names no dual-sided trunk/head metric",
     ],
     [
       "an empty Probe payload",
       replaceOnce(
         skeleton,
-        "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved.>",
+        "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved. Both sides must produce the metric.>",
         "- [ ] Probe.",
       ),
-      "Probe. has no payload",
+      "Probe. names no interleaved trunk/head probe",
+    ],
+    [
+      "a Probe payload that runs only at head",
+      replaceOnce(
+        skeleton,
+        "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved. Both sides must produce the metric.>",
+        "- [ ] Probe. Run only at head.",
+      ),
+      "Probe. names no interleaved trunk/head probe",
     ],
     [
       "a Baseline without trunk-first wording",
@@ -393,7 +425,7 @@ describe("check-plan", () => {
       "a Rule without a numeric threshold",
       replaceOnce(
         skeleton,
-        "- [ ] Rule. <Head against trunk, with the number that fails, such as 20.>",
+        "- [ ] Rule. <Head against trunk, with the number that fails, such as 20. If the scenarios differ, add absolute budgets for the diff-added work and the user-visible end state instead of an invalid ratio.>",
         "- [ ] Rule. Head against trunk.",
       ),
       "Rule. names no numeric failure threshold",

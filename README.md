@@ -18,7 +18,7 @@ This repository is [gannonh](https://github.com/gannonh)'s fork of [ericlitman/o
 
 - **Grok runs through Cursor's CLI.** Upstream routes the Grok review lane through the standalone Grok Build CLI (`grok`), which requires its own Grok subscription. This fork adds a fourth `cursor` provider to the external model runner, so the Grok family runs through `cursor-agent` on a Cursor subscription instead. The descriptor is `cursor:cursor-grok-4.6@<effort>`; the runner invokes `cursor-agent -p --model cursor-grok-4.6-<effort>`, proves availability through the `cursor-agent models` listing before the model starts, and verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so its selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
 
-The change and its rationale are recorded in [CHANGES.md](CHANGES.md) under 1.3.0. The runner change lives on the [`feat/cursor-provider`](https://github.com/gannonh/open-pstack/tree/feat/cursor-provider) branch in a form intended for an upstream pull request; everything else here stays byte-identical to upstream to keep pulls cheap.
+The change and its rationale are recorded in [CHANGES.md](CHANGES.md) under the fork 1.3.0 and 1.3.1 entries. The runner change lives on the [`feat/cursor-provider`](https://github.com/gannonh/open-pstack/tree/feat/cursor-provider) branch in a form intended for an upstream pull request; everything else here stays byte-identical to upstream to keep pulls cheap.
 
 ## What pstack does
 
@@ -97,7 +97,9 @@ In Codex, ask:
 Use pstack:setup-pstack to configure pstack.
 ```
 
-Setup checks the models you can actually run, shows how each one will start, and asks before saving the choices. The current default group uses Fable 5, GPT-5.6 Sol, Grok 4.6 (through Cursor), and Opus 5.
+Setup checks the models you can actually run, shows how each one will start, and asks before saving the choices. The current default group uses Fable, GPT-5.6 Sol, Grok 4.6 (through Cursor), and Opus.
+
+An older model sheet starts using the rolling aliases in memory as soon as this release is installed. Run setup once after updating to persist that migration. It replaces versioned Fable and Opus entries while preserving every role assignment and effort selection.
 
 ### 2. Use poteto-mode
 
@@ -168,7 +170,7 @@ This repository also keeps:
 
 ## Staying close to Lauren's pstack
 
-This fork's 1.3.0 builds on Open Pstack 1.2.0, which tracks pstack 0.14.3 at Cursor commit [`bdf7aa355337897f167153e05069aca505dae17c`](https://github.com/cursor/plugins/commit/bdf7aa355337897f167153e05069aca505dae17c).
+Fork release 1.3.1 builds on Open Pstack 1.3.0 and tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Claude Code and Codex package built from it.
 

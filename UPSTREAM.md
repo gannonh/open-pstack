@@ -1,6 +1,6 @@
 # Upstream synchronization
 
-This fork (`gannonh/open-pstack`) tracks [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) as its direct upstream (`git remote add upstream https://github.com/ericlitman/open-pstack.git`), carrying the cursor-provider delta described in `CHANGES.md` 1.3.0 on top. The rest of this file documents how open-pstack itself tracks Lauren's original pstack.
+This fork (`gannonh/open-pstack`) tracks [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) as its direct upstream (`git remote add upstream https://github.com/ericlitman/open-pstack.git`), carrying the cursor-provider delta described in `CHANGES.md` (fork entries 1.3.0 and 1.3.1) on top. Fork versions increment past the upstream version they include so the two release lines never share a number. The rest of this file documents how open-pstack itself tracks Lauren's original pstack.
 
 open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main/pstack) while adapting Cursor-specific primitives for Claude Code and Codex.
 
@@ -10,11 +10,18 @@ open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main
 | --- | --- |
 | Repository | `https://github.com/cursor/plugins.git` |
 | Path | `pstack/` |
-| Commit | `bdf7aa355337897f167153e05069aca505dae17c` |
-| Upstream version | `0.14.3` |
-| open-pstack version | `1.3.0` |
+| Commit | `7314f723a487ec406b6369fe5865ba034cfed166` |
+| Upstream version | `0.14.8` |
+| open-pstack version | `1.3.1` |
 
-The table above is the current Cursor sync point. Open Pstack 1.2.0 consolidates this 0.14.3 sync. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
+The table above is the current Cursor sync point. Fork release 1.3.1 carries the 0.14.8 sync on top of Open Pstack 1.3.0. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
+
+## Upstream-only exclusions
+
+- Commits `799151d` and `6fecddb` add and relocate `make-bot-ui`. It depends on Cursor routines, webhook events, and UI primitives that Claude Code and Codex do not share.
+- Four `disable-model-invocation: true` lines from `73f8be4` are not applied to `how`, `why`, `unslop`, or `typescript-best-practices`. Poteto-mode invokes those skills by name, and the flag blocks that route on Claude Code.
+- The `23a56e2` default-model hunks for `bug-fix`, `perf-issue`, and `hillclimb` are not applied. Those frequent code-writing roles stay on `codex:gpt-5.6-sol@max` for cost.
+- The Claude manifest does not take the logo field from `efa2a53` because Claude Code has no schema for it. The shared asset is exposed through the Codex manifest instead.
 
 ## Check for changes
 
@@ -28,8 +35,8 @@ Fetch and inspect only commits that touched pstack after the recorded sync point
 
 ```shell
 git fetch cursor main
-git log --oneline bdf7aa355337897f167153e05069aca505dae17c..cursor/main -- pstack
-git diff --stat bdf7aa355337897f167153e05069aca505dae17c..cursor/main -- pstack
+git log --oneline 7314f723a487ec406b6369fe5865ba034cfed166..cursor/main -- pstack
+git diff --stat 7314f723a487ec406b6369fe5865ba034cfed166..cursor/main -- pstack
 ```
 
 No output means the tracked pstack tree has not changed. This comparison does not need a polling service or generated mirror branch.
