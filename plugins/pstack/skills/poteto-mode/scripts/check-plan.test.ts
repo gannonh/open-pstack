@@ -70,6 +70,7 @@ function contractPhrases(): string[] {
     if (block.leads) phrases.push(...block.leads.map((item) => item.lead));
     if (block.save) phrases.push(block.save);
     if (block.passWhen) phrases.push(block.passWhen);
+    if (block.regressionLane) phrases.push(block.regressionLane);
     if (block.gatedRest) phrases.push(block.gatedRest);
     if (block.gatedStarts) phrases.push(...block.gatedStarts);
     if (block.shape === "lanes") {
@@ -340,6 +341,15 @@ describe("check-plan", () => {
       "live box is not a lane",
     ],
     [
+      "a generic Lane 1 in place of the trunk regression lane",
+      replaceOnce(
+        skeleton,
+        "- [ ] Lane 1. Regression lane against trunk. Run <the same load-bearing scenario> at trunk and head. If trunk lacks the feature, record that and gate <the behavior the diff adds plus the end state the user waits for>. Save `<slug>.png`. Pass when <predicate>.",
+        "- [ ] Lane 1. <Scenario.> Save `<slug>.png`. Pass when <predicate>.",
+      ),
+      "lane 1 is not the regression lane against trunk",
+    ],
+    [
       "a hard-coded Cursor Grok string",
       replaceOnce(
         skeleton,
@@ -373,7 +383,16 @@ describe("check-plan", () => {
         "- [ ] Metric. <What is measured at both trunk and head. If trunk lacks the feature, also name the diff-added work and the end-to-end state the user waits for.>",
         "- [ ] Metric.",
       ),
-      "Metric. has no payload",
+      "Metric. names no dual-sided trunk/head metric",
+    ],
+    [
+      "a Metric payload that names only the head",
+      replaceOnce(
+        skeleton,
+        "- [ ] Metric. <What is measured at both trunk and head. If trunk lacks the feature, also name the diff-added work and the end-to-end state the user waits for.>",
+        "- [ ] Metric. p95 latency at head only.",
+      ),
+      "Metric. names no dual-sided trunk/head metric",
     ],
     [
       "an empty Probe payload",
@@ -382,7 +401,16 @@ describe("check-plan", () => {
         "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved. Both sides must produce the metric.>",
         "- [ ] Probe.",
       ),
-      "Probe. has no payload",
+      "Probe. names no interleaved trunk/head probe",
+    ],
+    [
+      "a Probe payload that runs only at head",
+      replaceOnce(
+        skeleton,
+        "- [ ] Probe. <The command or procedure, run at trunk and at the head, interleaved. Both sides must produce the metric.>",
+        "- [ ] Probe. Run only at head.",
+      ),
+      "Probe. names no interleaved trunk/head probe",
     ],
     [
       "a Baseline without trunk-first wording",
