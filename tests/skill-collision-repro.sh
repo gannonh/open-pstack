@@ -45,15 +45,27 @@ else
   fail=1
 fi
 
-# Cataloged Claude rolling aliases remain the shipped Claude Fable/Opus
-# selectors. Tests may mention uncataloged predecessor pins.
+# Shipped Claude Fable/Opus configuration may name only cataloged selectors:
+# the rolling aliases or an explicit version the catalog lists. Uncataloged
+# predecessor pins fail. Tests may still mention them.
+uncataloged_claude_pins() {
+  python3 -c '
+import json, pathlib, re, sys
+catalog = json.loads(pathlib.Path(sys.argv[1]).read_text())
+cataloged = {o["selector"] for o in catalog["offerings"] if o["provider"] == "claude"}
+pin = re.compile(r"claude-(?:fable|opus)-[0-9][a-z0-9.-]*(?:\[[a-z0-9]+\])?")
+for line in sys.stdin:
+    if any(selector not in cataloged for selector in pin.findall(line)):
+        sys.stdout.write(line)
+' "$repo/plugins/pstack/catalog/models.json"
+}
 legacy_model_pins="$(
   grep -REn \
     --include='*.md' --include='*.ts' --include='*.sh' \
     --exclude='*.test.ts' --exclude='*.test.js' \
     'claude:claude-(fable|opus)-[0-9]|^model: claude-(fable|opus)-[0-9]|--model claude-(fable|opus)-[0-9]' \
     "$repo/plugins/pstack" "$repo/tests" "$repo/README.md" "$repo/docs" \
-    2>/dev/null || true
+    2>/dev/null | uncataloged_claude_pins || true
 )"
 standalone_code_pins="$(
   grep -REn \
@@ -61,7 +73,7 @@ standalone_code_pins="$(
     --exclude='*.test.ts' --exclude='*.test.js' \
     "['\"]claude-(fable|opus)-[0-9]" \
     "$repo/plugins/pstack" \
-    2>/dev/null || true
+    2>/dev/null | uncataloged_claude_pins || true
 )"
 if [ -n "$legacy_model_pins" ] || [ -n "$standalone_code_pins" ]; then
   note "FAIL: shipped Claude Fable or Opus configuration still pins an uncataloged revision:"
@@ -80,7 +92,7 @@ catalog_roles="$repo/plugins/pstack/catalog/role-defaults.json"
 workflow_slug_hits="$(
   grep -REn \
     --include='SKILL.md' --include='*.md' \
-    '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' \
+    '(claude|codex|grok|cursor):[][a-z0-9.-]+@[a-z][a-z0-9-]*' \
     "$repo/plugins/pstack/skills/arena" \
     "$repo/plugins/pstack/skills/architect" \
     "$repo/plugins/pstack/skills/how" \
@@ -362,7 +374,7 @@ case "$sol_descriptor" in
 esac
 for role in bug-fix perf-issue hillclimb; do
   role_playbook="$plugin/skills/poteto-mode/playbooks/$role.md"
-  if grep -Eq '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' "$role_playbook"; then
+  if grep -Eq '(claude|codex|grok|cursor):[][a-z0-9.-]+@[a-z][a-z0-9-]*' "$role_playbook"; then
     solo_code_bad="${solo_code_bad}${role_playbook} still copies a model descriptor"$'\n'
   fi
 done
@@ -394,6 +406,21 @@ if [ -n "$logo_bad" ]; then
   fail=1
 else
   note "ok: codex logo path resolves"
+fi
+
+# The shipped catalog, role defaults, canonical format, and generated
+# Claude-native agents must agree. pstack-models validate never writes.
+if command -v bun >/dev/null 2>&1; then
+  if validate_out="$(bun "$plugin/skills/poteto-mode/scripts/runner/pstack-models" validate 2>&1)"; then
+    note "ok: pstack-models validate ($validate_out)"
+  else
+    note "FAIL: pstack-models validate"
+    note "$validate_out"
+    fail=1
+  fi
+else
+  note "FAIL: bun is required to run pstack-models validate"
+  fail=1
 fi
 
 if [ "${PSTACK_STATIC_ONLY:-0}" = "1" ]; then

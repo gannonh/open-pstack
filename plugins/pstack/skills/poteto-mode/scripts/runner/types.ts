@@ -1,12 +1,19 @@
 export const PARENTS = ["claude", "codex"] as const;
 export const PROVIDERS = ["claude", "codex", "grok", "cursor"] as const;
-export const EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
 export const ACCESS_MODES = ["read-only", "isolated-write"] as const;
+
+// Each catalog offering defines its own effort identifiers. The runner only
+// requires a safe token here; membership is checked against the bound offering.
+export const EFFORT_RE = /^[a-z][a-z0-9-]*$/;
 
 export type Parent = (typeof PARENTS)[number];
 export type Provider = (typeof PROVIDERS)[number];
-export type Effort = (typeof EFFORTS)[number];
+export type Effort = string;
 export type AccessMode = (typeof ACCESS_MODES)[number];
+
+export function isEffortIdentifier(value: string): value is Effort {
+  return EFFORT_RE.test(value);
+}
 
 export interface RunnerOptions {
   readonly parent: Parent;

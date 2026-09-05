@@ -31,6 +31,8 @@ import { UsageError } from "./types.ts";
 const ERROR_EVIDENCE_LIMIT = 4_000;
 const GROK_PREFLIGHT_RETRY_DELAY_MS = 5_000;
 const MAX_TIMER_DELAY_MS = 2_147_483_647;
+export const AUTH_FAILURE_RE =
+  /not logged in|unauthenticated|authentication|sign in|login required/i;
 
 interface ProcessResult {
   readonly exitCode: number | null;
@@ -56,7 +58,7 @@ export interface RunResult {
   readonly receipt: RunnerReceipt;
 }
 
-function evidence(value: string): string {
+export function evidence(value: string): string {
   return value.trim().slice(0, ERROR_EVIDENCE_LIMIT);
 }
 
@@ -390,7 +392,7 @@ function successfulPreflightEvidence(provider: Provider, model: string): string 
 }
 
 function unavailableStatus(value: string): ReceiptStatus {
-  if (/not logged in|unauthenticated|authentication|sign in|login required/i.test(value)) {
+  if (AUTH_FAILURE_RE.test(value)) {
     return "unauthenticated";
   }
   if (/model.{0,40}(not found|unknown|unavailable|unsupported|not supported|invalid)|invalid.{0,20}model/i.test(value)) {

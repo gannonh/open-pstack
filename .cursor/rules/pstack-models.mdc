@@ -2,23 +2,25 @@
 description: pstack per-role model choices (overrides skill defaults)
 alwaysApply: true
 ---
-# pstack model configuration. One line per role. Delete a line to fall back to the skill default.
-# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.
-feature, refactoring: cursor-grok-4.6-xhigh
-bug-fix: claude-fable-5-1-thinking-xhigh
-perf-issue: claude-fable-5-1-thinking-xhigh
-hillclimb: claude-fable-5-1-thinking-xhigh
-judgment and prose: claude-fable-5-1-thinking-xhigh
-hardest tasks: claude-fable-5-1-thinking-xhigh
-how explorer: cursor-grok-4.6-xhigh
-how explainer: claude-fable-5-1-thinking-xhigh
-how critics: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
-why investigators: cursor-grok-4.6-xhigh
-why synthesizer: claude-fable-5-1-thinking-xhigh
-reflect tooling: claude-fable-5-1-thinking-xhigh
-reflect judgment, divergent, synthesizer: claude-fable-5-1-thinking-xhigh
-arena runners: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
-arena cross-judge pool: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
-swarm workers: cursor-grok-4.6-xhigh
-architect runners: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
-interrogate reviewers: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
+<!-- pstack:models:begin -->
+# pstack model configuration
+
+Provider-qualified per-role choices. Read the installed pstack provider-dispatch reference before dispatching a configured role. Every documented role remains present. `inherit-parent` and `auto` use the parent model natively and still count as one panel lane.
+
+feature, refactoring: cursor:cursor-grok-4.6@xhigh
+bug-fix: codex:gpt-5.6-sol@max
+perf-issue: codex:gpt-5.6-sol@max
+hillclimb: codex:gpt-5.6-sol@max
+judgment and prose: codex:gpt-6-astra@high
+hardest tasks: codex:gpt-6-astra@max
+how explorer: cursor:cursor-grok-4.6@xhigh
+how explainer: cursor:claude-fable-5-1@high
+how critics: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+why investigators, synthesizer: inherit-parent
+reflect tooling, judgment, divergent, synthesizer: inherit-parent
+arena runners: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+arena cross-judge pool: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+swarm workers: cursor:cursor-grok-4.6@xhigh
+architect runners: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+interrogate reviewers: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+<!-- pstack:models:end -->

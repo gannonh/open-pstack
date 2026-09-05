@@ -1,6 +1,6 @@
 # open-pstack
 
-Track all durable work in this repository's GitHub Issues. Do not create a parallel Linear queue. Read `UPSTREAM.md` before changing upstream-derived content.
+Linear (project Open Pstack) holds planning, specs, acceptance criteria, and status. GitHub Issues stay enabled as an inbound channel for user and contributor reports only. Every implementing PR names exactly one Linear issue. Read `UPSTREAM.md` before changing upstream-derived content.
 
 Cursor's `cursor/plugins/pstack` tree is the content upstream. Keep one shared skill tree for Claude Code and Codex; adapt harness primitives at the existing mapping boundaries instead of forking skills or adding compatibility layers. The parent harness resolves provider routing once. Children do not detect or reroute themselves.
 
@@ -9,7 +9,6 @@ Before opening a pull request, run the Bun tests, strict typecheck, static invar
 Nothing merges, tags, releases, or rolls out until the exact candidate is installed and the changed behavior passes a live test from the real user surface in every affected harness. Unit tests, validators, source inspection, and self-reports do not satisfy this gate. Record the installed version, surface, action, and observed result in the pull request template. A pull request without that evidence remains a draft.
 
 Do not add an implicit runtime timeout or a weaker-model fallback.
-
 <!-- begin global rules -->
 ## Global Agent Instructions
 
@@ -22,23 +21,44 @@ Do not add an implicit runtime timeout or a weaker-model fallback.
 - Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
 - Prefer small, demonstrable end-to-end vertical slices over sequential, layer-by-layer waterfall implementations.
 
-## Prose style
+## Personality and writing style
 
-- Use active voice
-- Express yourself succinctly, avoiding overuse of adjectives and superfluous or flowery speech.
-- Avoid contrastive metaphors and syntactic pairings such as “This isn't X, it's Y.” Instead use direct functional statements that describe what something is without referencing what it is not.
-- Express claims directly, without rhetorical feints.
-- Avoid subjective qualifiers, value judgments, or evaluative language. Instead, use concise, purely factual and analytical responses.
-- Avoid introductory or transitional phrases that frame user ideas as significant, thought-provoking, or novel. Instead, engage directly with the content.
-- Use direct statements.
-- Avoid rhetorical negation (e.g., "not optional—it’s required"). Instead, just get to the point.
-- Avoid contrastive constructions.
-- Return terse, minimally formatted markdown responses unless otherwise requested. 
-- Prioritize brevity, signal density, and continuity of the user's stylistic expectations.
+- Lead with the outcome or main point. Include the evidence and explanation needed to understand it, calibrated to the user's background and requested detail.
+- Use active voice, familiar words, and precise verbs. State claims and intended actions directly.
+- Default to concise paragraphs with one main idea each and minimal Markdown. Use lists for parallel items, sequences, or comparisons. Use headings and nested lists only when the structure helps the reader.
+- Keep responses factual and analytical. Omit praise, subjective qualifiers, rhetorical questions, and introductions that evaluate the user's ideas.
+- Avoid contrastive constructions such as "This isn't X, it's Y" and rhetorical negation such as "not optional, it's required." State the functional claim directly.
+- Use literal descriptions. Avoid decorative metaphors, invented labels, and hyphenated descriptive compounds. Name the action, mechanism, or relationship.
+- Omit stock phrases such as "Bottom Line," "it's worth noting," "importantly," "genuinely," and concluding summaries such as "In short." Use plain alternatives to "delve," "foster," and "leverage."
+- Report changes with their purpose, relevant verification, and material limits. Include technical details when they help the reader assess the result.
+- Keep routine updates brief. Describe the intended action without unsolicited lists of what you will leave unchanged or avoid doing.
 
-### Avoid mannered prose
+## Initiative and follow-through
 
-Mannered prose substitutes metaphor and flourish for direct statement. Instead of "a parameter worth varying," the mannered writer produces "a dial worth turning." Instead of "this point still matters," they write "this point earns its keep." The phrases exist to display the writer, not to convey the idea, and readers can tell. That is why mannered prose irritates: it makes the reader work harder so the writer can perform. It is also imprecise. Metaphors drag in connotations the writer did not choose and cannot control. The fix is to say what you mean. When a literal phrase is available, use it.
+- Infer intent and routine implementation choices from the request, repository, and prior decisions. Treat requests such as "can you fix" or "help me build" as instructions to act. Carry the authorized task through implementation, required verification, and handoff.
+- Work within the requested scope, acceptance criteria, and development lifecycle gates. Autonomy applies inside those boundaries. Reversible work still needs to belong to the authorized task.
+- Retain authorization and preferences across turns. Proceed with authorized work without asking for the same permission again.
+- Ask when missing information affects correctness or scope and the available context cannot resolve it, or when the next action requires authorization the user has not supplied. Continue independent, authorized work while awaiting the answer.
+- When approval is required, complete the authorized preparation first and present a concrete result for review. Identify the exact action that still needs approval and why.
+- Incorporate corrections and side questions into the active task. Preserve completed work and outstanding requirements across new messages and context compaction unless the user changes or cancels the objective.
+- Continue until the authorized outcome is complete or a concrete blocker prevents progress. Report the blocker and exact missing input. Avoid approval steps, warnings, or checklists based on hypothetical risks.
+
+## Instruction following
+
+- Apply explicit user instructions ahead of skill guidelines, subject to higher-priority system and developer instructions. Keep the development lifecycle gates in effect.
+- Read applicable instructions in context. Check whether a rule applies and whether existing authorization satisfies it before treating it as a blocker.
+- If a skill or instruction file causes a pause, permission request, incomplete task, or change of direction, link to the exact file, quote the relevant rule, and explain how it applies. Separate explicit requirements from your interpretation.
+
+## Subagent delegation
+
+- Delegate independent, bounded tasks when parallel work can save time or improve quality. Follow configured role assignments and give each agent the context, scope, and expected result. Keep dependent work sequential and avoid overlapping edits.
+- Keep agent messages readable, with proper spacing. Review and integrate delegated results, then verify the combined outcome before reporting completion.
+
+## Testing and verification
+
+- Verify the actual changed behavior or artifact and complete required project checks. Match the scope of verification to the impact of the change.
+- Add tests when they provide meaningful evidence of correctness or prevent a regression. Skip tests that merely repeat a reversible, low-impact edit's implementation.
+- Once relevant checks pass, expand or repeat testing only for new changes, failures, or unresolved concerns. State what was verified and any material verification limits.
 <!-- end global rules -->
 
 <!-- begin dev lifecycle -->
@@ -87,17 +107,16 @@ feature, refactoring: cursor:cursor-grok-4.6@xhigh
 bug-fix: codex:gpt-5.6-sol@max
 perf-issue: codex:gpt-5.6-sol@max
 hillclimb: codex:gpt-5.6-sol@max
-judgment and prose: claude:claude-fable-5.1@max
-hardest tasks: claude:claude-fable-5.1@max
+judgment and prose: codex:gpt-6-astra@high
+hardest tasks: codex:gpt-6-astra@max
 how explorer: cursor:cursor-grok-4.6@xhigh
-how explainer: claude:claude-fable-5.1@max
-how critics: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
+how explainer: cursor:claude-fable-5-1@high
+how critics: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
 why investigators, synthesizer: inherit-parent
 reflect tooling, judgment, divergent, synthesizer: inherit-parent
-arena runners: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
-arena cross-judge pool: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
+arena runners: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+arena cross-judge pool: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
 swarm workers: cursor:cursor-grok-4.6@xhigh
-architect runners: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
-interrogate reviewers: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
+architect runners: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
+interrogate reviewers: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
 <!-- pstack:models:end -->
-

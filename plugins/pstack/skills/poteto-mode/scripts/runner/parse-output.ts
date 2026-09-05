@@ -1,5 +1,8 @@
 import { findOffering, loadModelCatalog } from "./catalog.ts";
-import { concreteClaudeRevisionMatchesRollingSelector } from "./model-aliases.ts";
+import {
+  concreteClaudeRevisionMatchesExplicitSelector,
+  concreteClaudeRevisionMatchesRollingSelector,
+} from "./model-aliases.ts";
 import type {
   NormalizedUsage,
   ParsedOutput,
@@ -241,6 +244,7 @@ export function reportedModelMatches(
     if (offering?.rollingAlias === true) {
       return concreteClaudeRevisionMatchesRollingSelector(offering.selector, reported);
     }
+    return concreteClaudeRevisionMatchesExplicitSelector(requested, reported);
   }
   const requestedN = comparableModel(requested);
   const reportedN = comparableModel(reported);

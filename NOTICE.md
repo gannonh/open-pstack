@@ -50,7 +50,11 @@ Files authored for this port (not derived from upstream):
 - `plugins/pstack/skills/poteto-mode/scripts/check-plan.test.ts`
 - `plugins/pstack/skills/babysit/SKILL.md` (independently authored; workflow informed by Cursor's public `/babysit` behavior)
 - `plugins/pstack/catalog/` (canonical model offerings and first-run role map)
-- `plugins/pstack/agents/pstack-fable-*.md` and `plugins/pstack/agents/pstack-opus-*.md` (Claude-native frontier lanes generated from the catalog)
+- `plugins/pstack/agents/pstack-*.md` (Claude-native lanes generated from the catalog for every Claude offering and supported effort)
+- `plugins/pstack/skills/poteto-mode/scripts/runner/discover.ts` and `discover.test.ts` (provider discovery adapters; original open-pstack fork work, MIT)
+- `plugins/pstack/skills/poteto-mode/scripts/runner/inventory.ts` and `inventory.test.ts` (discovery inventory shape and rendering; original open-pstack fork work, MIT)
+- `plugins/pstack/skills/poteto-mode/scripts/runner/catalog-edit.ts` and `catalog-edit.test.ts` (catalog add, edit, remove, diff, validation, and readback writes; original open-pstack fork work, MIT)
+- `plugins/pstack/skills/poteto-mode/scripts/runner/models-cli.ts`, `models-cli.test.ts`, and `pstack-models` (the `pstack-models` Commander program and its Bun wrapper; original open-pstack fork work, MIT)
 - `plugins/pstack/hooks/hooks.json`, `plugins/pstack/hooks/session-start`, and `plugins/pstack/hooks/session-start-context.md` (the auto-fire hook and its mandate)
 - `NOTICE.md` (this file)
 - `README.md`

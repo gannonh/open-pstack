@@ -2,9 +2,9 @@ import { parseArgs as parseNodeArgs } from "node:util";
 import { resolvedOptions, runLane } from "./run.ts";
 import {
   ACCESS_MODES,
-  EFFORTS,
   PARENTS,
   PROVIDERS,
+  isEffortIdentifier,
   type AccessMode,
   type Effort,
   type Parent,
@@ -14,14 +14,16 @@ import {
 } from "./types.ts";
 
 const HELP = `Usage: pstack-runner --parent <claude|codex> --provider <claude|codex|grok|cursor> \\
-  --model <slug> --effort <level> --mode <read-only|isolated-write> \\
+  --model <catalog selector> --effort <catalog effort> --mode <read-only|isolated-write> \\
   --prompt <file> --cwd <dir> --output <file> --receipt <file> [--timeout <seconds>]
 
 Runs exactly one external model lane. Same-provider calls are rejected; use the
-parent harness's native subagent primitive for those lanes. Output and receipt
-paths must not already exist. There is no implicit timeout. Pass --timeout only
-when the user or task supplies a real deadline; it is one end-to-end launcher
-deadline shared by setup, preflight, and model execution.
+parent harness's native subagent primitive for those lanes. The model and effort
+must be a cataloged offering and one of its supportedEfforts (catalog/models.json);
+an unlisted pair is an unavailable-model receipt. Output and receipt paths must
+not already exist. There is no implicit timeout. Pass --timeout only when the
+user or task supplies a real deadline; it is one end-to-end launcher deadline
+shared by setup, preflight, and model execution.
 `;
 
 interface Io {
@@ -50,6 +52,16 @@ function required(name: string, value: string | undefined): string {
     throw new UsageError(`${name} is required`);
   }
   return value;
+}
+
+function effortIdentifier(value: string | undefined): Effort {
+  const effort = required("effort", value);
+  if (!isEffortIdentifier(effort)) {
+    throw new UsageError(
+      `effort must be a catalog effort identifier (lowercase letters, digits, hyphens): ${effort}`
+    );
+  }
+  return effort;
 }
 
 function stringValue(value: unknown): string | undefined {
@@ -98,7 +110,7 @@ export function parseArgs(argv: readonly string[]): RunnerOptions | null {
     parent: oneOf("parent", stringValue(parsed.values.parent), PARENTS) as Parent,
     provider: oneOf("provider", stringValue(parsed.values.provider), PROVIDERS) as Provider,
     model: required("model", stringValue(parsed.values.model)),
-    effort: oneOf("effort", stringValue(parsed.values.effort), EFFORTS) as Effort,
+    effort: effortIdentifier(stringValue(parsed.values.effort)),
     mode,
     promptPath: required("prompt", stringValue(parsed.values.prompt)),
     cwd: required("cwd", stringValue(parsed.values.cwd)),

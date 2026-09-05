@@ -4,7 +4,7 @@
     {
       "id": "claude-fable",
       "family": "fable",
-      "displayName": "Fable 5.1",
+      "displayName": "Fable",
       "provider": "claude",
       "selector": "fable",
       "selectorComposition": "effort-flag",
@@ -15,7 +15,7 @@
       "rollingAlias": true,
       "deprecated": false,
       "successorId": null,
-      "notes": "Claude rolling alias. Claude Code resolves it to the current Fable 5.1 revision. Display name and selector differ."
+      "notes": "Claude rolling alias. The served revision is discovery or execution evidence, not catalog data. Display name and selector differ."
     },
     {
       "id": "cursor-fable-5-1",
@@ -95,7 +95,39 @@
       "rollingAlias": true,
       "deprecated": false,
       "successorId": null,
-      "notes": "Claude rolling alias. Claude Code resolves it to the latest Opus family revision."
+      "notes": "Claude rolling alias. The served Opus revision is discovery or execution evidence, not catalog data."
+    },
+    {
+      "id": "codex-gpt-6-astra",
+      "family": "astra",
+      "displayName": "GPT-6 Astra",
+      "provider": "codex",
+      "selector": "gpt-6-astra",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max", "ultra"],
+      "defaultEffort": "medium",
+      "nativeAgentStem": null,
+      "nativeAgentTitle": null,
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Recorded from the Codex model cache inspected during KAT-3235 planning on 2026-09-05 (efforts low, medium, high, xhigh, max, ultra; default medium). Reconfirm with pstack-models discover --provider codex before release."
+    },
+    {
+      "id": "claude-claude-fable-5-1-1m",
+      "family": "fable",
+      "displayName": "Fable 5.1",
+      "provider": "claude",
+      "selector": "claude-fable-5-1[1m]",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "max",
+      "nativeAgentStem": "fable-5-1-1m",
+      "nativeAgentTitle": "pstack Fable 5.1 (1M context) lane",
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Explicit Claude version with the 1M context modifier passed unchanged. Advertised as Fable 5.1 in Claude's initialize response during KAT-3235 planning on 2026-09-05. Reconfirm with pstack-models discover --provider claude before release."
     }
   ],
   "legacyMigrations": [

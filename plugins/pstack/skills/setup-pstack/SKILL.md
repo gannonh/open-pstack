@@ -48,13 +48,18 @@ Parse every non-alias value as `<provider>:<model>@<effort>`. Bind it to exactly
 
 An unmatched provider/model, out-of-domain effort, duplicate role, or unknown role is inconsistent state. Stop, show the conflicting rows verbatim, and ask for an explicit cataloged replacement. Mixed efforts across roles or lanes are valid. Do not invent a precedence rule. Do not probe or write while any inconsistency is unresolved.
 
+Enumerate offerings from the catalog at run time. A newly cataloged offering appears in this step without a skill change.
+
 Show:
 
 - Every current role and lane with its verbatim descriptor
-- Every catalog offering grouped by `displayName` / family, including alternate providers for the same logical model, each offering's selector, supported efforts, and default effort
+- Every catalog offering grouped by family, including alternate providers for the same logical model. For each offering show its label (a rolling alias is labeled "(rolling alias)"), its selector, its supported efforts in catalog order, its default effort, and the copyable `provider:selector@effort` value for every supported effort
 - Deprecated offerings with their successor, if any
+- Resolution evidence for a rolling alias, only when it is available. Advertised evidence comes from a discovery inventory the operator supplies. Observed evidence comes from a probe receipt's `reportedModel`. Show each with its source and time. Otherwise print unknown. Never invent a resolution.
 
 Do not hide a cataloged Cursor offering when a Claude offering shares the same display name, or the reverse.
+
+A hand-edited descriptor is validated by the same catalog binding as a selection made here. An offering that appears only in a discovery inventory, or that discovery reported as unsupported or unrepresentable, is not selectable. Do not guess a replacement selector for it. It becomes selectable when a maintainer catalogs it with `pstack-models add`.
 
 ### 4. Collect named role and lane edits
 
