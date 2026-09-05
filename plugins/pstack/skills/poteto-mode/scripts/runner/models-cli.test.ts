@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -9,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { PLUGIN_ROOT } from "./catalog.ts";
 import { membershipOf, supportedDescriptor, type Inventory } from "./inventory.ts";
 import {
@@ -317,7 +318,7 @@ describe("pstack-models usage", () => {
     expect(unknownFlag.stderr.join("")).toContain("error:");
   });
 
-  it("renders discover --help without importing discover", async () => {
+  it("renders discover --help", async () => {
     const { stdout, stderr, io } = harness();
     expect(await main(["discover", "--help"], io)).toBe(0);
     const text = stdout.join("");
@@ -327,15 +328,54 @@ describe("pstack-models usage", () => {
     expect(text).toContain("--output");
     expect(text).toContain("--timeout");
     expect(stderr).toEqual([]);
-    expect(existsSync(join(import.meta.dir, "discover.ts"))).toBe(false);
   });
 
-  it("rejects unknown discover providers with exit 64 before import", async () => {
+  it("rejects unknown discover providers with exit 64", async () => {
     const { stdout, stderr, io } = harness();
     expect(await main(["discover", "--provider", "openai"], io)).toBe(64);
     expect(stdout).toEqual([]);
     expect(stderr.join("")).toContain("must be one of: claude|codex|cursor|grok");
-    expect(existsSync(join(import.meta.dir, "discover.ts"))).toBe(false);
+  });
+
+  it("discover writes an incomplete inventory, exits 3, and leaves the catalog untouched", async () => {
+    const root = copyPluginTree();
+    const bin = mkdtempSync(join(tmpdir(), "pstack-models-bin-"));
+    scratches.push(bin);
+    writeFileSync(
+      join(bin, "grok"),
+      `#!/usr/bin/env bun
+console.log("You are logged in with grok.com.\\nAvailable models:\\n  * grok-4.6 (default)\\n  * grok-5");
+`
+    );
+    chmodSync(join(bin, "grok"), 0o755);
+    const previousPath = process.env.PATH;
+    // Keep bun resolvable for the fake's shebang; cursor-agent stays absent
+    // because no real provider CLI is installed where the suite runs.
+    process.env.PATH = `${bin}:${dirname(process.execPath)}`;
+    const before = readFileSync(catalogFilePath(root));
+    const output = join(bin, "inventory.json");
+    try {
+      const { stdout, io } = harness(root);
+      expect(
+        await main(["discover", "--provider", "grok", "--provider", "cursor", "--output", output], io)
+      ).toBe(3);
+      const text = stdout.join("");
+      expect(text).toContain("INCOMPLETE");
+      expect(text).toContain("grok: ok");
+      expect(text).toContain("cursor: unavailable-cli");
+      expect(text).toContain("membership: grok-grok-4-6");
+      expect(text).toContain("pstack-models add grok:grok-5 --from <inventory>");
+      const inventory = JSON.parse(readFileSync(output, "utf8")) as Inventory;
+      expect(inventory.complete).toBe(false);
+      expect(inventory.providers.map((row) => row.status)).toEqual(["ok", "unavailable-cli"]);
+      expect(readFileSync(catalogFilePath(root)).equals(before)).toBe(true);
+
+      const again = harness(root);
+      expect(await main(["discover", "--provider", "grok", "--output", output], again.io)).toBe(1);
+      expect(again.stderr.join("")).toContain("refusing to overwrite");
+    } finally {
+      process.env.PATH = previousPath;
+    }
   });
 });
 

@@ -167,6 +167,12 @@ export function proposeFromInventory(
     selectorComposition: entry.descriptor.selectorComposition,
     notes,
   };
+  // An advertised resolution to a different id is direct evidence of an
+  // alias; without one the adapter's selector-shape proposal stands.
+  if (entry.provider === "claude" && entry.resolution !== null) {
+    proposal.rollingAlias = entry.resolution.resolvedModel !== entry.providerId;
+    if (proposal.rollingAlias) proposal.family = entry.providerId;
+  }
   if (entry.displayName !== null) {
     proposal.displayName = entry.displayName;
     if (entry.provider === "claude") {
@@ -665,6 +671,8 @@ function partsEndsWithEmpty(lines: string[]): boolean {
   return lines.length > 0 && lines[lines.length - 1] === "";
 }
 
+// ponytail: O(n*m) LCS table. The inputs are the ~120-line catalog and
+// ~15-line agent files; a Myers diff is the upgrade if that ever changes.
 function lcsLineDiff(a: readonly string[], b: readonly string[]): string[] {
   const n = a.length;
   const m = b.length;

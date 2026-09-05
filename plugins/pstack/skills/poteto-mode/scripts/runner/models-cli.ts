@@ -54,18 +54,6 @@ export type Io = {
   readonly pluginRoot: string;
 };
 
-type DiscoverModule = {
-  discover(options: {
-    readonly providers: readonly Provider[];
-    readonly catalog: ModelCatalog;
-    readonly env?: NodeJS.ProcessEnv;
-    readonly cwd?: string;
-    readonly timeoutMs?: number | null;
-    readonly clientVersion: string;
-    readonly now?: () => Date;
-  }): Promise<Inventory>;
-};
-
 type ReceiptObservation = {
   readonly provider: Provider;
   readonly model: string;
@@ -162,8 +150,7 @@ function buildProgram(io: Io, state: { exitCode: number }): Command {
     }) => {
       const selected = opts.provider ?? [];
       const requested = selected.length === 0 ? [...PROVIDERS] : uniqueProviders(selected);
-      const discoverPath: string = "./discover.ts";
-      const { discover: runDiscover } = (await import(discoverPath)) as DiscoverModule;
+      const { discover: runDiscover } = await import("./discover.ts");
       const catalog = readCatalogFile(catalogFilePath(io.pluginRoot)).catalog;
       const inventory = await runDiscover({
         providers: requested,

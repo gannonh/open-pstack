@@ -9,15 +9,12 @@ import {
   type InventorySource,
   type ProviderInventory,
 } from "./inventory.ts";
-import { childEnvironment } from "./run.ts";
+import { AUTH_FAILURE_RE, childEnvironment, evidence } from "./run.ts";
 import type { Effort, Provider } from "./types.ts";
 
-const ERROR_EVIDENCE_LIMIT = 4_000;
 const TERMINATE_GRACE_MS = 1_000;
 // setTimeout delay is a 32-bit signed int; longer waits must be re-armed.
 const MAX_TIMER_DELAY_MS = 2_147_483_647;
-const AUTH_FAILURE_RE =
-  /not logged in|unauthenticated|authentication|sign in|login required/i;
 
 const SOURCE_METHOD = {
   claude: "claude initialize control request",
@@ -45,10 +42,6 @@ class DeadlineElapsedError extends Error {
   constructor() {
     super("explicit deadline elapsed");
   }
-}
-
-function evidence(value: string): string {
-  return value.trim().slice(0, ERROR_EVIDENCE_LIMIT);
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
