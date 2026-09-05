@@ -15,7 +15,10 @@ import {
   preflightCommand,
   type CommandSpec,
 } from "./commands.ts";
-import { versionedClaudeAlias } from "./model-aliases.ts";
+import {
+  catalogLaneError,
+  loadModelCatalog,
+} from "./catalog.ts";
 import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
 import type {
   Provider,
@@ -496,14 +499,6 @@ export function validateOptions(options: RunnerOptions): void {
     );
   }
   if (options.model.trim().length === 0) throw new UsageError("model must not be empty");
-  const staleAlias = options.provider === "claude"
-    ? versionedClaudeAlias(options.model)
-    : null;
-  if (staleAlias !== null) {
-    throw new UsageError(
-      `Claude model ${options.model} is a version pin; normalize it to ${staleAlias} before invoking the runner`
-    );
-  }
   if (
     options.timeoutMs !== null &&
     (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0)
@@ -860,11 +855,58 @@ async function executeLane(
   return { exitCode: statusExitCode(receipt.status), receipt };
 }
 
+function catalogSelectionDropout(
+  options: RunnerOptions,
+  started: number,
+  message: string
+): RunResult {
+  reserveOutputs(options);
+  const completed = Date.now();
+  const preflight = preflightCommand(options.provider);
+  const receipt = completeReceipt(options, {
+    status: "unavailable-model",
+    startedAt: new Date(started).toISOString(),
+    completedAt: new Date(completed).toISOString(),
+    elapsedMs: completed - started,
+    executable: null,
+    preflight: {
+      argv: [preflight.command, ...preflight.args],
+      status: "not-run",
+      evidence: "",
+    },
+    argv: [],
+    exitCode: null,
+    signal: null,
+    reportedModel: null,
+    modelVerified: false,
+    modelEvidence: null,
+    sessionId: null,
+    usage: null,
+    costUsd: null,
+    error: {
+      message: "catalog selection is not executable",
+      evidence: evidence(message),
+    },
+  });
+  removeIfExists(options.outputPath);
+  writeReceipt(options.receiptPath, receipt);
+  return { exitCode: statusExitCode("unavailable-model"), receipt };
+}
+
 export async function runLane(
   options: RunnerOptions,
   started: number = Date.now()
 ): Promise<RunResult> {
   validateOptions(options);
+  const catalogError = catalogLaneError(
+    loadModelCatalog(),
+    options.provider,
+    options.model,
+    options.effort
+  );
+  if (catalogError !== null) {
+    return catalogSelectionDropout(options, started, catalogError);
+  }
   const deadlineAt = options.timeoutMs === null ? null : started + options.timeoutMs;
   const invocation = invocationCommand(options);
   const preflight = preflightCommand(options.provider);

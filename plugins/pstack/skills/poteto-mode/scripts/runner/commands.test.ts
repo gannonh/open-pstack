@@ -215,5 +215,15 @@ describe("invocationCommand", () => {
         expect(spec.args).toEqual(expect.arrayContaining(flag(effort)));
       }
     }
+    const cursorFable = invocationCommand(
+      options({
+        provider: "cursor",
+        model: "claude-fable-5-1",
+        effort: "max",
+      })
+    );
+    expect(cursorFable.args).toEqual(
+      expect.arrayContaining(["--model", "claude-fable-5-1-max"])
+    );
   });
 });

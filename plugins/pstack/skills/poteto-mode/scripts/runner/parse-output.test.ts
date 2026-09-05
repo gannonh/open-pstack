@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
+import { concreteClaudeRevisionMatchesRollingSelector } from "./model-aliases.ts";
 
 describe("parseProviderOutput", () => {
   it("extracts Claude text, model, usage, cost, and session", () => {
@@ -139,6 +140,32 @@ describe("parseProviderOutput", () => {
     ).toBe(true);
   });
 
+  it("matches Cursor Fable 5.1 display names to the catalog stem", () => {
+    const parsed = parseProviderOutput(
+      "cursor",
+      [
+        JSON.stringify({
+          type: "system",
+          subtype: "init",
+          model: "Claude Fable 5.1 Max",
+          session_id: "cursor-fable",
+        }),
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          result: "CURSOR_OK",
+        }),
+      ].join("\n"),
+      "",
+      "claude-fable-5-1"
+    );
+    expect(parsed.reportedModel).toBe("claude-fable-5.1-max");
+    expect(
+      reportedModelMatches("cursor", "claude-fable-5-1", parsed.reportedModel)
+    ).toBe(true);
+  });
+
   it("rejects a Cursor error result", () => {
     expect(() =>
       parseProviderOutput(
@@ -179,6 +206,18 @@ describe("parseProviderOutput", () => {
     expect(reportedModelMatches("claude", "fable", "fable")).toBe(false);
     expect(reportedModelMatches("claude", "fable", "fable-preview")).toBe(false);
     expect(reportedModelMatches("grok", "fable", "claude-fable-9-9")).toBe(false);
+  });
+
+  it("matches concrete Claude revisions for any catalog rolling selector", () => {
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("sonnet", "claude-sonnet-4-5")
+    ).toBe(true);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("sonnet", "claude-opus-9")
+    ).toBe(false);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("fable", "claude-fable-9-9")
+    ).toBe(true);
   });
 
   it("rejects malformed or textless responses", () => {

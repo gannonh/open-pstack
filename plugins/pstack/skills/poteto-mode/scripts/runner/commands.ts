@@ -1,3 +1,8 @@
+import {
+  composedCliModel,
+  loadModelCatalog,
+  requireCatalogedLane,
+} from "./catalog.ts";
 import type {
   AccessMode,
   Effort,
@@ -32,11 +37,25 @@ export function preflightCommand(provider: Provider): CommandSpec {
   }
 }
 
+export function laneCliModel(
+  provider: Provider,
+  model: string,
+  effort: Effort
+): string {
+  const offering = requireCatalogedLane(
+    loadModelCatalog(),
+    provider,
+    model,
+    effort
+  );
+  return composedCliModel(offering, effort);
+}
+
 // Cursor encodes reasoning effort in the model id itself; there is no
-// separate effort flag. The matrix pins the exact Cursor stem (for example
-// `cursor-grok-4.6`) and the launcher appends the requested effort.
+// separate effort flag. Catalog offerings with selectorComposition
+// effort-suffix compose `<selector>-<effort>`.
 export function cursorCliModel(model: string, effort: Effort): string {
-  return `${model}-${effort}`;
+  return laneCliModel("cursor", model, effort);
 }
 
 function claudeDeniedTools(mode: AccessMode): string {
@@ -80,7 +99,7 @@ export function invocationCommand(options: RunnerOptions): CommandSpec {
         args: [
           "-p",
           "--model",
-          options.model,
+          laneCliModel(options.provider, options.model, options.effort),
           "--effort",
           options.effort,
           "--permission-mode",
@@ -105,7 +124,7 @@ export function invocationCommand(options: RunnerOptions): CommandSpec {
         args: [
           "exec",
           "--model",
-          options.model,
+          laneCliModel(options.provider, options.model, options.effort),
           "--config",
           effortOverride(options.effort),
           "--sandbox",
@@ -134,7 +153,7 @@ export function invocationCommand(options: RunnerOptions): CommandSpec {
           "--prompt-file",
           options.promptPath,
           "--model",
-          options.model,
+          laneCliModel(options.provider, options.model, options.effort),
           "--reasoning-effort",
           options.effort,
           "--permission-mode",
@@ -163,7 +182,7 @@ export function invocationCommand(options: RunnerOptions): CommandSpec {
           "--output-format",
           "stream-json",
           "--model",
-          cursorCliModel(options.model, options.effort),
+          laneCliModel(options.provider, options.model, options.effort),
           ...(options.mode === "read-only"
             ? ["--mode", "plan"]
             : ["--force"]),

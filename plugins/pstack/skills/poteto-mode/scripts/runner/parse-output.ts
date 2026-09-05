@@ -1,12 +1,10 @@
+import { findOffering, loadModelCatalog } from "./catalog.ts";
+import { concreteClaudeRevisionMatchesRollingSelector } from "./model-aliases.ts";
 import type {
   NormalizedUsage,
   ParsedOutput,
   Provider,
 } from "./types.ts";
-import {
-  concreteModelMatchesRollingAlias,
-  isRollingClaudeAlias,
-} from "./model-aliases.ts";
 
 type JsonObject = Record<string, unknown>;
 
@@ -228,17 +226,23 @@ export function parseProviderOutput(
   }
 }
 
+function comparableModel(value: string): string {
+  return value.trim().toLowerCase().replace(/\./g, "-");
+}
+
 export function reportedModelMatches(
   provider: Provider,
   requested: string,
   reported: string | null
 ): boolean {
   if (reported === null) return false;
-  if (provider === "claude" && isRollingClaudeAlias(requested)) {
-    return concreteModelMatchesRollingAlias(requested, reported);
+  if (provider === "claude") {
+    const offering = findOffering(loadModelCatalog(), provider, requested);
+    if (offering?.rollingAlias === true) {
+      return concreteClaudeRevisionMatchesRollingSelector(offering.selector, reported);
+    }
   }
-  if (reported === requested || reported.startsWith(`${requested}-`)) {
-    return true;
-  }
-  return false;
+  const requestedN = comparableModel(requested);
+  const reportedN = comparableModel(reported);
+  return reportedN === requestedN || reportedN.startsWith(`${requestedN}-`);
 }

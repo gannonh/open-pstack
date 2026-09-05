@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "preamble": [
+    "# pstack model configuration",
+    "",
+    "Provider-qualified per-role choices. Read the installed pstack provider-dispatch reference before dispatching a configured role. Every documented role remains present. `inherit-parent` and `auto` use the parent model natively and still count as one panel lane."
+  ],
+  "roles": [
+    {
+      "id": "feature, refactoring",
+      "kind": "scalar",
+      "descriptors": ["cursor:cursor-grok-4.6@xhigh"]
+    },
+    {
+      "id": "bug-fix",
+      "kind": "scalar",
+      "descriptors": ["codex:gpt-5.6-sol@max"]
+    },
+    {
+      "id": "perf-issue",
+      "kind": "scalar",
+      "descriptors": ["codex:gpt-5.6-sol@max"]
+    },
+    {
+      "id": "hillclimb",
+      "kind": "scalar",
+      "descriptors": ["codex:gpt-5.6-sol@max"]
+    },
+    {
+      "id": "judgment and prose",
+      "kind": "scalar",
+      "descriptors": ["claude:fable@max"]
+    },
+    {
+      "id": "hardest tasks",
+      "kind": "scalar",
+      "descriptors": ["claude:fable@max"]
+    },
+    {
+      "id": "how explorer",
+      "kind": "scalar",
+      "descriptors": ["cursor:cursor-grok-4.6@xhigh"]
+    },
+    {
+      "id": "how explainer",
+      "kind": "scalar",
+      "descriptors": ["claude:fable@max"]
+    },
+    {
+      "id": "how critics",
+      "kind": "panel",
+      "descriptors": [
+        "claude:fable@max",
+        "codex:gpt-5.6-sol@max",
+        "cursor:cursor-grok-4.6@xhigh",
+        "claude:opus@xhigh"
+      ]
+    },
+    {
+      "id": "why investigators, synthesizer",
+      "kind": "scalar",
+      "descriptors": ["inherit-parent"]
+    },
+    {
+      "id": "reflect tooling, judgment, divergent, synthesizer",
+      "kind": "scalar",
+      "descriptors": ["inherit-parent"]
+    },
+    {
+      "id": "arena runners",
+      "kind": "panel",
+      "descriptors": [
+        "claude:fable@max",
+        "codex:gpt-5.6-sol@max",
+        "cursor:cursor-grok-4.6@xhigh",
+        "claude:opus@xhigh"
+      ]
+    },
+    {
+      "id": "arena cross-judge pool",
+      "kind": "panel",
+      "descriptors": [
+        "claude:fable@max",
+        "codex:gpt-5.6-sol@max",
+        "cursor:cursor-grok-4.6@xhigh",
+        "claude:opus@xhigh"
+      ]
+    },
+    {
+      "id": "swarm workers",
+      "kind": "scalar",
+      "descriptors": ["cursor:cursor-grok-4.6@xhigh"]
+    },
+    {
+      "id": "architect runners",
+      "kind": "panel",
+      "descriptors": [
+        "claude:fable@max",
+        "codex:gpt-5.6-sol@max",
+        "cursor:cursor-grok-4.6@xhigh",
+        "claude:opus@xhigh"
+      ]
+    },
+    {
+      "id": "interrogate reviewers",
+      "kind": "panel",
+      "descriptors": [
+        "claude:fable@max",
+        "codex:gpt-5.6-sol@max",
+        "cursor:cursor-grok-4.6@xhigh",
+        "claude:opus@xhigh"
+      ]
+    }
+  ]
+}

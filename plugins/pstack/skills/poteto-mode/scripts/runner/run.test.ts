@@ -13,6 +13,7 @@ import {
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { childEnvironment, runLane } from "./run.ts";
+import { PLUGIN_ROOT } from "./catalog.ts";
 import { main } from "./cli.ts";
 import type { Provider, RunnerOptions, RunnerReceipt } from "./types.ts";
 
@@ -71,7 +72,7 @@ if (name === "cursor-agent" && args[0] === "models") {
     console.log("Available models\\n\\ncursor-grok-4.5-xhigh - Cursor Grok 4.5 Extra High");
     process.exit(0);
   }
-  console.log("Available models\\n\\ncursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High");
+  console.log("Available models\\n\\ncursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High\\nclaude-fable-5-1-low - Claude Fable 5.1 Low\\nclaude-fable-5-1-medium - Claude Fable 5.1 Medium\\nclaude-fable-5-1-high - Claude Fable 5.1 High\\nclaude-fable-5-1-xhigh - Claude Fable 5.1 Extra High\\nclaude-fable-5-1-max - Claude Fable 5.1 Max");
   process.exit(0);
 }
 if (name === "grok" && args[0] === "models") {
@@ -124,7 +125,10 @@ if (stage === "model" && process.env.FAKE_SELF_SIGNAL) {
   await Bun.sleep(5_000);
 }
 if (name === "cursor-agent") {
-  console.log(JSON.stringify({type:"system",subtype:"init",model:"Cursor Grok 4.6 Extra High",session_id:"cu1",permissionMode:"plan"}));
+  const display = String(model).startsWith("claude-fable-5-1")
+    ? "Claude Fable 5.1 Max"
+    : "Cursor Grok 4.6 Extra High";
+  console.log(JSON.stringify({type:"system",subtype:"init",model:display,session_id:"cu1",permissionMode:"plan"}));
   console.log(JSON.stringify({type:"result",subtype:"success",is_error:false,result:"CURSOR_OK",session_id:"cu1",usage:{inputTokens:25,outputTokens:6,cacheReadTokens:3,cacheWriteTokens:0}}));
 } else if (name === "claude") {
   console.log(JSON.stringify({result:"CLAUDE_OK",session_id:"c1",usage:{input_tokens:10,output_tokens:2},total_cost_usd:0.01,modelUsage:{[reportedModel]:{}}}));
@@ -329,6 +333,33 @@ describe("runLane", () => {
     });
     expect(recorded.argv).toEqual(
       expect.arrayContaining(["--model", "cursor-grok-4.6-xhigh"])
+    );
+  });
+
+  it("executes a cataloged Cursor Fable 5.1 offering without substituting Claude", async () => {
+    const input = {
+      ...options("cursor", "cursor-fable"),
+      model: "claude-fable-5-1",
+      effort: "max" as const,
+    };
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(0);
+    const recorded = receipt(input.receiptPath);
+    expect(recorded).toMatchObject({
+      status: "complete",
+      provider: "cursor",
+      model: "claude-fable-5-1",
+      effort: "max",
+      reportedModel: "claude-fable-5.1-max",
+      modelVerified: true,
+      modelEvidence: "provider-report",
+      preflight: {
+        status: "passed",
+        evidence: "authenticated; model claude-fable-5-1-max available",
+      },
+    });
+    expect(recorded.argv).toEqual(
+      expect.arrayContaining(["--model", "claude-fable-5-1-max"])
     );
   });
 
@@ -747,6 +778,7 @@ describe("runLane", () => {
       cwd: scratch,
       env: {
         ...process.env,
+        PSTACK_PLUGIN_ROOT: PLUGIN_ROOT,
         FAKE_CANCEL_STAGE: "preflight",
         FAKE_STARTED_PATH: started,
         FAKE_TERMINATED_PATH: terminated,
@@ -953,13 +985,37 @@ describe("runLane", () => {
     await expect(runLane(input)).rejects.toThrow("native to parent");
   });
 
-  it("rejects a versioned Claude family before it can stay pinned", async () => {
+  it("rejects an uncataloged Claude version pin with an unavailable-model receipt", async () => {
     const input = { ...options("claude"), model: "claude-fable-9-9" };
-    await expect(runLane(input)).rejects.toThrow(
-      "normalize it to fable before invoking the runner"
-    );
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(69);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "unavailable-model",
+      model: "claude-fable-9-9",
+      error: {
+        message: "catalog selection is not executable",
+        evidence: "model claude-fable-9-9 is not a cataloged claude offering",
+      },
+    });
     expect(existsSync(input.outputPath)).toBe(false);
-    expect(existsSync(input.receiptPath)).toBe(false);
+    expect(existsSync(input.receiptPath)).toBe(true);
+  });
+
+  it("rejects an unsupported effort with an unavailable-model receipt", async () => {
+    const input = { ...options("cursor"), effort: "max" as const };
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(69);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "unavailable-model",
+      effort: "max",
+      error: {
+        message: "catalog selection is not executable",
+        evidence:
+          "effort max is not supported for cursor:cursor-grok-4.6; supported: low, medium, high, xhigh",
+      },
+    });
+    expect(existsSync(input.outputPath)).toBe(false);
+    expect(existsSync(input.receiptPath)).toBe(true);
   });
 });
 
