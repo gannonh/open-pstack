@@ -2,14 +2,12 @@ import { afterEach, describe, expect, it } from "bun:test";
 import {
   existsSync,
   mkdirSync,
-  mkdtempSync,
   readdirSync,
   readFileSync,
   rmSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   PLUGIN_ROOT,
@@ -18,6 +16,7 @@ import {
   nativeAgentsFor,
 } from "./catalog.ts";
 import { supportedDescriptor, type InventoryEntry, type InventorySource } from "./inventory.ts";
+import { baseCatalog, copyPluginTree as copyBaseTree } from "./catalog-fixture.test-helper.ts";
 import {
   adapterProposal,
   agentsDirectory,
@@ -47,27 +46,7 @@ afterEach(() => {
 });
 
 function copyPluginTree(): string {
-  const root = mkdtempSync(join(tmpdir(), "pstack-catalog-edit-"));
-  scratches.push(root);
-  mkdirSync(join(root, "catalog"), { recursive: true });
-  mkdirSync(join(root, "agents"), { recursive: true });
-  mkdirSync(join(root, ".claude-plugin"), { recursive: true });
-  writeFileSync(
-    join(root, "catalog", "models.json"),
-    readFileSync(catalogFilePath(PLUGIN_ROOT))
-  );
-  writeFileSync(
-    join(root, "catalog", "role-defaults.json"),
-    readFileSync(roleDefaultsFilePath(PLUGIN_ROOT))
-  );
-  writeFileSync(
-    join(root, ".claude-plugin", "plugin.json"),
-    readFileSync(join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"))
-  );
-  for (const name of readdirSync(agentsDirectory(PLUGIN_ROOT))) {
-    writeFileSync(join(root, "agents", name), readFileSync(join(PLUGIN_ROOT, "agents", name)));
-  }
-  return root;
+  return copyBaseTree(scratches, "pstack-catalog-edit-");
 }
 
 function astraEntry(): InventoryEntry {
@@ -96,7 +75,7 @@ function astraSource(): InventorySource {
 }
 
 function completeAstra(): OfferingInput {
-  const catalog = loadModelCatalog();
+  const catalog = baseCatalog();
   const { proposal } = proposeFromInventory(astraEntry(), catalog, astraSource());
   const completed = completeOffering({ ...proposal, family: "astra" });
   if (!("offering" in completed)) throw new Error(completed.missing.join(", "));
@@ -117,7 +96,7 @@ function completeFable1m(): OfferingInput {
 
 describe("proposeFromInventory", () => {
   it("builds a GPT-6 Astra offering that accepts ultra and records the source", () => {
-    const catalog = loadModelCatalog();
+    const catalog = baseCatalog();
     const { proposal, missing } = proposeFromInventory(
       astraEntry(),
       catalog,
@@ -152,7 +131,7 @@ describe("proposeAdd", () => {
     const offering = completeFable1m();
     expect(offering.nativeAgentStem).toBe("fable-5-1-1m");
     expect(offering.nativeAgentTitle).toBe("pstack Fable 5.1 lane");
-    const proposal = proposeAdd(loadModelCatalog(), offering);
+    const proposal = proposeAdd(baseCatalog(), offering);
     expect(proposal.kind).toBe("change");
     if (proposal.kind !== "change") return;
     const added = [...proposal.agents.keys()].filter((name) =>
@@ -188,7 +167,7 @@ describe("proposeAdd", () => {
 
   it("rejects an id collision", () => {
     const offering = completeAstra();
-    const proposal = proposeAdd(loadModelCatalog(), { ...offering, id: "claude-fable" });
+    const proposal = proposeAdd(baseCatalog(), { ...offering, id: "claude-fable" });
     expect(proposal.kind).toBe("rejected");
     if (proposal.kind !== "rejected") return;
     expect(proposal.message).toContain("id already cataloged: claude-fable");
@@ -360,5 +339,44 @@ describe("nativeAgentsFor fixture", () => {
       .filter((name) => name.startsWith("pstack-") && name.endsWith(".md"))
       .sort();
     expect(shipped).toEqual(expected);
+  });
+});
+
+describe("shipped catalog provenance", () => {
+  it("is reproduced byte-for-byte by adding Astra and the Fable 5.1 [1m] pin through the tool", () => {
+    const root = copyPluginTree();
+    const shipped = loadModelCatalog();
+    const astra = shipped.offerings.find((row) => row.id === "codex-gpt-6-astra");
+    const pin = shipped.offerings.find((row) => row.id === "claude-claude-fable-5-1-1m");
+    if (astra === undefined || pin === undefined) throw new Error("shipped offerings missing");
+    const paths = { catalogPath: catalogFilePath(root), agentsDir: agentsDirectory(root) };
+
+    const first = proposeAdd(baseCatalog(), { ...astra }, root);
+    expect(first.kind).toBe("change");
+    if (first.kind !== "change") return;
+    expect(applyProposal(first, paths).ok).toBe(true);
+    const second = proposeAdd(readCatalogFile(paths.catalogPath).catalog, { ...pin }, root);
+    expect(second.kind).toBe("change");
+    if (second.kind !== "change") return;
+    expect(applyProposal(second, paths).ok).toBe(true);
+
+    expect(readFileSync(paths.catalogPath, "utf8")).toBe(
+      readFileSync(catalogFilePath(PLUGIN_ROOT), "utf8")
+    );
+    const shippedAgents = readdirSync(agentsDirectory(PLUGIN_ROOT))
+      .filter((name) => name.startsWith("pstack-"))
+      .sort();
+    expect(readdirSync(paths.agentsDir).filter((name) => name.startsWith("pstack-")).sort()).toEqual(
+      shippedAgents
+    );
+    for (const name of shippedAgents) {
+      expect(readFileSync(join(paths.agentsDir, name), "utf8")).toBe(
+        readFileSync(join(agentsDirectory(PLUGIN_ROOT), name), "utf8")
+      );
+    }
+    expect(validateTree(root)).toEqual({ ok: true, problems: [] });
+    expect(readFileSync(roleDefaultsFilePath(root))).toEqual(
+      readFileSync(roleDefaultsFilePath(PLUGIN_ROOT))
+    );
   });
 });

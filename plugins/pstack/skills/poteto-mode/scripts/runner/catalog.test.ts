@@ -86,6 +86,8 @@ describe("model catalog", () => {
       "cursor-grok-4-6",
       "grok-grok-4-6",
       "claude-opus",
+      "codex-gpt-6-astra",
+      "claude-claude-fable-5-1-1m",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -96,6 +98,35 @@ describe("model catalog", () => {
       "cursor:cursor-grok-4.6",
       "grok:grok-4.6",
       "claude:opus",
+      "codex:gpt-6-astra",
+      "claude:claude-fable-5-1[1m]",
+    ]);
+  });
+
+  it("catalogs GPT-6 Astra with ultra and the explicit Fable 5.1 [1m] pin without touching role defaults", () => {
+    const astra = findOffering(catalog, "codex", "gpt-6-astra");
+    expect(astra?.displayName).toBe("GPT-6 Astra");
+    expect(astra?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    expect(astra?.defaultEffort).toBe("medium");
+    expect(bindDescriptor(catalog, "codex:gpt-6-astra@ultra").offering?.id).toBe("codex-gpt-6-astra");
+    expect(() => bindDescriptor(catalog, "codex:gpt-5.6-sol@ultra")).toThrow("unsupported effort ultra");
+
+    const pin = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
+    expect(pin?.displayName).toBe("Fable 5.1");
+    expect(pin?.rollingAlias).toBe(false);
+    expect(pin?.nativeAgentStem).toBe("fable-5-1-1m");
+    expect(offeringLabel(pin!)).toBe("Fable 5.1");
+    expect(bindDescriptor(catalog, "claude:claude-fable-5-1[1m]@max").selector).toBe(
+      "claude-fable-5-1[1m]"
+    );
+
+    const defaultDescriptors = new Set(roles.roles.flatMap((role) => role.descriptors));
+    expect([...defaultDescriptors].sort()).toEqual([
+      "claude:fable@max",
+      "claude:opus@xhigh",
+      "codex:gpt-5.6-sol@max",
+      "cursor:cursor-grok-4.6@xhigh",
+      "inherit-parent",
     ]);
   });
 
@@ -155,28 +186,29 @@ describe("model catalog", () => {
   });
 
   it("defines efforts per offering, preserves their order, and rejects unsafe tokens", () => {
-    const astra = cloneCatalog();
-    astra.offerings.push({
-      ...astra.offerings[2],
-      id: "codex-gpt-6-astra",
-      selector: "gpt-6-astra",
-      displayName: "GPT-6 Astra",
-      family: "astra",
-      supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultra"],
-      defaultEffort: "medium",
+    const extra = cloneCatalog();
+    extra.offerings.push({
+      ...extra.offerings[2],
+      id: "codex-gpt-7-test",
+      selector: "gpt-7-test",
+      displayName: "GPT-7 Test",
+      family: "test",
+      supportedEfforts: ["minimal", "low", "turbo"],
+      defaultEffort: "turbo",
     });
-    const parsed = parseModelCatalog(astra);
-    const offering = findOffering(parsed, "codex", "gpt-6-astra");
-    expect(offering?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
-    expect(bindDescriptor(parsed, "codex:gpt-6-astra@ultra").effort).toBe("ultra");
-    expect(bindDescriptor(parsed, "codex:gpt-6-astra@medium").offering?.id).toBe(
-      "codex-gpt-6-astra"
+    const parsed = parseModelCatalog(extra);
+    const offering = findOffering(parsed, "codex", "gpt-7-test");
+    expect(offering?.supportedEfforts).toEqual(["minimal", "low", "turbo"]);
+    expect(bindDescriptor(parsed, "codex:gpt-7-test@turbo").effort).toBe("turbo");
+    expect(bindDescriptor(parsed, "codex:gpt-7-test@minimal").offering?.id).toBe(
+      "codex-gpt-7-test"
     );
-    expect(() => bindDescriptor(parsed, "codex:gpt-5.6-sol@ultra")).toThrow(
-      "unsupported effort ultra"
+    expect(() => bindDescriptor(parsed, "codex:gpt-5.6-sol@turbo")).toThrow(
+      "unsupported effort turbo"
     );
-    expect(catalogEffortVocabulary(parsed).has("ultra")).toBe(true);
-    expect(catalogEffortVocabulary(catalog).has("ultra")).toBe(false);
+    expect(catalogEffortVocabulary(parsed).has("turbo")).toBe(true);
+    expect(catalogEffortVocabulary(catalog).has("turbo")).toBe(false);
+    expect(catalogEffortVocabulary(catalog).has("ultra")).toBe(true);
 
     const reordered = cloneCatalog();
     reordered.offerings[2] = {
@@ -202,24 +234,15 @@ describe("model catalog", () => {
   });
 
   it("carries a Claude contextual selector unchanged through parsing, sheet, argv, and agents", () => {
-    const explicit = cloneCatalog();
-    explicit.offerings.push({
-      ...explicit.offerings[0],
-      id: "claude-fable-5-1-1m",
-      displayName: "Fable 5.1",
-      selector: "claude-fable-5-1[1m]",
-      rollingAlias: false,
-      nativeAgentStem: proposeNativeAgentStem("claude-fable-5-1[1m]"),
-      nativeAgentTitle: "pstack Fable 5.1 (1M context) lane",
-      notes: null,
-    });
-    const parsed = parseModelCatalog(explicit);
-    const offering = findOffering(parsed, "claude", "claude-fable-5-1[1m]");
+    expect(proposeNativeAgentStem("claude-fable-5-1[1m]")).toBe("fable-5-1-1m");
+    expect(proposeNativeAgentStem("claude-opus-5[1m]")).toBe("opus-5-1m");
+    expect(proposeNativeAgentStem("fable")).toBe("fable");
+    const offering = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
     expect(offering?.nativeAgentStem).toBe("fable-5-1-1m");
-    const bound = bindDescriptor(parsed, "claude:claude-fable-5-1[1m]@max");
+    const bound = bindDescriptor(catalog, "claude:claude-fable-5-1[1m]@max");
     expect(bound.selector).toBe("claude-fable-5-1[1m]");
-    expect(bound.offering?.id).toBe("claude-fable-5-1-1m");
-    expect(migrateDescriptorText(parsed, "claude:claude-fable-5-1[1m]@max")).toEqual({
+    expect(bound.offering?.id).toBe("claude-claude-fable-5-1-1m");
+    expect(migrateDescriptorText(catalog, "claude:claude-fable-5-1[1m]@max")).toEqual({
       descriptor: "claude:claude-fable-5-1[1m]@max",
       migratedFrom: null,
     });
@@ -229,18 +252,17 @@ describe("model catalog", () => {
     expect(agent).toContain("model: claude-fable-5-1[1m]");
     expect(agent).toContain("claude:claude-fable-5-1[1m]@max");
 
-    const defaults = parseRoleDefaults(JSON.parse(JSON.stringify(roles)), parsed);
     const edited = renderSheet({
-      ...defaults,
+      ...roles,
       roles: replaceRoleLanes(
-        defaults.roles,
+        roles.roles,
         "judgment and prose",
         ["claude:claude-fable-5-1[1m]@high"],
-        parsed
+        catalog
       ),
     });
     expect(edited).toContain("judgment and prose: claude:claude-fable-5-1[1m]@high");
-    const reparsed = parseSheet(edited, parsed, defaults);
+    const reparsed = parseSheet(edited, catalog, roles);
     expect(reparsed.issues).toEqual([]);
     expect(
       reparsed.sheet?.roles.find((role) => role.id === "judgment and prose")?.lanes[0]?.raw
@@ -248,8 +270,11 @@ describe("model catalog", () => {
     expect(uniqueOfferingDescriptors(reparsed.sheet!)).toContain(
       "claude:claude-fable-5-1[1m]@high"
     );
-    expect(() => bindDescriptor(parsed, "claude:claude-fable-5-1[1m][2m]@high")).toThrow(
+    expect(() => bindDescriptor(catalog, "claude:claude-fable-5-1[1m][2m]@high")).toThrow(
       "invalid descriptor"
+    );
+    expect(() => bindDescriptor(catalog, "claude:claude-fable-5-2[1m]@high")).toThrow(
+      "not a cataloged offering"
     );
   });
 

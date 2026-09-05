@@ -408,6 +408,21 @@ else
   note "ok: codex logo path resolves"
 fi
 
+# The shipped catalog, role defaults, canonical format, and generated
+# Claude-native agents must agree. pstack-models validate never writes.
+if command -v bun >/dev/null 2>&1; then
+  if validate_out="$(bun "$plugin/skills/poteto-mode/scripts/runner/pstack-models" validate 2>&1)"; then
+    note "ok: pstack-models validate ($validate_out)"
+  else
+    note "FAIL: pstack-models validate"
+    note "$validate_out"
+    fail=1
+  fi
+else
+  note "FAIL: bun is required to run pstack-models validate"
+  fail=1
+fi
+
 if [ "${PSTACK_STATIC_ONLY:-0}" = "1" ]; then
   exit "$fail"
 fi

@@ -20,6 +20,7 @@ import {
   roleDefaultsFilePath,
 } from "./catalog-edit.ts";
 import { main, type Io } from "./models-cli.ts";
+import { copyPluginTree as copyBaseTree } from "./catalog-fixture.test-helper.ts";
 
 let scratches: string[] = [];
 
@@ -29,24 +30,7 @@ afterEach(() => {
 });
 
 function copyPluginTree(): string {
-  const root = mkdtempSync(join(tmpdir(), "pstack-models-cli-"));
-  scratches.push(root);
-  mkdirSync(join(root, "catalog"), { recursive: true });
-  mkdirSync(join(root, "agents"), { recursive: true });
-  mkdirSync(join(root, ".claude-plugin"), { recursive: true });
-  writeFileSync(join(root, "catalog", "models.json"), readFileSync(catalogFilePath(PLUGIN_ROOT)));
-  writeFileSync(
-    join(root, "catalog", "role-defaults.json"),
-    readFileSync(roleDefaultsFilePath(PLUGIN_ROOT))
-  );
-  writeFileSync(
-    join(root, ".claude-plugin", "plugin.json"),
-    readFileSync(join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"))
-  );
-  for (const name of readdirSync(join(PLUGIN_ROOT, "agents"))) {
-    writeFileSync(join(root, "agents", name), readFileSync(join(PLUGIN_ROOT, "agents", name)));
-  }
-  return root;
+  return copyBaseTree(scratches, "pstack-models-cli-");
 }
 
 function harness(

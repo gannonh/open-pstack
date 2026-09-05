@@ -106,7 +106,7 @@ const CURSOR_LISTING = `Available models
 
 cursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High
 claude-fable-5-1-max - Claude Fable 5.1 Max
-claude-fable-5-1-ultra - Claude Fable 5.1 Ultra
+claude-fable-5-1-turbo - Claude Fable 5.1 Turbo
 auto - Auto`;
 
 const GROK_LISTING = `You are logged in with grok.com.
@@ -247,7 +247,7 @@ describe("parseCursorModelsListing", () => {
     expect(listing).toEqual([
       { id: "cursor-grok-4.6-xhigh", displayName: "Cursor Grok 4.6 Extra High" },
       { id: "claude-fable-5-1-max", displayName: "Claude Fable 5.1 Max" },
-      { id: "claude-fable-5-1-ultra", displayName: "Claude Fable 5.1 Ultra" },
+      { id: "claude-fable-5-1-turbo", displayName: "Claude Fable 5.1 Turbo" },
       { id: "auto", displayName: "Auto" },
     ]);
   });
@@ -279,7 +279,8 @@ describe("codexEntriesFromModelList", () => {
     expect(upgraded?.hidden).toBe(true);
 
     const astra = entries.find((entry) => entry.providerId === "gpt-6-astra");
-    expect(astra?.membership).toBeNull();
+    expect(astra?.membership?.offeringId).toBe("codex-gpt-6-astra");
+    expect(astra?.membership?.supportedEfforts).toContain("ultra");
 
     const bare = entries.find((entry) => entry.providerId === "no-efforts-model");
     expect(bare?.supportedEfforts).toBeNull();
@@ -338,7 +339,9 @@ describe("discoverProvider codex", () => {
       "gpt-mini",
       "upgrade:gpt-5.6-sol",
     ]);
-    expect(result.entries.find((entry) => entry.providerId === "gpt-6-astra")?.membership).toBeNull();
+    expect(
+      result.entries.find((entry) => entry.providerId === "gpt-6-astra")?.membership?.offeringId
+    ).toBe("codex-gpt-6-astra");
     const bare = result.entries.find((entry) => entry.providerId === "no-efforts-model");
     expect(bare?.supportedEfforts).toBeNull();
     expect(bare?.defaultEffort).toBeNull();
@@ -484,16 +487,16 @@ for await (const line of rl) {
 });
 
 describe("discoverProvider cursor", () => {
-  it("groups listing ids and reports the ultra id as unsupported", async () => {
+  it("groups listing ids and reports an unrecognized suffix as unsupported", async () => {
     install("cursor-agent", CURSOR_HAPPY);
     const result = await discoverProvider("cursor", opts(["cursor"]));
     expect(result.status).toBe("ok");
     expect(result.source.method).toBe("cursor-agent models");
     const grok = result.entries.find((entry) => entry.providerId === "cursor-grok-4.6");
     expect(grok?.membership?.offeringId).toBe("cursor-grok-4-6");
-    const ultra = result.entries.find((entry) => entry.providerId === "claude-fable-5-1-ultra");
-    expect(ultra?.descriptor.supported).toBe(false);
-    expect(ultra?.membership).toBeNull();
+    const turbo = result.entries.find((entry) => entry.providerId === "claude-fable-5-1-turbo");
+    expect(turbo?.descriptor.supported).toBe(false);
+    expect(turbo?.membership).toBeNull();
   });
 
   it("marks a Not logged in listing as unauthenticated", async () => {
