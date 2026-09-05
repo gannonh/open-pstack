@@ -15,7 +15,10 @@ import {
   preflightCommand,
   type CommandSpec,
 } from "./commands.ts";
-import { versionedClaudeAlias } from "./model-aliases.ts";
+import {
+  loadModelCatalog,
+  requireCatalogedLane,
+} from "./catalog.ts";
 import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
 import type {
   Provider,
@@ -496,14 +499,12 @@ export function validateOptions(options: RunnerOptions): void {
     );
   }
   if (options.model.trim().length === 0) throw new UsageError("model must not be empty");
-  const staleAlias = options.provider === "claude"
-    ? versionedClaudeAlias(options.model)
-    : null;
-  if (staleAlias !== null) {
-    throw new UsageError(
-      `Claude model ${options.model} is a version pin; normalize it to ${staleAlias} before invoking the runner`
-    );
-  }
+  requireCatalogedLane(
+    loadModelCatalog(),
+    options.provider,
+    options.model,
+    options.effort
+  );
   if (
     options.timeoutMs !== null &&
     (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0)

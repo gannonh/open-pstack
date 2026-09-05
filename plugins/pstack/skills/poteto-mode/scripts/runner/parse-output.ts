@@ -228,6 +228,10 @@ export function parseProviderOutput(
   }
 }
 
+function comparableModel(value: string): string {
+  return value.trim().toLowerCase().replace(/\./g, "-");
+}
+
 export function reportedModelMatches(
   provider: Provider,
   requested: string,
@@ -237,8 +241,7 @@ export function reportedModelMatches(
   if (provider === "claude" && isRollingClaudeAlias(requested)) {
     return concreteModelMatchesRollingAlias(requested, reported);
   }
-  if (reported === requested || reported.startsWith(`${requested}-`)) {
-    return true;
-  }
-  return false;
+  const requestedN = comparableModel(requested);
+  const reportedN = comparableModel(reported);
+  return reportedN === requestedN || reportedN.startsWith(`${requestedN}-`);
 }

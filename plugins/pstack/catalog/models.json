@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "offerings": [
+    {
+      "id": "claude-fable",
+      "family": "fable",
+      "displayName": "Fable 5.1",
+      "provider": "claude",
+      "selector": "fable",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "max",
+      "nativeAgentStem": "fable",
+      "nativeAgentTitle": "pstack Fable lane",
+      "rollingAlias": true,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Claude rolling alias. Claude Code resolves it to the current Fable 5.1 revision. Display name and selector differ."
+    },
+    {
+      "id": "cursor-fable-5-1",
+      "family": "fable",
+      "displayName": "Fable 5.1",
+      "provider": "cursor",
+      "selector": "claude-fable-5-1",
+      "selectorComposition": "effort-suffix",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "max",
+      "nativeAgentStem": null,
+      "nativeAgentTitle": null,
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Cursor CLI stem. The launcher composes claude-fable-5-1-<effort>. Display name and selector differ."
+    },
+    {
+      "id": "codex-gpt-5-6-sol",
+      "family": "sol",
+      "displayName": "GPT-5.6 Sol",
+      "provider": "codex",
+      "selector": "gpt-5.6-sol",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "max",
+      "nativeAgentStem": null,
+      "nativeAgentTitle": null,
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": null
+    },
+    {
+      "id": "cursor-grok-4-6",
+      "family": "grok",
+      "displayName": "Grok 4.6",
+      "provider": "cursor",
+      "selector": "cursor-grok-4.6",
+      "selectorComposition": "effort-suffix",
+      "supportedEfforts": ["low", "medium", "high", "xhigh"],
+      "defaultEffort": "xhigh",
+      "nativeAgentStem": null,
+      "nativeAgentTitle": null,
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Cursor serves no max tier for this stem."
+    },
+    {
+      "id": "grok-grok-4-6",
+      "family": "grok",
+      "displayName": "Grok 4.6",
+      "provider": "grok",
+      "selector": "grok-4.6",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "xhigh",
+      "nativeAgentStem": null,
+      "nativeAgentTitle": null,
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Standalone Grok Build CLI. A sheet may pin this instead of the Cursor Grok offering when that CLI is installed."
+    },
+    {
+      "id": "claude-opus",
+      "family": "opus",
+      "displayName": "Opus",
+      "provider": "claude",
+      "selector": "opus",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "xhigh",
+      "nativeAgentStem": "opus",
+      "nativeAgentTitle": "pstack Opus lane",
+      "rollingAlias": true,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Claude rolling alias. Claude Code resolves it to the latest Opus family revision."
+    }
+  ],
+  "legacyMigrations": [
+    {
+      "provider": "claude",
+      "selectorPattern": "^claude-fable-[0-9]+(?:-[0-9]+)*$",
+      "targetOfferingId": "claude-fable"
+    },
+    {
+      "provider": "claude",
+      "selectorPattern": "^claude-opus-[0-9]+(?:-[0-9]+)*$",
+      "targetOfferingId": "claude-opus"
+    }
+  ]
+}

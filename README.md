@@ -14,11 +14,12 @@ Open Pstack is an unofficial community project that makes pstack work in Claude 
 
 ## About this fork
 
-This repository is [gannonh](https://github.com/gannonh)'s fork of [ericlitman/open-pstack](https://github.com/ericlitman/open-pstack). It tracks that project as its upstream and changes one thing:
+This repository is [gannonh](https://github.com/gannonh)'s fork of [ericlitman/open-pstack](https://github.com/ericlitman/open-pstack). It tracks that project as its upstream and adds two things:
 
 - **Grok runs through Cursor's CLI.** Upstream routes the Grok review lane through the standalone Grok Build CLI (`grok`), which requires its own Grok subscription. This fork adds a fourth `cursor` provider to the external model runner, so the Grok family runs through `cursor-agent` on a Cursor subscription instead. The descriptor is `cursor:cursor-grok-4.6@<effort>`; the runner invokes `cursor-agent -p --model cursor-grok-4.6-<effort>`, proves availability through the `cursor-agent models` listing before the model starts, and verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so its selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
+- **Model routing is catalog-driven.** Offerings and first-run role assignments live in `plugins/pstack/catalog/`. Setup can assign any cataloged provider/model/effort per role, including Cursor Fable 5.1 (`cursor:claude-fable-5-1`) alongside Claude's rolling `fable` selector. See [docs/models.md](docs/models.md).
 
-The change and its rationale are recorded in [CHANGES.md](CHANGES.md) under the fork 1.3.0 and 1.3.1 entries. The runner change lives on the [`feat/cursor-provider`](https://github.com/gannonh/open-pstack/tree/feat/cursor-provider) branch in a form intended for an upstream pull request; everything else here stays byte-identical to upstream to keep pulls cheap.
+The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under the fork 1.3.0 and 1.3.1 entries. Catalog-driven routing is 1.4.0. The runner change also lives on the [`feat/cursor-provider`](https://github.com/gannonh/open-pstack/tree/feat/cursor-provider) branch in a form intended for an upstream pull request.
 
 ## What pstack does
 
@@ -97,9 +98,9 @@ In Codex, ask:
 Use pstack:setup-pstack to configure pstack.
 ```
 
-Setup checks the models you can actually run, shows how each one will start, and asks before saving the choices. The current default group uses Fable, GPT-5.6 Sol, Grok 4.6 (through Cursor), and Opus.
+Setup checks the models you can actually run, shows cataloged offerings including alternate providers for the same logical model, and asks before saving the choices. The current default group uses Fable, GPT-5.6 Sol, Grok 4.6 (through Cursor), and Opus. You can assign Cursor Fable 5.1, or another cataloged offering, to any role. See [docs/models.md](docs/models.md).
 
-An older model sheet starts using the rolling aliases in memory as soon as this release is installed. Run setup once after updating to persist that migration. It replaces versioned Fable and Opus entries while preserving every role assignment and effort selection.
+An older model sheet starts using cataloged rolling aliases in memory as soon as this release is installed. Uncataloged predecessor version pins migrate without losing role assignments. A cataloged explicit version is left unchanged. Run setup once after updating if you want that migration written to disk.
 
 ### 2. Use poteto-mode
 
@@ -141,7 +142,7 @@ Plugin skills include `pstack:` in their name. In Claude Code, invoke a native s
 
 Some pstack workflows use one model. Skills such as `architect`, `arena`, and `interrogate` can run several models in parallel. Each model run uses the subscription and token allowance of its own command-line tool.
 
-`setup-pstack` lets you choose the models, one requested effort per model family, and how many run in parallel. A model from the app you are using runs inside that app. Other models run through their own command-line tools. Open Pstack does not quietly replace a failed model with a weaker one.
+`setup-pstack` lets you choose provider, model, and effort per role or panel lane from the catalog. A model from the app you are using runs inside that app. Other models run through their own command-line tools. Open Pstack does not quietly replace a failed model with a weaker one.
 
 ## Claude Code and Codex
 
@@ -164,13 +165,14 @@ This repository also keeps:
 
 - [the original README](README-UPSTREAM.md), unchanged;
 - [the technical reference](docs/reference.md) for every skill, dependency, and Claude Code or Codex detail;
+- [the model catalog and routing guide](docs/models.md);
 - [the upstream sync record](UPSTREAM.md) and update process;
 - [the change record](CHANGES.md) for every adaptation; and
 - [the attribution record](NOTICE.md) for pstack and the imported Cursor Team Kit skills.
 
 ## Staying close to Lauren's pstack
 
-Fork release 1.3.1 builds on Open Pstack 1.3.0 and tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
+Fork release 1.4.0 builds on Open Pstack 1.3.1 and tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Claude Code and Codex package built from it.
 

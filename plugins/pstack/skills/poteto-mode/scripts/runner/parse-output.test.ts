@@ -139,6 +139,32 @@ describe("parseProviderOutput", () => {
     ).toBe(true);
   });
 
+  it("matches Cursor Fable 5.1 display names to the catalog stem", () => {
+    const parsed = parseProviderOutput(
+      "cursor",
+      [
+        JSON.stringify({
+          type: "system",
+          subtype: "init",
+          model: "Claude Fable 5.1 Max",
+          session_id: "cursor-fable",
+        }),
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          result: "CURSOR_OK",
+        }),
+      ].join("\n"),
+      "",
+      "claude-fable-5-1"
+    );
+    expect(parsed.reportedModel).toBe("claude-fable-5.1-max");
+    expect(
+      reportedModelMatches("cursor", "claude-fable-5-1", parsed.reportedModel)
+    ).toBe(true);
+  });
+
   it("rejects a Cursor error result", () => {
     expect(() =>
       parseProviderOutput(

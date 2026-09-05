@@ -45,14 +45,14 @@ else
   fail=1
 fi
 
-# Active configuration must use Claude's rolling family aliases. Concrete
-# provider reports may still appear in runner fixtures, but no shipped
-# descriptor, native-agent model field, or live test invocation may pin one.
+# Cataloged Claude rolling aliases remain the shipped Claude Fable/Opus
+# selectors. Tests may mention uncataloged predecessor pins.
 legacy_model_pins="$(
   grep -REn \
     --include='*.md' --include='*.ts' --include='*.sh' \
+    --exclude='*.test.ts' --exclude='*.test.js' \
     'claude:claude-(fable|opus)-[0-9]|^model: claude-(fable|opus)-[0-9]|--model claude-(fable|opus)-[0-9]' \
-    "$repo/plugins/pstack" "$repo/tests" "$repo/README.md" "$repo/docs/reference.md" \
+    "$repo/plugins/pstack" "$repo/tests" "$repo/README.md" "$repo/docs" \
     2>/dev/null || true
 )"
 standalone_code_pins="$(
@@ -64,71 +64,60 @@ standalone_code_pins="$(
     2>/dev/null || true
 )"
 if [ -n "$legacy_model_pins" ] || [ -n "$standalone_code_pins" ]; then
-  note "FAIL: active Fable or Opus configuration still pins a model revision:"
+  note "FAIL: shipped Claude Fable or Opus configuration still pins an uncataloged revision:"
   [ -z "$legacy_model_pins" ] || note "$legacy_model_pins"
   [ -z "$standalone_code_pins" ] || note "$standalone_code_pins"
   fail=1
 else
-  note "ok: active Fable and Opus configuration uses rolling aliases"
+  note "ok: shipped Claude Fable and Opus configuration uses catalog selectors"
 fi
 
-# Static invariant (CHANGES maintenance note): provider-dispatch owns the default
-# provider/model quad and the four panel skills plus setup-pstack copy it verbatim.
+# Workflow skills must not copy catalog role defaults. Canonical descriptors
+# live in catalog/role-defaults.json.
 setup="$repo/plugins/pstack/skills/setup-pstack/SKILL.md"
 dispatch="$repo/plugins/pstack/skills/poteto-mode/references/provider-dispatch.md"
-quad_of() { { grep -oE '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' || true; } | tr '\n' ' ' | sed 's/ $//'; }
-canon_quad="$(awk '
-  $0 == "## Model matrix" { in_matrix = 1; next }
-  in_matrix && /^## / { exit }
-  in_matrix && /^\|/ {
-    line = $0
-    sub(/^\|/, "", line)
-    sub(/\|$/, "", line)
-    n = split(line, cells, "|")
-    for (i = 1; i <= n; i++) {
-      gsub(/^ +| +$/, "", cells[i])
-      gsub(/`/, "", cells[i])
-    }
-    family = cells[1]
-    if (family == "Family" || family ~ /^:?-+:?$/) next
-    provider = cells[3]
-    model = cells[4]
-    effort = cells[5]
-    if (out != "") out = out " "
-    out = out provider ":" model "@" effort
-  }
-  END { print out }
-' "$dispatch")"
-quad_bad=""
-[ -n "$canon_quad" ] || quad_bad="could not read the canonical quad from $dispatch"$'\n'
-# Anchor on the quad's last slug rather than a hard-coded one, so a model swap in
-# setup-pstack cannot leave this check hunting for a slug nobody ships any more.
-anchor="${canon_quad##* }"
-# arena, architect, and how each state the quad on one line; interrogate lists it
-# as one slug per row of its Reviewer A/B/C/D table (upstream #167).
-for name in arena architect how; do
-  skill="$repo/plugins/pstack/skills/$name/SKILL.md"
-  n="$(grep -Fc "$anchor" "$skill" || true)"
-  if [ "$n" != "1" ]; then
-    quad_bad="$quad_bad$skill: expected exactly 1 default-quad line, found $n"$'\n'
-    continue
-  fi
-  got="$(grep -F "$anchor" "$skill" | quad_of)"
-  [ "$got" = "$canon_quad" ] || quad_bad="$quad_bad$skill: [$got] != [$canon_quad]"$'\n'
-done
-interrogate="$repo/plugins/pstack/skills/interrogate/SKILL.md"
-got="$(grep -E '^\| Reviewer [A-Z] \|' "$interrogate" | quad_of)"
-[ "$got" = "$canon_quad" ] || quad_bad="$quad_bad$interrogate reviewer table: [$got] != [$canon_quad]"$'\n'
-while IFS= read -r line; do
-  got="$(printf '%s\n' "$line" | quad_of)"
-  [ "$got" = "$canon_quad" ] || quad_bad="$quad_bad$setup role row: [$got] != [$canon_quad]"$'\n'
-done < <(grep -E '^(arena runners|arena cross-judge pool|architect runners|interrogate reviewers|how critics):' "$setup")
-if [ -n "$quad_bad" ]; then
-  note "FAIL: the default model quad is not identical across provider dispatch, the panel skills, and setup-pstack:"
-  note "$quad_bad"
+catalog_roles="$repo/plugins/pstack/catalog/role-defaults.json"
+workflow_slug_hits="$(
+  grep -REn \
+    --include='SKILL.md' --include='*.md' \
+    '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' \
+    "$repo/plugins/pstack/skills/arena" \
+    "$repo/plugins/pstack/skills/architect" \
+    "$repo/plugins/pstack/skills/how" \
+    "$repo/plugins/pstack/skills/interrogate" \
+    "$repo/plugins/pstack/skills/swarm" \
+    "$repo/plugins/pstack/skills/setup-pstack" \
+    "$repo/plugins/pstack/skills/poteto-mode/SKILL.md" \
+    "$repo/plugins/pstack/skills/poteto-mode/references/codex-tools.md" \
+    "$repo/plugins/pstack/skills/poteto-mode/playbooks/feature.md" \
+    "$repo/plugins/pstack/skills/poteto-mode/playbooks/bug-fix.md" \
+    "$repo/plugins/pstack/skills/poteto-mode/playbooks/perf-issue.md" \
+    "$repo/plugins/pstack/skills/poteto-mode/playbooks/hillclimb.md" \
+    "$repo/plugins/pstack/skills/poteto-mode/playbooks/refactoring.md" \
+    2>/dev/null || true
+)"
+catalog_bad=""
+if [ ! -f "$catalog_roles" ] || [ ! -f "$repo/plugins/pstack/catalog/models.json" ]; then
+  catalog_bad="canonical catalog files are missing"$'\n'
+fi
+if ! grep -Fq 'catalog/models.json' "$dispatch" || ! grep -Fq 'catalog/role-defaults.json' "$dispatch"; then
+  catalog_bad="${catalog_bad}$dispatch does not point at the canonical catalog"$'\n'
+fi
+if ! grep -Fq 'catalog/models.json' "$setup" || ! grep -Fq 'Which named roles or panel lanes do you want to change?' "$setup"; then
+  catalog_bad="${catalog_bad}$setup is not catalog-driven"$'\n'
+fi
+if grep -Fq 'Ask exactly four effort questions' "$setup"; then
+  catalog_bad="${catalog_bad}$setup still asks exactly four family questions"$'\n'
+fi
+if [ -n "$workflow_slug_hits" ]; then
+  catalog_bad="${catalog_bad}workflow skills still copy model descriptors:"$'\n'"$workflow_slug_hits"$'\n'
+fi
+if [ -n "$catalog_bad" ]; then
+  note "FAIL: model defaults are not catalog-owned:"
+  note "$catalog_bad"
   fail=1
 else
-  note "ok: default model quad identical across provider dispatch + 4 panel skills + setup-pstack ($canon_quad)"
+  note "ok: model offerings and role defaults live in the catalog; workflow skills do not copy slugs"
 fi
 
 plugin="$repo/plugins/pstack"
@@ -349,33 +338,40 @@ else
   note "ok: routed skills stay model-invocable"
 fi
 
-sol_descriptor="$(awk -F '|' '
-  $2 ~ /^[[:space:]]*sol[[:space:]]*$/ {
-    for (i = 4; i <= 6; i++) gsub(/^[[:space:]]+|[[:space:]]+$/, "", $i)
-    print $4 ":" $5 "@" $6
-  }
-' "$dispatch")"
+sol_descriptor="$(python3 -c '
+import json, pathlib, sys
+roles = json.loads(pathlib.Path(sys.argv[1]).read_text())
+wanted = {}
+for role in roles["roles"]:
+    if role["id"] in ("bug-fix", "perf-issue", "hillclimb"):
+        wanted[role["id"]] = role["descriptors"][0]
+if len(wanted) != 3:
+    raise SystemExit("missing solo code roles")
+values = set(wanted.values())
+if len(values) != 1:
+    raise SystemExit("solo code roles diverged: " + ",".join(sorted(values)))
+print(next(iter(values)))
+' "$catalog_roles")"
 solo_code_bad=""
 if [ -z "$sol_descriptor" ]; then
-  solo_code_bad="could not read the sol row from $dispatch"$'\n'
+  solo_code_bad="could not read solo code roles from $catalog_roles"$'\n'
 fi
+case "$sol_descriptor" in
+  codex:gpt-5.6-sol@*) ;;
+  *) solo_code_bad="${solo_code_bad}solo code roles are not on Sol: [$sol_descriptor]"$'\n' ;;
+esac
 for role in bug-fix perf-issue hillclimb; do
-  setup_descriptor="$(sed -n "s/^${role}: //p" "$setup")"
-  if [ "$setup_descriptor" != "$sol_descriptor" ]; then
-    solo_code_bad="${solo_code_bad}${setup} ${role}: [${setup_descriptor}] != [${sol_descriptor}]"$'\n'
-  fi
   role_playbook="$plugin/skills/poteto-mode/playbooks/$role.md"
-  playbook_descriptor="$(sed -n 's/.*default `\([^`]*\)`.*/\1/p' "$role_playbook")"
-  if [ "$playbook_descriptor" != "$sol_descriptor" ]; then
-    solo_code_bad="${solo_code_bad}${role_playbook}: [${playbook_descriptor}] != [${sol_descriptor}]"$'\n'
+  if grep -Eq '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' "$role_playbook"; then
+    solo_code_bad="${solo_code_bad}${role_playbook} still copies a model descriptor"$'\n'
   fi
 done
 if [ -n "$solo_code_bad" ]; then
-  note "FAIL: solo code roles must use the sol row:"
+  note "FAIL: solo code roles must stay on the catalog Sol offering without copied slugs:"
   note "$solo_code_bad"
   fail=1
 else
-  note "ok: solo code roles stay on the sol row ($sol_descriptor)"
+  note "ok: solo code roles stay on the catalog Sol offering ($sol_descriptor)"
 fi
 
 codex_manifest="$plugin/.codex-plugin/plugin.json"
