@@ -45,15 +45,27 @@ else
   fail=1
 fi
 
-# Cataloged Claude rolling aliases remain the shipped Claude Fable/Opus
-# selectors. Tests may mention uncataloged predecessor pins.
+# Shipped Claude Fable/Opus configuration may name only cataloged selectors:
+# the rolling aliases or an explicit version the catalog lists. Uncataloged
+# predecessor pins fail. Tests may still mention them.
+uncataloged_claude_pins() {
+  python3 -c '
+import json, pathlib, re, sys
+catalog = json.loads(pathlib.Path(sys.argv[1]).read_text())
+cataloged = {o["selector"] for o in catalog["offerings"] if o["provider"] == "claude"}
+pin = re.compile(r"claude-(?:fable|opus)-[0-9][a-z0-9.-]*(?:\[[a-z0-9]+\])?")
+for line in sys.stdin:
+    if any(selector not in cataloged for selector in pin.findall(line)):
+        sys.stdout.write(line)
+' "$repo/plugins/pstack/catalog/models.json"
+}
 legacy_model_pins="$(
   grep -REn \
     --include='*.md' --include='*.ts' --include='*.sh' \
     --exclude='*.test.ts' --exclude='*.test.js' \
     'claude:claude-(fable|opus)-[0-9]|^model: claude-(fable|opus)-[0-9]|--model claude-(fable|opus)-[0-9]' \
     "$repo/plugins/pstack" "$repo/tests" "$repo/README.md" "$repo/docs" \
-    2>/dev/null || true
+    2>/dev/null | uncataloged_claude_pins || true
 )"
 standalone_code_pins="$(
   grep -REn \
@@ -61,7 +73,7 @@ standalone_code_pins="$(
     --exclude='*.test.ts' --exclude='*.test.js' \
     "['\"]claude-(fable|opus)-[0-9]" \
     "$repo/plugins/pstack" \
-    2>/dev/null || true
+    2>/dev/null | uncataloged_claude_pins || true
 )"
 if [ -n "$legacy_model_pins" ] || [ -n "$standalone_code_pins" ]; then
   note "FAIL: shipped Claude Fable or Opus configuration still pins an uncataloged revision:"
