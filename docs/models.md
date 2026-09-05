@@ -223,7 +223,7 @@ Claude serves rolling aliases such as `fable` and `opus`. The alias name stays f
 
 An explicit Claude version is a separate offering with its own selector. This release catalogs `claude:claude-fable-5-1[1m]`, display name `Fable 5.1`, with the `[1m]` context modifier passed to Claude unchanged and native agent stem `fable-5-1-1m`. An operator who wants a fixed revision selects that offering. An operator who wants Claude's current Fable selects `claude:fable`.
 
-The two are never rewritten into each other. A sheet that names `claude:fable` keeps the alias. A sheet that names `claude:claude-fable-5-1[1m]` keeps the pin. Only uncataloged predecessor pins that match `legacyMigrations` (for example the selector `claude-fable-5`) migrate, and only to the rolling alias.
+The two are never rewritten into each other. A sheet that names `claude:fable` keeps the alias. A sheet that names `claude:claude-fable-5-1[1m]` keeps the pin. Only uncataloged predecessor pins that match a `legacyMigrations` pattern migrate, and only to the rolling alias.
 
 A selector may carry one bracketed modifier. It stays in the selector through the sheet, argv, and native-agent generation. Report verification strips it from both the requested selector and the reported model before comparing, and still rejects a different concrete version.
 
