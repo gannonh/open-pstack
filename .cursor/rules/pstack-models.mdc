@@ -1,0 +1,24 @@
+---
+description: pstack per-role model choices (overrides skill defaults)
+alwaysApply: true
+---
+# pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.
+feature, refactoring: cursor-grok-4.6-xhigh
+bug-fix: claude-fable-5-1-thinking-xhigh
+perf-issue: claude-fable-5-1-thinking-xhigh
+hillclimb: claude-fable-5-1-thinking-xhigh
+judgment and prose: claude-fable-5-1-thinking-xhigh
+hardest tasks: claude-fable-5-1-thinking-xhigh
+how explorer: cursor-grok-4.6-xhigh
+how explainer: claude-fable-5-1-thinking-xhigh
+how critics: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
+why investigators: cursor-grok-4.6-xhigh
+why synthesizer: claude-fable-5-1-thinking-xhigh
+reflect tooling: claude-fable-5-1-thinking-xhigh
+reflect judgment, divergent, synthesizer: claude-fable-5-1-thinking-xhigh
+arena runners: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
+arena cross-judge pool: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
+swarm workers: cursor-grok-4.6-xhigh
+architect runners: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
+interrogate reviewers: claude-fable-5-1-thinking-xhigh, gpt-5.6-sol-max, cursor-grok-4.6-xhigh, claude-opus-5-thinking-max
