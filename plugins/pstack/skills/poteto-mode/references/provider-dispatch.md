@@ -17,11 +17,11 @@ The installed plugin owns two canonical JSON files:
 
 Read those files. Do not copy model slugs into workflow skills. Do not rewrite a valid cataloged descriptor into another model. Adding an offering for an existing provider is a catalog change; it does not add a runner switch case or a setup family question.
 
-Each offering has a human `displayName` separate from its provider `selector`. Logical Fable 5.1 currently has two offerings: Claude's rolling `fable` selector plus an effort flag, and Cursor's `claude-fable-5-1` stem whose final CLI id includes the effort suffix. Multiple offerings may share a family. Multiple versions may exist on one provider.
+Each offering has a human `displayName` separate from its provider `selector`. The Fable family currently has three offerings. Claude's rolling `fable` selector is labeled "(rolling alias)"; the revision it serves is discovery or execution evidence, never catalog data. Claude's explicit `claude-fable-5-1[1m]` selector is a separate offering with its own `nativeAgentStem`; the bracketed context modifier is passed to Claude unchanged. Cursor's `claude-fable-5-1` stem composes its final CLI id with the effort suffix. Multiple offerings may share a family. Multiple versions may exist on one provider. A rolling alias and an explicit version are never rewritten into each other.
 
 Providers stay predefined and adapter-backed: `claude`, `codex`, `cursor`, and `grok`. Arbitrary provider strings are invalid.
 
-An offering also records supported efforts, a default effort, `selectorComposition` (`effort-flag` or `effort-suffix`), and an optional Claude `nativeAgentStem`. Deprecated offerings still validate and dispatch so existing sheets keep working. Setup must warn and show `successorId` when present. Removing an offering is a later catalog PR; sheets that still name it then fail validation with that successor hint. Do not auto-rewrite a deprecated descriptor except through `legacyMigrations` for uncataloged predecessor pins.
+An offering also records its own ordered `supportedEfforts` list, a `defaultEffort` from that list, `selectorComposition` (`effort-flag` or `effort-suffix`), and an optional Claude `nativeAgentStem`. There is no global effort enum. An effort is valid only for the offering the descriptor binds to. Deprecated offerings still validate and dispatch so existing sheets keep working. Setup must warn and show `successorId` when present. Removing an offering is a later catalog PR; sheets that still name it then fail validation with that successor hint. Do not auto-rewrite a deprecated descriptor except through `legacyMigrations` for uncataloged predecessor pins.
 
 ## Sheet authority
 
@@ -57,7 +57,7 @@ Native dispatch avoids a second CLI startup and its base context.
 
 Do not send a same-provider descriptor to the external runner. It rejects that call because the native route is cheaper and already available.
 
-Claude rolling aliases (`fable`, `opus`) keep the requested alias in runner receipts as `model` and the concrete provider-reported revision in `reportedModel`. Verification accepts only a numeric `claude-fable-*` or `claude-opus-*` revision from the matching family. A cataloged explicit Claude version is matched as that version, not rewritten to the rolling alias.
+Claude rolling aliases (`fable`, `opus`) keep the requested alias in runner receipts as `model` and the concrete provider-reported revision in `reportedModel`. Verification accepts only a numeric `claude-fable-*` or `claude-opus-*` revision from the matching family. A cataloged explicit Claude version is matched as that version. It is never rewritten to the rolling alias. A bracketed context modifier such as `[1m]` stays in the selector through argv and native-agent generation; report verification strips it from both the requested selector and the reported model before comparing, and still rejects a different concrete version.
 
 ## External lanes
 
@@ -68,7 +68,7 @@ pstack-runner \
   --parent <claude|codex> \
   --provider <claude|codex|grok|cursor> \
   --model <catalog selector> \
-  --effort <low|medium|high|xhigh|max> \
+  --effort <catalog effort> \
   --mode <read-only|isolated-write> \
   --prompt <unique prompt file> \
   --cwd <repository or dedicated worktree> \
@@ -79,7 +79,9 @@ pstack-runner \
 
 Pass arguments as an argv array or quote every path. Never interpolate prompt text into a shell command. The launcher loads the catalog, requires the `(provider, model, effort)` tuple to be a supported offering, preflights the assigned CLI and authentication, invokes the model exactly once, disables recursive agents and ambient skill dispatch where the CLI supports it, restricts the built-in tool surface, and records the exact provider/model/effort flags. External lanes do not receive the parent's MCP surface. Keep MCP-dependent Why and Reflect roles on `inherit-parent` or `auto`. The launcher never falls back.
 
-For `effort-suffix` offerings the launcher composes `<selector>-<effort>` as the CLI model id. For `effort-flag` offerings it passes the catalog selector and the provider's effort flag. Cursor preflight is the `cursor-agent models` listing: it proves authentication and that the composed id is served, in one command. A listing without that exact id is an `unavailable-model` dropout before the model ever starts.
+`--effort` takes an identifier from the bound offering's `supportedEfforts`. Efforts are defined per offering, and the launcher validates the value against that offering before preflight. It passes the exact value to the provider. A provider rejection of that value is a dropout with the provider's message; the launcher never substitutes another effort.
+
+For `effort-suffix` offerings the launcher composes `<selector>-<effort>` as the CLI model id. For `effort-flag` offerings it passes the catalog selector, including any bracketed context modifier, and the provider's effort flag. Cursor preflight is the `cursor-agent models` listing. It proves authentication and that the composed id is served, in one command. A listing without that exact id is an `unavailable-model` dropout before the model ever starts.
 
 Grok authentication preflight has one bounded retry. If the first `grok models` result would be classified as unauthenticated, the runner waits five seconds and tries the same preflight once more. A second failure is terminal. The delay and second attempt share the runner's absolute deadline and cancellation latch, and the receipt keeps evidence from both attempts. Model execution is never retried.
 

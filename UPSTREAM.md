@@ -12,7 +12,7 @@ open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main
 | Path | `pstack/` |
 | Commit | `7314f723a487ec406b6369fe5865ba034cfed166` |
 | Upstream version | `0.14.8` |
-| open-pstack version | `1.4.0` |
+| open-pstack version | `1.5.0` |
 
 The table above is the current Cursor sync point. Fork release 1.3.1 carries the 0.14.8 sync on top of Open Pstack 1.3.0. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
 
@@ -43,7 +43,7 @@ No output means the tracked pstack tree has not changed. This comparison does no
 
 ## Incorporate a change
 
-1. Create or update a GitHub issue (in `gannonh/open-pstack` for fork-delta work, `ericlitman/open-pstack` otherwise) and branch from current `main`.
+1. Create or update the Linear issue that specs the sync and branch from current `main`. Fork-delta work is tracked in Linear project Open Pstack. Changes meant for `ericlitman/open-pstack` still go through that repository's issues.
 2. Read each upstream pstack commit in order. Bring over its intent and content, then apply only the Claude Code and Codex substitutions documented in `CHANGES.md`.
 3. Keep one shared `plugins/pstack/skills/` tree. Put harness translation in the existing `codex-tools.md` and provider routing in `provider-dispatch.md`; do not fork a skill per harness.
 4. Update the commit and version in this file, the affected provenance rows in `NOTICE.md`, and `README-UPSTREAM.md` when upstream changes it.

@@ -180,7 +180,7 @@ In this repository, “upstream” means Lauren's original pstack. Open Pstack d
 
 ## Contributing
 
-Issues about the `cursor` provider or anything else in this fork's delta belong in [this fork's issues](https://github.com/gannonh/open-pstack/issues). Everything else belongs in [Open Pstack's issues](https://github.com/ericlitman/open-pstack/issues), and new pstack behavior belongs in Lauren's original project whenever possible.
+Reports about the `cursor` provider, the model catalog, or anything else in this fork's delta belong in [this fork's issues](https://github.com/gannonh/open-pstack/issues). GitHub Issues are the inbound channel for user and contributor reports. Planning, specs, and acceptance criteria live in Linear (project Open Pstack), and every implementing pull request names one Linear issue. Everything outside the fork's delta belongs in [Open Pstack's issues](https://github.com/ericlitman/open-pstack/issues), and new pstack behavior belongs in Lauren's original project whenever possible.
 
 Read [UPSTREAM.md](UPSTREAM.md) before changing content brought over from Lauren's pstack. Pull requests must keep one shared skill tree for Claude Code and Codex and pass the repository's tests, type checks, plugin validation, and static checks.
 

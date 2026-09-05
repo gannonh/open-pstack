@@ -48,13 +48,18 @@ Parse every non-alias value as `<provider>:<model>@<effort>`. Bind it to exactly
 
 An unmatched provider/model, out-of-domain effort, duplicate role, or unknown role is inconsistent state. Stop, show the conflicting rows verbatim, and ask for an explicit cataloged replacement. Mixed efforts across roles or lanes are valid. Do not invent a precedence rule. Do not probe or write while any inconsistency is unresolved.
 
+Enumerate offerings from the catalog at run time. A newly cataloged offering appears in this step without a skill change.
+
 Show:
 
 - Every current role and lane with its verbatim descriptor
-- Every catalog offering grouped by `displayName` / family, including alternate providers for the same logical model, each offering's selector, supported efforts, and default effort
+- Every catalog offering grouped by family, including alternate providers for the same logical model. For each offering show its label (a rolling alias is labeled "(rolling alias)"), its selector, its supported efforts in catalog order, its default effort, and the copyable `provider:selector@effort` value for every supported effort
 - Deprecated offerings with their successor, if any
+- Resolution evidence for a rolling alias, only when it is available. Advertised evidence comes from a discovery inventory the operator supplies. Observed evidence comes from a probe receipt's `reportedModel`. Show each with its source and time. Otherwise print unknown. Never invent a resolution.
 
 Do not hide a cataloged Cursor offering when a Claude offering shares the same display name, or the reverse.
+
+A hand-edited descriptor is validated by the same catalog binding as a selection made here. An offering that appears only in a discovery inventory, or that discovery reported as unsupported or unrepresentable, is not selectable. Do not guess a replacement selector for it. It becomes selectable when a maintainer catalogs it with `pstack-models add`.
 
 ### 4. Collect named role and lane edits
 
@@ -81,6 +86,15 @@ For each unique descriptor, use the parent route table in `provider-dispatch.md`
 Use a tiny read-only probe that returns a unique marker. A login-status command alone proves credentials, not that the requested model and effort flags run. Record native and external results separately.
 
 Receipts and native transcripts prove the requested effort and the route. They do not prove a provider's hidden applied reasoning depth. There is no implicit timeout, weaker-model fallback, same-provider external fallback, automatic provider fallback, or second mutable configuration source.
+
+**Optional execution verification.** Only when the operator explicitly asks, run the probe through the parent-owned route table and record, per descriptor:
+
+- the requested descriptor
+- the actual argv, or the native agent name plus effort
+- the observed model identity when the provider exposes it
+- the source and time of that observation
+
+Never claim hidden applied-effort observability.
 
 ### 6. Render, preserving untouched selections
 

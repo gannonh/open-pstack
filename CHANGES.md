@@ -2,6 +2,18 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## 1.5.0 adds model discovery and shared catalog membership tooling
+
+A maintainer command, `pstack-models`, lives at `plugins/pstack/skills/poteto-mode/scripts/runner/pstack-models`. `discover` asks the installed `claude`, `codex`, `cursor-agent`, and `grok` CLIs what they advertise, using their existing authentication and zero model turns, and emits an inventory that never edits the catalog. `list` prints catalog membership with copyable descriptors and resolution evidence from a supplied inventory or runner receipts. `add`, `edit`, and `remove` preview a unified diff of `models.json` and the generated Claude-native agent files, require `y` or `--yes`, validate the whole proposed catalog with the role defaults in memory, and write with readback and full rollback. `remove` refuses while role defaults, a `successorId`, or a `legacyMigrations` target reference the offering, and it never rewrites role assignments. `validate` checks the shipped catalog, role defaults, canonical format, and generated agents.
+
+Efforts are now defined per offering as an ordered list with a listed default. There is no global effort enum. An unlisted effort fails at validation and dispatch with no substitution. A selector may carry one bracketed Claude context modifier, which passes to the provider unchanged and survives argv and native-agent generation; report verification strips it from both sides and still rejects a different concrete version.
+
+Rolling Claude aliases (`fable`, `opus`) carry neutral display names and are labeled "(rolling alias)"; the served revision is evidence from discovery or execution, never catalog data. The catalog gains `codex:gpt-6-astra` (GPT-6 Astra, efforts `low` through `ultra`, default `medium`, recorded from Codex app-server `model/list` discovery) and the explicit `claude:claude-fable-5-1[1m]` offering (Fable 5.1 with the 1M context modifier, native agent stem `fable-5-1-1m`). Cursor discovery recognizes an effort suffix only from the catalog's existing vocabulary and reports other ids as unsupported variants. Role defaults are unchanged.
+
+The Claude discovery adapter speaks the `initialize` control request directly to the installed `claude` executable over stream-json instead of adding the Agent SDK dependency. Catalog changes ship through the shared plugin release; there is no personal overlay.
+
+Maintainer guide: [docs/models.md](docs/models.md).
+
 ## 1.4.0 makes model routing catalog-driven
 
 The supported model offerings and first-run role map live in `plugins/pstack/catalog/models.json` and `plugins/pstack/catalog/role-defaults.json`. Setup, dispatch, the runner, and tests read those files. Arena, Architect, How, Interrogate, Swarm, and the code-writing playbooks no longer copy model slugs.
