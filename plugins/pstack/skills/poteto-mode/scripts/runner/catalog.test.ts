@@ -158,6 +158,17 @@ describe("model catalog", () => {
     expect(() => parseModelCatalog(badProvider)).toThrow(
       "not a predefined provider"
     );
+    const rollingOnCursor = cloneCatalog();
+    rollingOnCursor.offerings[0] = {
+      ...rollingOnCursor.offerings[0],
+      provider: "cursor",
+      nativeAgentStem: null,
+      nativeAgentTitle: null,
+      rollingAlias: true,
+    };
+    expect(() => parseModelCatalog(rollingOnCursor)).toThrow(
+      "rollingAlias requires provider claude"
+    );
   });
 
   it("composes provider-specific CLI selectors from catalog data", () => {

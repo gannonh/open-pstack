@@ -985,13 +985,37 @@ describe("runLane", () => {
     await expect(runLane(input)).rejects.toThrow("native to parent");
   });
 
-  it("rejects an uncataloged Claude version pin before it can stay pinned", async () => {
+  it("rejects an uncataloged Claude version pin with an unavailable-model receipt", async () => {
     const input = { ...options("claude"), model: "claude-fable-9-9" };
-    await expect(runLane(input)).rejects.toThrow(
-      "not a cataloged claude offering"
-    );
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(69);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "unavailable-model",
+      model: "claude-fable-9-9",
+      error: {
+        message: "catalog selection is not executable",
+        evidence: "model claude-fable-9-9 is not a cataloged claude offering",
+      },
+    });
     expect(existsSync(input.outputPath)).toBe(false);
-    expect(existsSync(input.receiptPath)).toBe(false);
+    expect(existsSync(input.receiptPath)).toBe(true);
+  });
+
+  it("rejects an unsupported effort with an unavailable-model receipt", async () => {
+    const input = { ...options("cursor"), effort: "max" as const };
+    const result = await runLane(input);
+    expect(result.exitCode).toBe(69);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "unavailable-model",
+      effort: "max",
+      error: {
+        message: "catalog selection is not executable",
+        evidence:
+          "effort max is not supported for cursor:cursor-grok-4.6; supported: low, medium, high, xhigh",
+      },
+    });
+    expect(existsSync(input.outputPath)).toBe(false);
+    expect(existsSync(input.receiptPath)).toBe(true);
   });
 });
 

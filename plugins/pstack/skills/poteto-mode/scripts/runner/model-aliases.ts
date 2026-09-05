@@ -1,22 +1,19 @@
-export type RollingClaudeAlias = "fable" | "opus";
-
-export function isRollingClaudeAlias(
-  model: string
-): model is RollingClaudeAlias {
-  return model === "fable" || model === "opus";
+function comparableSelector(value: string): string {
+  return value.trim().toLowerCase().replace(/\./g, "-");
 }
 
-export function versionedClaudeAlias(
-  model: string
-): RollingClaudeAlias | null {
-  if (/^claude-fable-[0-9]+(?:-[0-9]+)*$/.test(model)) return "fable";
-  if (/^claude-opus-[0-9]+(?:-[0-9]+)*$/.test(model)) return "opus";
-  return null;
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function concreteModelMatchesRollingAlias(
-  requested: string,
+export function concreteClaudeRevisionMatchesRollingSelector(
+  selector: string,
   reported: string
 ): boolean {
-  return versionedClaudeAlias(reported) === requested;
+  const normalizedSelector = comparableSelector(selector);
+  const normalizedReported = comparableSelector(reported);
+  const pattern = new RegExp(
+    `^claude-${escapeRegExp(normalizedSelector)}-[0-9]+(?:-[0-9]+)*$`
+  );
+  return pattern.test(normalizedReported);
 }

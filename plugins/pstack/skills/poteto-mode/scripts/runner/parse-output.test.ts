@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
+import { concreteClaudeRevisionMatchesRollingSelector } from "./model-aliases.ts";
 
 describe("parseProviderOutput", () => {
   it("extracts Claude text, model, usage, cost, and session", () => {
@@ -205,6 +206,18 @@ describe("parseProviderOutput", () => {
     expect(reportedModelMatches("claude", "fable", "fable")).toBe(false);
     expect(reportedModelMatches("claude", "fable", "fable-preview")).toBe(false);
     expect(reportedModelMatches("grok", "fable", "claude-fable-9-9")).toBe(false);
+  });
+
+  it("matches concrete Claude revisions for any catalog rolling selector", () => {
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("sonnet", "claude-sonnet-4-5")
+    ).toBe(true);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("sonnet", "claude-opus-9")
+    ).toBe(false);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("fable", "claude-fable-9-9")
+    ).toBe(true);
   });
 
   it("rejects malformed or textless responses", () => {

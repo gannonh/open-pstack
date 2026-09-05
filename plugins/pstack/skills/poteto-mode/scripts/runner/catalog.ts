@@ -256,6 +256,10 @@ function parseOffering(
   if (!deprecated && successorId !== null) {
     throw new Error(`offerings[${index}].successorId requires deprecated: true`);
   }
+  const rollingAlias = asBoolean(value.rollingAlias, `offerings[${index}].rollingAlias`);
+  if (rollingAlias && provider !== "claude") {
+    throw new Error(`offerings[${index}].rollingAlias requires provider claude`);
+  }
   return {
     id,
     family,
@@ -270,7 +274,7 @@ function parseOffering(
     defaultEffort,
     nativeAgentStem,
     nativeAgentTitle,
-    rollingAlias: asBoolean(value.rollingAlias, `offerings[${index}].rollingAlias`),
+    rollingAlias,
     deprecated,
     successorId,
     notes: asNullableString(value.notes, `offerings[${index}].notes`),
@@ -531,24 +535,31 @@ export function composedCliModel(offering: ModelOffering, effort: Effort): strin
     : offering.selector;
 }
 
+export function catalogLaneError(
+  catalog: ModelCatalog,
+  provider: Provider,
+  model: string,
+  effort: Effort
+): string | null {
+  const offering = findOffering(catalog, provider, model);
+  if (offering === null) {
+    return `model ${model} is not a cataloged ${provider} offering`;
+  }
+  if (!offering.supportedEfforts.includes(effort)) {
+    return `effort ${effort} is not supported for ${provider}:${model}; supported: ${offering.supportedEfforts.join(", ")}`;
+  }
+  return null;
+}
+
 export function requireCatalogedLane(
   catalog: ModelCatalog,
   provider: Provider,
   model: string,
   effort: Effort
 ): ModelOffering {
-  const offering = findOffering(catalog, provider, model);
-  if (offering === null) {
-    throw new UsageError(
-      `model ${model} is not a cataloged ${provider} offering`
-    );
-  }
-  if (!offering.supportedEfforts.includes(effort)) {
-    throw new UsageError(
-      `effort ${effort} is not supported for ${provider}:${model}; supported: ${offering.supportedEfforts.join(", ")}`
-    );
-  }
-  return offering;
+  const error = catalogLaneError(catalog, provider, model, effort);
+  if (error !== null) throw new UsageError(error);
+  return findOffering(catalog, provider, model)!;
 }
 
 export function nativeAgentName(offering: ModelOffering, effort: Effort): string {
