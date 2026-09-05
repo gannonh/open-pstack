@@ -305,7 +305,10 @@ function addFieldOptions(command: Command): void {
     .addOption(new Option("--no-rolling-alias", "do not mark as a rolling alias"))
     .addOption(new Option("--deprecated", "mark as deprecated"))
     .addOption(new Option("--no-deprecated", "do not mark as deprecated"))
-    .option("--successor <offering-id>", "successor offering id")
+    .option(
+      "--successor <offering-id>",
+      "successor offering id; pass null to clear"
+    )
     .option("--notes <text>", "notes");
 }
 
@@ -352,7 +355,15 @@ function fieldPatch(command: Command): Partial<OfferingInput> {
     patch.deprecated = Boolean(opts.deprecated);
   }
   if (command.getOptionValueSource("successor") === "cli") {
-    patch.successorId = opts.successor ?? null;
+    const successor = opts.successor;
+    patch.successorId =
+      successor === undefined || successor === "null" ? null : successor;
+  }
+  if (
+    command.getOptionValueSource("deprecated") === "cli" &&
+    patch.deprecated === false
+  ) {
+    patch.successorId = null;
   }
   if (command.getOptionValueSource("notes") === "cli") patch.notes = opts.notes ?? null;
   return patch;

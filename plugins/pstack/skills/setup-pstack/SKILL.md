@@ -87,15 +87,6 @@ Use a tiny read-only probe that returns a unique marker. A login-status command 
 
 Receipts and native transcripts prove the requested effort and the route. They do not prove a provider's hidden applied reasoning depth. There is no implicit timeout, weaker-model fallback, same-provider external fallback, automatic provider fallback, or second mutable configuration source.
 
-**Optional execution verification.** Only when the operator explicitly asks, run the probe through the parent-owned route table and record, per descriptor:
-
-- the requested descriptor
-- the actual argv, or the native agent name plus effort
-- the observed model identity when the provider exposes it
-- the source and time of that observation
-
-Never claim hidden applied-effort observability.
-
 ### 6. Render, preserving untouched selections
 
 Build the new sheet in memory. Do not write it yet.

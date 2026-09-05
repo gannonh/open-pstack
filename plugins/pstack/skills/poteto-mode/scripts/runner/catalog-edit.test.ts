@@ -124,6 +124,36 @@ describe("proposeFromInventory", () => {
     expect(astra?.supportedEfforts).toEqual([...ASTRA_EFFORTS]);
     expect(astra?.defaultEffort).toBe("medium");
   });
+
+  it("keeps an explicit Claude contextual selector off the rolling-alias path", () => {
+    const catalog = baseCatalog();
+    const entry: InventoryEntry = {
+      provider: "claude",
+      providerId: "claude-fable-5-1[1m]",
+      displayName: "Fable 5.1",
+      description: null,
+      supportedEfforts: [...FIVE_EFFORTS],
+      defaultEffort: "max",
+      hidden: false,
+      isDefault: false,
+      variants: [],
+      resolution: { resolvedModel: "claude-fable-5-1" },
+      descriptor: supportedDescriptor("claude", "claude-fable-5-1[1m]", "effort-flag"),
+      membership: null,
+    };
+    const { proposal, missing } = proposeFromInventory(entry, catalog, {
+      method: "claude initialize control request",
+      argv: ["claude"],
+      at: "2026-09-05T12:00:00.000Z",
+    });
+    expect(missing).toEqual(["family"]);
+    expect(proposal.rollingAlias).toBe(false);
+    expect(proposal.selector).toBe("claude-fable-5-1[1m]");
+    const completed = completeOffering({ ...proposal, family: "fable" });
+    expect("offering" in completed).toBe(true);
+    if (!("offering" in completed)) return;
+    expect(proposeAdd(catalog, completed.offering).kind).toBe("change");
+  });
 });
 
 describe("proposeAdd", () => {

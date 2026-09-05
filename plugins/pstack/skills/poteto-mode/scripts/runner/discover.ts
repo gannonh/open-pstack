@@ -427,7 +427,6 @@ function lineReader(stream: ReadableStream<Uint8Array>): {
 async function raceDeadline<T>(work: Promise<T>, deadlineAt: number | null): Promise<T> {
   if (deadlineAt === null) return work;
   if (Date.now() >= deadlineAt) {
-    await Promise.allSettled([work]);
     throw new DeadlineElapsedError();
   }
   let timer: ReturnType<typeof setTimeout> | null = null;

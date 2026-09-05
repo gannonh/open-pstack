@@ -588,6 +588,20 @@ describe("discover", () => {
 });
 
 describe("discover timeout", () => {
+  it("rejects an already-elapsed deadline without waiting for the child", async () => {
+    const started = Date.now();
+    install(
+      "codex",
+      `#!/usr/bin/env bun
+await Bun.sleep(30_000);
+`
+    );
+    const result = await discoverProvider("codex", opts(["codex"], { timeoutMs: -1 }));
+    expect(Date.now() - started).toBeLessThan(2_000);
+    expect(result.status).toBe("failed");
+    expect(result.error?.message).toBe("explicit deadline elapsed");
+  });
+
   it("fails with explicit deadline elapsed and terminates the child", async () => {
     const pidPath = join(scratch, "app-server.pid");
     process.env.FAKE_PID_PATH = pidPath;

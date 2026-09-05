@@ -253,6 +253,55 @@ describe("pstack-models add", () => {
   });
 });
 
+describe("pstack-models edit", () => {
+  it("clears successorId with --successor null or --no-deprecated", async () => {
+    const root = copyPluginTree();
+    const beforeRoles = readFileSync(roleDefaultsFilePath(root));
+    const deprecateIo = harness(root);
+    expect(
+      await main(
+        [
+          "edit",
+          "claude-fable",
+          "--deprecated",
+          "--successor",
+          "codex-gpt-5-6-sol",
+          "--yes",
+        ],
+        deprecateIo.io
+      )
+    ).toBe(0);
+    let offering = readCatalogFile(catalogFilePath(root)).catalog.offerings.find(
+      (row) => row.id === "claude-fable"
+    );
+    expect(offering?.deprecated).toBe(true);
+    expect(offering?.successorId).toBe("codex-gpt-5-6-sol");
+
+    const clearSuccessorIo = harness(root);
+    expect(
+      await main(
+        ["edit", "claude-fable", "--successor", "null", "--yes"],
+        clearSuccessorIo.io
+      )
+    ).toBe(0);
+    offering = readCatalogFile(catalogFilePath(root)).catalog.offerings.find(
+      (row) => row.id === "claude-fable"
+    );
+    expect(offering?.successorId).toBeNull();
+
+    const undeprecateIo = harness(root);
+    expect(
+      await main(["edit", "claude-fable", "--no-deprecated", "--yes"], undeprecateIo.io)
+    ).toBe(0);
+    offering = readCatalogFile(catalogFilePath(root)).catalog.offerings.find(
+      (row) => row.id === "claude-fable"
+    );
+    expect(offering?.deprecated).toBe(false);
+    expect(offering?.successorId).toBeNull();
+    expect(readFileSync(roleDefaultsFilePath(root)).equals(beforeRoles)).toBe(true);
+  });
+});
+
 describe("pstack-models list", () => {
   it("prints unknown advertised resolution without inventory", async () => {
     const { stdout, io } = harness();

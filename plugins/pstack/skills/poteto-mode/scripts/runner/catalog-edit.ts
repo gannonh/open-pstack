@@ -167,9 +167,13 @@ export function proposeFromInventory(
     selectorComposition: entry.descriptor.selectorComposition,
     notes,
   };
-  // An advertised resolution to a different id is direct evidence of an
-  // alias; without one the adapter's selector-shape proposal stands.
-  if (entry.provider === "claude" && entry.resolution !== null) {
+  // An advertised resolution to a different id is direct evidence of a rolling
+  // alias; explicit revision pins keep the adapter's selector-shape proposal.
+  if (
+    entry.provider === "claude" &&
+    entry.resolution !== null &&
+    proposal.rollingAlias === true
+  ) {
     proposal.rollingAlias = entry.resolution.resolvedModel !== entry.providerId;
     if (proposal.rollingAlias) proposal.family = entry.providerId;
   }
