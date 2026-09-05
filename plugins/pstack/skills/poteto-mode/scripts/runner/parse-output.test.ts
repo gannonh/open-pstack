@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
-import { concreteClaudeRevisionMatchesRollingSelector } from "./model-aliases.ts";
+import {
+  concreteClaudeRevisionMatchesExplicitSelector,
+  concreteClaudeRevisionMatchesRollingSelector,
+} from "./model-aliases.ts";
 
 describe("parseProviderOutput", () => {
   it("extracts Claude text, model, usage, cost, and session", () => {
@@ -218,6 +221,23 @@ describe("parseProviderOutput", () => {
     expect(
       concreteClaudeRevisionMatchesRollingSelector("fable", "claude-fable-9-9")
     ).toBe(true);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("fable", "claude-fable-9-9[1m]")
+    ).toBe(true);
+  });
+
+  it("matches an explicit Claude selector whether or not the report keeps the context suffix", () => {
+    const selector = "claude-fable-5-1[1m]";
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "claude-fable-5-1[1m]")).toBe(true);
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "claude-fable-5-1")).toBe(true);
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "claude-fable-5-1-20260901")).toBe(true);
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "claude-fable-5-2")).toBe(false);
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "claude-fable-5")).toBe(false);
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "claude-fable-5-1-5")).toBe(false);
+    expect(concreteClaudeRevisionMatchesExplicitSelector(selector, "fable")).toBe(false);
+    expect(reportedModelMatches("claude", selector, "claude-fable-5-1")).toBe(true);
+    expect(reportedModelMatches("claude", selector, "claude-fable-5-2[1m]")).toBe(false);
+    expect(reportedModelMatches("claude", "claude-fable-5-1", "claude-fable-5-1[1m]")).toBe(true);
   });
 
   it("rejects malformed or textless responses", () => {

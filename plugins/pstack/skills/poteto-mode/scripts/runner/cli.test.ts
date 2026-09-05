@@ -40,4 +40,15 @@ describe("runner CLI parsing", () => {
       "greater than zero"
     );
   });
+
+  it("accepts any catalog effort identifier and leaves membership to the catalog", () => {
+    const args = argv();
+    args[args.indexOf("--effort") + 1] = "ultra";
+    expect(parseArgs(args)?.effort).toBe("ultra");
+    args[args.indexOf("--effort") + 1] = "Max!";
+    expect(() => parseArgs(args)).toThrow("catalog effort identifier");
+    args[args.indexOf("--model") + 1] = "claude-fable-5-1[1m]";
+    args[args.indexOf("--effort") + 1] = "max";
+    expect(parseArgs(args)?.model).toBe("claude-fable-5-1[1m]");
+  });
 });

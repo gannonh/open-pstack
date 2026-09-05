@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import {
-  EFFORTS,
+  EFFORT_RE,
   PROVIDERS,
   UsageError,
   type Effort,
@@ -82,10 +82,15 @@ export interface MigrationRecord {
 
 const ID_RE = /^[a-z][a-z0-9-]*$/;
 const FAMILY_RE = /^[a-z][a-z0-9-]*$/;
-const SELECTOR_RE = /^[a-z0-9][a-z0-9.-]*$/;
+// A selector may end in one bracketed contextual modifier, such as Claude's
+// `claude-fable-5-1[1m]`. It is passed to the provider unchanged.
+export const SELECTOR_RE = /^[a-z0-9][a-z0-9.-]*(?:\[[a-z0-9]+\])?$/;
 const STEM_RE = /^[a-z0-9-]+$/;
 const DESCRIPTOR_RE =
-  /^(claude|codex|grok|cursor):([a-z0-9][a-z0-9.-]*)@(low|medium|high|xhigh|max)$/;
+  /^(claude|codex|grok|cursor):([a-z0-9][a-z0-9.-]*(?:\[[a-z0-9]+\])?)@([a-z][a-z0-9-]*)$/;
+// Rolling aliases must not carry a revision in their label; the served
+// revision is evidence from discovery or execution, not catalog data.
+const REVISION_DIGIT_RE = /[0-9]/;
 
 let cachedModels: ModelCatalog | undefined;
 let cachedRoles: RoleDefaults | undefined;
@@ -118,10 +123,10 @@ function asBoolean(value: unknown, label: string): boolean {
 
 function asEffort(value: unknown, label: string): Effort {
   const effort = asString(value, label);
-  if (!(EFFORTS as readonly string[]).includes(effort)) {
-    throw new Error(`${label} is not an effort: ${effort}`);
+  if (!EFFORT_RE.test(effort)) {
+    throw new Error(`${label} is not a safe effort identifier: ${effort}`);
   }
-  return effort as Effort;
+  return effort;
 }
 
 function asProvider(value: unknown, label: string): Provider {
@@ -212,14 +217,6 @@ function parseOffering(
   if (uniqueEfforts.size !== supportedEfforts.length) {
     throw new Error(`offerings[${index}].supportedEfforts contains duplicates`);
   }
-  if (
-    EFFORTS.filter((effort) => uniqueEfforts.has(effort)).join(" ") !==
-    supportedEfforts.join(" ")
-  ) {
-    throw new Error(
-      `offerings[${index}].supportedEfforts must be listed in canonical effort order`
-    );
-  }
   const defaultEffort = asEffort(
     value.defaultEffort,
     `offerings[${index}].defaultEffort`
@@ -260,10 +257,16 @@ function parseOffering(
   if (rollingAlias && provider !== "claude") {
     throw new Error(`offerings[${index}].rollingAlias requires provider claude`);
   }
+  const displayName = asString(value.displayName, `offerings[${index}].displayName`);
+  if (rollingAlias && REVISION_DIGIT_RE.test(displayName)) {
+    throw new Error(
+      `offerings[${index}].displayName must not name a revision for a rolling alias: ${displayName}`
+    );
+  }
   return {
     id,
     family,
-    displayName: asString(value.displayName, `offerings[${index}].displayName`),
+    displayName,
     provider,
     selector,
     selectorComposition: asComposition(
@@ -604,28 +607,126 @@ export function nativeAgentsFor(catalog: ModelCatalog): readonly {
   return agents;
 }
 
+// The human label. A rolling alias says so instead of claiming a revision.
+export function offeringLabel(offering: ModelOffering): string {
+  return offering.rollingAlias
+    ? `${offering.displayName} (rolling alias)`
+    : offering.displayName;
+}
+
+export function descriptorStem(offering: ModelOffering): string {
+  return `${offering.provider}:${offering.selector}`;
+}
+
 export function setupOfferingChoices(catalog: ModelCatalog): readonly {
   readonly id: string;
   readonly family: string;
   readonly displayName: string;
+  readonly label: string;
   readonly descriptorStem: string;
+  readonly descriptors: readonly string[];
   readonly provider: Provider;
   readonly selector: string;
   readonly supportedEfforts: readonly Effort[];
   readonly defaultEffort: Effort;
+  readonly rollingAlias: boolean;
   readonly deprecated: boolean;
 }[] {
   return catalog.offerings.map((offering) => ({
     id: offering.id,
     family: offering.family,
     displayName: offering.displayName,
-    descriptorStem: `${offering.provider}:${offering.selector}`,
+    label: offeringLabel(offering),
+    descriptorStem: descriptorStem(offering),
+    descriptors: offering.supportedEfforts.map((effort) =>
+      formatDescriptor(offering.provider, offering.selector, effort)
+    ),
     provider: offering.provider,
     selector: offering.selector,
     supportedEfforts: offering.supportedEfforts,
     defaultEffort: offering.defaultEffort,
+    rollingAlias: offering.rollingAlias,
     deprecated: offering.deprecated,
   }));
+}
+
+// Every effort identifier any offering declares. Cursor discovery recognizes
+// an effort suffix only from this vocabulary; it never invents one.
+export function catalogEffortVocabulary(catalog: ModelCatalog): ReadonlySet<Effort> {
+  const efforts = new Set<Effort>();
+  for (const offering of catalog.offerings) {
+    for (const effort of offering.supportedEfforts) efforts.add(effort);
+  }
+  return efforts;
+}
+
+// Proposed Claude-native agent stem for a selector: `fable` stays `fable`,
+// `claude-fable-5-1[1m]` becomes `fable-5-1-1m`.
+export function proposeNativeAgentStem(selector: string): string {
+  return selector
+    .replace(/^claude-/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+const OFFERING_KEYS = [
+  "id",
+  "family",
+  "displayName",
+  "provider",
+  "selector",
+  "selectorComposition",
+  "supportedEfforts",
+  "defaultEffort",
+  "nativeAgentStem",
+  "nativeAgentTitle",
+  "rollingAlias",
+  "deprecated",
+  "successorId",
+  "notes",
+] as const satisfies readonly (keyof ModelOffering)[];
+
+export function offeringToJson(offering: ModelOffering): Record<string, unknown> {
+  const json: Record<string, unknown> = {};
+  for (const key of OFFERING_KEYS) json[key] = offering[key];
+  return json;
+}
+
+export function catalogToJson(catalog: ModelCatalog): Record<string, unknown> {
+  return {
+    schemaVersion: catalog.schemaVersion,
+    offerings: catalog.offerings.map(offeringToJson),
+    legacyMigrations: catalog.legacyMigrations.map((migration) => ({
+      provider: migration.provider,
+      selectorPattern: migration.selectorPattern,
+      targetOfferingId: migration.targetOfferingId,
+    })),
+  };
+}
+
+function renderJson(value: unknown, depth: number): string {
+  const pad = "  ".repeat(depth);
+  const inner = "  ".repeat(depth + 1);
+  if (Array.isArray(value)) {
+    if (value.every((entry) => entry === null || typeof entry !== "object")) {
+      return `[${value.map((entry) => JSON.stringify(entry)).join(", ")}]`;
+    }
+    return `[\n${value.map((entry) => `${inner}${renderJson(entry, depth + 1)}`).join(",\n")}\n${pad}]`;
+  }
+  if (isObject(value)) {
+    const entries = Object.entries(value);
+    if (entries.length === 0) return "{}";
+    return `{\n${entries
+      .map(([key, entry]) => `${inner}${JSON.stringify(key)}: ${renderJson(entry, depth + 1)}`)
+      .join(",\n")}\n${pad}}`;
+  }
+  return JSON.stringify(value);
+}
+
+// The checked-in catalog format: two-space indent, primitive arrays inline.
+// Catalog writes use this so a membership change diffs as one entry.
+export function formatCatalogJson(value: unknown): string {
+  return `${renderJson(value, 0)}\n`;
 }
 
 export function loadModelCatalog(path: string = MODELS_CATALOG_PATH): ModelCatalog {

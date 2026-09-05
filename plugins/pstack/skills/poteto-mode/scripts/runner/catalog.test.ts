@@ -2,17 +2,24 @@ import { describe, expect, it } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  MODELS_CATALOG_PATH,
   PLUGIN_ROOT,
   bindDescriptor,
+  catalogEffortVocabulary,
+  catalogToJson,
   composedCliModel,
   findOffering,
+  formatCatalogJson,
   formatDescriptor,
   loadModelCatalog,
   loadRoleDefaults,
   migrateDescriptorText,
   nativeAgentsFor,
+  offeringLabel,
   parseModelCatalog,
   parseRoleDefaults,
+  proposeNativeAgentStem,
+  renderNativeAgent,
   requireCatalogedLane,
   setupOfferingChoices,
 } from "./catalog.ts";
@@ -22,9 +29,12 @@ import {
   parseSheet,
   replacePanelLane,
   replaceRoleLanes,
+  renderSheet,
   uniqueOfferingDescriptors,
 } from "./sheet.ts";
-import { EFFORTS, UsageError } from "./types.ts";
+import { UsageError } from "./types.ts";
+
+const FIVE_EFFORTS = ["low", "medium", "high", "xhigh", "max"];
 
 const AGENTS_DIR = join(PLUGIN_ROOT, "agents");
 const SETUP_PATH = join(PLUGIN_ROOT, "skills/setup-pstack/SKILL.md");
@@ -48,7 +58,7 @@ const WORKFLOW_SLUG_PATHS = [
   "skills/poteto-mode/playbooks/refactoring.md",
 ] as const;
 const DESCRIPTOR_RE =
-  /(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)/g;
+  /(claude|codex|grok|cursor):[a-z0-9.\[\]-]+@[a-z][a-z0-9-]*/g;
 
 function cloneCatalog(): {
   schemaVersion: number;
@@ -122,11 +132,130 @@ describe("model catalog", () => {
     expect(cursorFable).not.toBeNull();
     expect(cursorFable?.displayName).toBe("Fable 5.1");
     expect(cursorFable?.selector).toBe("claude-fable-5-1");
-    expect(cursorFable?.supportedEfforts).toEqual([...EFFORTS]);
+    expect(cursorFable?.supportedEfforts).toEqual(FIVE_EFFORTS);
     const claudeFable = findOffering(catalog, "claude", "fable");
-    expect(claudeFable?.displayName).toBe("Fable 5.1");
+    expect(claudeFable?.displayName).toBe("Fable");
     expect(claudeFable?.selector).toBe("fable");
     expect(claudeFable?.displayName).not.toBe(claudeFable?.selector);
+  });
+
+  it("labels rolling aliases as rolling and rejects a revision in their label", () => {
+    const fable = findOffering(catalog, "claude", "fable");
+    const opus = findOffering(catalog, "claude", "opus");
+    expect(offeringLabel(fable!)).toBe("Fable (rolling alias)");
+    expect(offeringLabel(opus!)).toBe("Opus (rolling alias)");
+    expect(offeringLabel(findOffering(catalog, "cursor", "claude-fable-5-1")!)).toBe(
+      "Fable 5.1"
+    );
+    const revisionLabel = cloneCatalog();
+    revisionLabel.offerings[0] = { ...revisionLabel.offerings[0], displayName: "Fable 5.1" };
+    expect(() => parseModelCatalog(revisionLabel)).toThrow(
+      "must not name a revision for a rolling alias"
+    );
+  });
+
+  it("defines efforts per offering, preserves their order, and rejects unsafe tokens", () => {
+    const astra = cloneCatalog();
+    astra.offerings.push({
+      ...astra.offerings[2],
+      id: "codex-gpt-6-astra",
+      selector: "gpt-6-astra",
+      displayName: "GPT-6 Astra",
+      family: "astra",
+      supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultra"],
+      defaultEffort: "medium",
+    });
+    const parsed = parseModelCatalog(astra);
+    const offering = findOffering(parsed, "codex", "gpt-6-astra");
+    expect(offering?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    expect(bindDescriptor(parsed, "codex:gpt-6-astra@ultra").effort).toBe("ultra");
+    expect(bindDescriptor(parsed, "codex:gpt-6-astra@medium").offering?.id).toBe(
+      "codex-gpt-6-astra"
+    );
+    expect(() => bindDescriptor(parsed, "codex:gpt-5.6-sol@ultra")).toThrow(
+      "unsupported effort ultra"
+    );
+    expect(catalogEffortVocabulary(parsed).has("ultra")).toBe(true);
+    expect(catalogEffortVocabulary(catalog).has("ultra")).toBe(false);
+
+    const reordered = cloneCatalog();
+    reordered.offerings[2] = {
+      ...reordered.offerings[2],
+      supportedEfforts: ["max", "low"],
+      defaultEffort: "max",
+    };
+    expect(parseModelCatalog(reordered).offerings[2]?.supportedEfforts).toEqual(["max", "low"]);
+
+    const unsafe = cloneCatalog();
+    unsafe.offerings[2] = { ...unsafe.offerings[2], supportedEfforts: ["low", "Max!"] };
+    expect(() => parseModelCatalog(unsafe)).toThrow("not a safe effort identifier");
+    const emptyToken = cloneCatalog();
+    emptyToken.offerings[2] = { ...emptyToken.offerings[2], supportedEfforts: ["low", ""] };
+    expect(() => parseModelCatalog(emptyToken)).toThrow("non-empty string");
+    const duplicate = cloneCatalog();
+    duplicate.offerings[2] = { ...duplicate.offerings[2], supportedEfforts: ["low", "low"] };
+    expect(() => parseModelCatalog(duplicate)).toThrow("contains duplicates");
+    const unlistedDefault = cloneCatalog();
+    unlistedDefault.offerings[2] = { ...unlistedDefault.offerings[2], defaultEffort: "ultra" };
+    expect(() => parseModelCatalog(unlistedDefault)).toThrow("defaultEffort is not selectable");
+    expect(() => bindDescriptor(catalog, "codex:gpt-5.6-sol@Max")).toThrow("invalid descriptor");
+  });
+
+  it("carries a Claude contextual selector unchanged through parsing, sheet, argv, and agents", () => {
+    const explicit = cloneCatalog();
+    explicit.offerings.push({
+      ...explicit.offerings[0],
+      id: "claude-fable-5-1-1m",
+      displayName: "Fable 5.1",
+      selector: "claude-fable-5-1[1m]",
+      rollingAlias: false,
+      nativeAgentStem: proposeNativeAgentStem("claude-fable-5-1[1m]"),
+      nativeAgentTitle: "pstack Fable 5.1 (1M context) lane",
+      notes: null,
+    });
+    const parsed = parseModelCatalog(explicit);
+    const offering = findOffering(parsed, "claude", "claude-fable-5-1[1m]");
+    expect(offering?.nativeAgentStem).toBe("fable-5-1-1m");
+    const bound = bindDescriptor(parsed, "claude:claude-fable-5-1[1m]@max");
+    expect(bound.selector).toBe("claude-fable-5-1[1m]");
+    expect(bound.offering?.id).toBe("claude-fable-5-1-1m");
+    expect(migrateDescriptorText(parsed, "claude:claude-fable-5-1[1m]@max")).toEqual({
+      descriptor: "claude:claude-fable-5-1[1m]@max",
+      migratedFrom: null,
+    });
+    expect(composedCliModel(offering!, "max")).toBe("claude-fable-5-1[1m]");
+    const agent = renderNativeAgent(offering!, "max");
+    expect(agent).toContain("name: pstack-fable-5-1-1m-max");
+    expect(agent).toContain("model: claude-fable-5-1[1m]");
+    expect(agent).toContain("claude:claude-fable-5-1[1m]@max");
+
+    const defaults = parseRoleDefaults(JSON.parse(JSON.stringify(roles)), parsed);
+    const edited = renderSheet({
+      ...defaults,
+      roles: replaceRoleLanes(
+        defaults.roles,
+        "judgment and prose",
+        ["claude:claude-fable-5-1[1m]@high"],
+        parsed
+      ),
+    });
+    expect(edited).toContain("judgment and prose: claude:claude-fable-5-1[1m]@high");
+    const reparsed = parseSheet(edited, parsed, defaults);
+    expect(reparsed.issues).toEqual([]);
+    expect(
+      reparsed.sheet?.roles.find((role) => role.id === "judgment and prose")?.lanes[0]?.raw
+    ).toBe("claude:claude-fable-5-1[1m]@high");
+    expect(uniqueOfferingDescriptors(reparsed.sheet!)).toContain(
+      "claude:claude-fable-5-1[1m]@high"
+    );
+    expect(() => bindDescriptor(parsed, "claude:claude-fable-5-1[1m][2m]@high")).toThrow(
+      "invalid descriptor"
+    );
+  });
+
+  it("keeps the checked-in catalog in canonical format", () => {
+    const text = readFileSync(MODELS_CATALOG_PATH, "utf8");
+    expect(formatCatalogJson(catalogToJson(parseModelCatalog(JSON.parse(text))))).toBe(text);
   });
 
   it("rejects duplicate ids and provider selectors", () => {
@@ -148,7 +277,7 @@ describe("model catalog", () => {
       "unsupported effort max"
     );
     expect(() => bindDescriptor(catalog, "claude:fable@nope")).toThrow(
-      "invalid descriptor"
+      "unsupported effort nope"
     );
     const badProvider = cloneCatalog();
     badProvider.offerings[0] = {
@@ -208,6 +337,7 @@ describe("model catalog", () => {
     withExplicitClaude.offerings.push({
       ...fable,
       id: "claude-fable-5-1-explicit",
+      displayName: "Fable 5.1",
       selector: "claude-fable-5-1",
       rollingAlias: false,
       nativeAgentStem: "claude-fable-5-1",

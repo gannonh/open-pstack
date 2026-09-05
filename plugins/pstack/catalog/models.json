@@ -4,7 +4,7 @@
     {
       "id": "claude-fable",
       "family": "fable",
-      "displayName": "Fable 5.1",
+      "displayName": "Fable",
       "provider": "claude",
       "selector": "fable",
       "selectorComposition": "effort-flag",
@@ -15,7 +15,7 @@
       "rollingAlias": true,
       "deprecated": false,
       "successorId": null,
-      "notes": "Claude rolling alias. Claude Code resolves it to the current Fable 5.1 revision. Display name and selector differ."
+      "notes": "Claude rolling alias. The served revision is discovery or execution evidence, not catalog data. Display name and selector differ."
     },
     {
       "id": "cursor-fable-5-1",
@@ -95,7 +95,7 @@
       "rollingAlias": true,
       "deprecated": false,
       "successorId": null,
-      "notes": "Claude rolling alias. Claude Code resolves it to the latest Opus family revision."
+      "notes": "Claude rolling alias. The served Opus revision is discovery or execution evidence, not catalog data."
     }
   ],
   "legacyMigrations": [

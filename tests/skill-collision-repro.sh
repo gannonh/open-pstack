@@ -80,7 +80,7 @@ catalog_roles="$repo/plugins/pstack/catalog/role-defaults.json"
 workflow_slug_hits="$(
   grep -REn \
     --include='SKILL.md' --include='*.md' \
-    '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' \
+    '(claude|codex|grok|cursor):[][a-z0-9.-]+@[a-z][a-z0-9-]*' \
     "$repo/plugins/pstack/skills/arena" \
     "$repo/plugins/pstack/skills/architect" \
     "$repo/plugins/pstack/skills/how" \
@@ -362,7 +362,7 @@ case "$sol_descriptor" in
 esac
 for role in bug-fix perf-issue hillclimb; do
   role_playbook="$plugin/skills/poteto-mode/playbooks/$role.md"
-  if grep -Eq '(claude|codex|grok|cursor):[a-z0-9.-]+@(low|medium|high|xhigh|max)' "$role_playbook"; then
+  if grep -Eq '(claude|codex|grok|cursor):[][a-z0-9.-]+@[a-z][a-z0-9-]*' "$role_playbook"; then
     solo_code_bad="${solo_code_bad}${role_playbook} still copies a model descriptor"$'\n'
   fi
 done
