@@ -2,6 +2,10 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Docs and remotes, 2026-09-06
+
+Docs and git remotes treat Cursor pstack as the only content-sync upstream. In this repository, "upstream" means Lauren Tan's pstack at `cursor/plugins` path `pstack/`. `ericlitman/open-pstack` is historical lineage. Soft-fork tracking of that repository ended on this date. Plugin version is unchanged.
+
 ## 1.6.0 (gannonh fork) adds a Cursor plugin
 
 Cursor becomes a supported parent harness through a third plugin manifest at the shared plugin root, `plugins/pstack/.cursor-plugin/plugin.json`, and a root `.cursor-plugin/marketplace.json`. The Cursor plugin identifier is `open-pstack`, so it can coexist with Lauren's original `pstack` on Cursor's marketplace; the Claude Code and Codex plugins keep the `pstack` identifier. The manifest selects `./skills/` explicitly, lists only the `poteto-agent` and `comment-sicko` agents, selects one always-applied startup rule (`rules/open-pstack.mdc`), and declares an empty inline hooks config, so Cursor's folder discovery never loads the Claude-only `hooks/hooks.json` or the model-pinned `pstack-<stem>-<effort>` agent files. Skills are not forked or generated; Cursor reads the same tree.

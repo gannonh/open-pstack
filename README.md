@@ -1,30 +1,38 @@
-# open-pstack
+# Open Pstack
 
 [![CI](https://github.com/gannonh/open-pstack/actions/workflows/ci.yml/badge.svg)](https://github.com/gannonh/open-pstack/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/gannonh/open-pstack)](https://github.com/gannonh/open-pstack/releases/latest)
 [![MIT license](https://img.shields.io/github/license/gannonh/open-pstack)](LICENSE)
 
-**Open Pstack brings [Lauren Tan (@poteto)](https://x.com/poteto)'s [pstack](https://github.com/cursor/plugins/tree/main/pstack) to Claude Code and Codex, and this fork also packages it for Cursor.** Its job is to stay as close to her original work as possible while translating the parts that depend on one harness.
+Open Pstack is one repository with one shared skill tree and catalog, and three installable plugins. The repo is `gannonh/open-pstack`. The marketplace name is `open-pstack`.
+
+- Cursor plugin id: `open-pstack`. Distinct from Lauren Tan's official Cursor plugin `pstack`.
+- Claude Code plugin id: `pstack` via marketplace `open-pstack`.
+- Codex plugin id: `pstack` via marketplace `open-pstack`.
+
+The shared tree is `plugins/pstack/skills/` plus `plugins/pstack/catalog/`.
+
+Open Pstack brings [Lauren Tan (@poteto)](https://x.com/poteto)'s [pstack](https://github.com/cursor/plugins/tree/main/pstack) to Cursor, Claude Code, and Codex. Its job is to stay as close to her original work as possible while translating the parts that depend on one app.
 
 Lauren built pstack from the skills she uses to ship code at Cursor. In a [55-minute interview with Denis Labelle](https://x.com/DenisLabelle/status/2091337807939706928), she says that she shipped 1,000 pull requests in one month after steadily improving how her agents work and verify their results.
 
 > If you want to go fast, go deep first.
 
-Open Pstack is an unofficial community project that makes pstack work in Claude Code and Codex. This fork adds a Cursor plugin, `open-pstack`, so Cursor users can run the same shared skills, model catalog, and multi-provider routing. If you want Lauren's Cursor-native experience with Cursor-only features, use [her original pstack](https://github.com/cursor/plugins/tree/main/pstack). If you want one skill tree and one model sheet format across Cursor, Claude Code, and Codex, or Claude Code or Codex is your main coding environment, use this repository.
+Open Pstack is an unofficial community project. If you want Lauren's Cursor-native experience with Cursor-only features, use [her original pstack](https://github.com/cursor/plugins/tree/main/pstack). If you want one skill tree and one model sheet format across Cursor, Claude Code, and Codex, use this repository.
 
-## About this fork
+## Product facts
 
-This repository is [gannonh](https://github.com/gannonh)'s fork of [ericlitman/open-pstack](https://github.com/ericlitman/open-pstack). It tracks that project as its upstream and adds three things:
+**Grok runs through Cursor's CLI.** The external model runner includes a `cursor` provider, so the Grok family can run through `cursor-agent` on a Cursor subscription. The descriptor is `cursor:cursor-grok-4.6@<effort>`. The runner invokes `cursor-agent -p --model cursor-grok-4.6-<effort>`. It proves availability through the `cursor-agent models` listing before the model starts. It verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
 
-- **Grok runs through Cursor's CLI.** Upstream routes the Grok review lane through the standalone Grok Build CLI (`grok`), which requires its own Grok subscription. This fork adds a fourth `cursor` provider to the external model runner, so the Grok family runs through `cursor-agent` on a Cursor subscription instead. The descriptor is `cursor:cursor-grok-4.6@<effort>`; the runner invokes `cursor-agent -p --model cursor-grok-4.6-<effort>`, proves availability through the `cursor-agent models` listing before the model starts, and verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so its selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
-- **Model routing is catalog-driven.** Offerings and first-run role assignments live in `plugins/pstack/catalog/`. Setup can assign any cataloged provider/model/effort per role, including Cursor Fable 5.1 (`cursor:claude-fable-5-1`) alongside Claude's rolling `fable` selector. See [docs/models.md](docs/models.md).
-- **Cursor is a supported parent.** The `open-pstack` Cursor plugin loads the same skills from the same plugin root. In Cursor, `cursor:*` descriptors run as native subagents and Claude, Codex, and Grok descriptors run through the same external runner the other parents use. Setup writes `~/.cursor/rules/open-pstack-models.mdc` and leaves the original plugin's `pstack-models.mdc` alone.
+**Model routing is catalog-driven.** Offerings and first-run role assignments live in `plugins/pstack/catalog/`. Setup can assign any cataloged provider, model, and effort per role. That includes Cursor Fable 5.1 (`cursor:claude-fable-5-1`) alongside Claude's rolling `fable` selector. See [docs/models.md](docs/models.md).
 
-The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under the fork 1.3.0 and 1.3.1 entries. Catalog-driven routing is 1.4.0 and 1.5.0. The Cursor plugin is 1.6.0. The runner change also lives on the [`feat/cursor-provider`](https://github.com/gannonh/open-pstack/tree/feat/cursor-provider) branch in a form intended for an upstream pull request.
+**Cursor is a supported parent.** The `open-pstack` Cursor plugin loads the same skills from the same plugin root. In Cursor, `cursor:*` descriptors run as native subagents. Claude, Codex, and Grok descriptors run through the same external runner the other parents use. Setup writes `~/.cursor/rules/open-pstack-models.mdc` and leaves the original plugin's `pstack-models.mdc` alone.
+
+The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under 1.3.0 and 1.3.1. Catalog-driven routing is 1.4.0 and 1.5.0. The Cursor plugin is 1.6.0.
 
 ## What pstack does
 
-pstack is a plugin for coding agents. It is not a new model or a hosted service. It gives your agent engineering rules, step-by-step workflows for different kinds of work, focused skills, and small local tools.
+pstack is a plugin for coding agents. It gives your agent engineering rules, step-by-step workflows for different kinds of work, focused skills, and small local tools.
 
 The normal entry point is `poteto-mode`. You give it a task in plain language. It then:
 
@@ -33,7 +41,7 @@ The normal entry point is `poteto-mode`. You give it a task in plain language. I
 - compares designs when the choice matters;
 - favors small, simple changes over extra machinery;
 - asks several models to challenge important decisions when useful;
-- runs the code and checks real behavior instead of stopping at “the tests pass”; and
+- runs the code and checks real behavior instead of stopping at "the tests pass"; and
 - carries the work through review, continuous integration (CI), and a ready-to-merge pull request when asked.
 
 ![How pstack routes a task through focused skills, real-app proof, and a review-ready pull request](assets/pstack-workflow.png)
@@ -42,16 +50,24 @@ pstack does not ask you to trust an agent on day one. It helps the agent leave e
 
 ## Install
 
-You need a current Cursor, Claude Code, or Codex installation. For the full four-model review, install and sign in to the Claude Code, Codex, and Cursor (`cursor-agent`) command-line tools. [Bun](https://bun.sh) runs the small local tool that starts models outside the app you are using. You can still use the core workflows with fewer models.
+You need a current Cursor, Claude Code, or Codex installation. For the full four-model review, install and sign in to the Claude Code, Codex, and `cursor-agent` command-line tools. [Bun](https://bun.sh) runs the small local tool that starts models outside the app you are using. You can still use the core workflows with fewer models.
 
 ### Cursor
 
-The Cursor plugin is named `open-pstack` to tell it apart from Lauren's original `pstack` plugin. Both ship skills with the same names (`poteto-mode`, `arena`, and so on), so disable the original `pstack` plugin while `open-pstack` is enabled. Otherwise two copies of every workflow compete for the same `/poteto-mode`, and two model sheets give the agent conflicting instructions. Open Pstack never reads or changes the original plugin's `~/.cursor/rules/pstack-models.mdc`.
+The Cursor plugin is named `open-pstack` to tell it apart from Lauren's original `pstack` plugin. Both ship skills with the same names, including `poteto-mode` and `arena`. Disable the original `pstack` plugin while `open-pstack` is enabled. Otherwise two copies of `/poteto-mode` compete. Two model sheets give the agent conflicting instructions. Open Pstack never reads or changes `~/.cursor/rules/pstack-models.mdc`.
 
-Register this repository as a plugin marketplace, then install `open-pstack` from it in Cursor's plugin settings (Settings > Plugins). One install serves the IDE and the CLI.
+Register this repository as a plugin marketplace:
 
 ```shell
 cursor-agent plugin marketplace add https://github.com/gannonh/open-pstack
+```
+
+Install `open-pstack` from Cursor plugin settings (**Settings > Plugins**). One install serves the IDE and the CLI. Cursor CLI 2026.09.02 has no `plugin install` subcommand.
+
+Update the marketplace index:
+
+```shell
+cursor-agent plugin marketplace update open-pstack
 ```
 
 To try a checkout in the CLI without installing, pass the plugin root directly:
@@ -60,7 +76,11 @@ To try a checkout in the CLI without installing, pass the plugin root directly:
 cursor-agent --plugin-dir /path/to/open-pstack/plugins/pstack
 ```
 
-In Cursor CLI 2026.09.02, `--plugin-dir` loads the plugin's skills and agents but does not apply the plugin's startup rule; invoke `/poteto-mode` yourself in that mode. Point it at a checkout outside the workspace you are working in, because the CLI drops a plugin's skills when the plugin directory is inside the workspace. An installed plugin applies the rule. The CLI also limits subagents to a short list of models that can differ from `cursor-agent models`; a configured `cursor:*` model missing from that list fails the lane rather than being swapped. Update with `cursor-agent plugin marketplace update open-pstack`, and uninstall from the same plugin settings page.
+The plugin directory must sit outside the workspace. The CLI drops a plugin's skills when the plugin directory is inside the workspace. `--plugin-dir` does not apply the startup rule. Invoke `/poteto-mode` yourself. An installed plugin applies the rule.
+
+The CLI also limits subagents to a short list of models that can differ from `cursor-agent models`. A configured `cursor:*` model missing from that list fails the lane. pstack does not swap in another model.
+
+Uninstall from the same plugin settings page.
 
 ### Claude Code
 
@@ -79,7 +99,7 @@ claude plugin marketplace add gannonh/open-pstack
 claude plugin install pstack@open-pstack
 ```
 
-The shell path has no reload step; the plugin loads when the next Claude Code session starts.
+The shell path has no reload step. The plugin loads when the next Claude Code session starts.
 
 ### Codex
 
@@ -105,6 +125,12 @@ Lauren's original setup has two steps. Open Pstack keeps the same flow.
 
 ### 1. Set up the models
 
+In Cursor, run:
+
+```text
+/setup-pstack
+```
+
 In Claude Code, run:
 
 ```text
@@ -117,19 +143,19 @@ In Codex, ask:
 Use pstack:setup-pstack to configure pstack.
 ```
 
-In Cursor, run:
-
-```text
-/setup-pstack
-```
-
-Setup checks the models you can actually run, shows cataloged offerings including alternate providers for the same logical model, and asks before saving the choices. The current default group uses Fable, GPT-5.6 Sol, Grok 4.6 (through Cursor), and Opus. You can assign Cursor Fable 5.1, or another cataloged offering, to any role. See [docs/models.md](docs/models.md).
+Setup checks the models you can actually run. It shows cataloged offerings, including alternate providers for the same logical model. It asks before saving the choices. The current default group uses Fable, GPT-5.6 Sol, Grok 4.6 through Cursor, and Opus. You can assign Cursor Fable 5.1, or another cataloged offering, to any role. See [docs/models.md](docs/models.md).
 
 An older model sheet starts using cataloged rolling aliases in memory as soon as this release is installed. Uncataloged predecessor version pins migrate without losing role assignments. A cataloged explicit version is left unchanged. Run setup once after updating if you want that migration written to disk.
 
 ### 2. Use poteto-mode
 
 Start any task that needs careful engineering with `poteto-mode`.
+
+In Cursor:
+
+```text
+/poteto-mode Add saved filters to search. Keep the design simple, verify it in the real app, and open a pull request.
+```
 
 In Claude Code:
 
@@ -141,12 +167,6 @@ In Codex:
 
 ```text
 Use pstack:poteto-mode. Add saved filters to search. Keep the design simple, verify it in the real app, and open a pull request.
-```
-
-In Cursor:
-
-```text
-/poteto-mode Add saved filters to search. Keep the design simple, verify it in the real app, and open a pull request.
 ```
 
 For that feature, poteto-mode should first understand how search works today. It should decide how the data should be represented before writing code, implement the smallest complete version, run the feature the way a user would, review the result, and prepare the pull request.
@@ -167,7 +187,7 @@ That is the main workflow. The other skills are there when poteto-mode needs the
 | `babysit` | A pull request needs CI failures and review comments handled until it is ready. |
 | `reflect` | A hard task is finished and its lessons should improve the next run. |
 
-Plugin skills include `pstack:` in their name in Claude Code and Codex. In Claude Code, invoke a native skill such as `/pstack:architect`. In Codex, ask for the skill, such as `Use pstack:architect for this design.` In Cursor, skills carry no prefix: `/architect`. See the [technical reference](docs/reference.md) for the full list.
+In Cursor, skills carry no prefix: `/architect`. Plugin skills include `pstack:` in their name in Claude Code and Codex. In Claude Code, invoke a native skill such as `/pstack:architect`. In Codex, ask for the skill, such as `Use pstack:architect for this design.` See the [technical reference](docs/reference.md) for the full list.
 
 ## Models and token use
 
@@ -191,7 +211,7 @@ A `cursor:*` descriptor names a model Cursor serves. The `cursor` provider is a 
 
 ## Learn from the original
 
-Lauren's [pstack guide](https://github.com/cursor/plugins/tree/main/pstack/docs/guide) walks through a real task, verification, and longer unattended runs. It uses Cursor's interface, and the ideas are the same everywhere. Use the translated skill invocations above in Claude Code or Codex.
+Lauren's [pstack guide](https://github.com/cursor/plugins/tree/main/pstack/docs/guide) walks through a real task, verification, and longer unattended runs. It uses Cursor's interface, and the ideas are the same everywhere. Use the translated skill invocations above in Cursor, Claude Code, or Codex.
 
 This repository also keeps:
 
@@ -204,18 +224,24 @@ This repository also keeps:
 
 ## Staying close to Lauren's pstack
 
-Fork release 1.6.0 builds on Open Pstack 1.3.1 and tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
+Open Pstack 1.6.0 tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Cursor, Claude Code, and Codex package built from it.
 
-In this repository, “upstream” means Lauren's original pstack. Open Pstack does not promise instant updates. It records the exact version it follows, reviews new changes in order, and changes only what the supported harnesses require. New pstack behavior belongs in Lauren's project first whenever possible.
+In this repository, "upstream" means Lauren's Cursor pstack. Open Pstack does not promise instant updates. It records the exact version it follows and reviews new changes in order. It changes only what Cursor, Claude Code, and Codex require. New pstack behavior belongs in Lauren's official Cursor plugin first whenever possible.
+
+## Lineage
+
+Open Pstack began as Michael Denyer's [`pstack-claude`](https://github.com/michael-denyer/pstack-claude) port of Lauren's pstack. [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) later became the canonical distribution. That event is recorded under 1.1.0 in [CHANGES.md](CHANGES.md).
+
+This repository is `gannonh/open-pstack`. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. Cursor pstack is the only content-sync source. The optional `ericlitman` git remote is an archive. Never merge from it. Do not name a remote `upstream` that points at ericlitman.
 
 ## Contributing
 
-Reports about the `cursor` provider, the model catalog, or anything else in this fork's delta belong in [this fork's issues](https://github.com/gannonh/open-pstack/issues). GitHub Issues are the inbound channel for user and contributor reports. Planning, specs, and acceptance criteria live in Linear (project Open Pstack), and every implementing pull request names one Linear issue. Everything outside the fork's delta belongs in [Open Pstack's issues](https://github.com/ericlitman/open-pstack/issues), and new pstack behavior belongs in Lauren's original project whenever possible.
+Product work stays in Linear project Open Pstack and in this repository. GitHub Issues are inbound reports only. Do not use them for planning. Do not file product issues on `ericlitman/open-pstack` by default. If a change belongs in Lauren's official Cursor plugin `pstack`, send it there.
 
-Read [UPSTREAM.md](UPSTREAM.md) before changing content brought over from Lauren's pstack. Pull requests must keep one shared skill tree for Cursor, Claude Code, and Codex and pass the repository's tests, type checks, plugin validation, and static checks.
+Read [UPSTREAM.md](UPSTREAM.md) before changing content brought over from Lauren's pstack. Pull requests must keep one shared skill tree for Cursor, Claude Code, and Codex. They must pass the repository's tests, type checks, plugin validation, and static checks.
 
 ## License
 
-MIT. pstack was created by Lauren Tan. Open Pstack builds on Michael Denyer's [pstack-claude](https://github.com/michael-denyer/pstack-claude) port and includes attributed MIT-licensed work from Cursor Team Kit and Superpowers. See [NOTICE.md](NOTICE.md) and the preserved license files for details.
+MIT. pstack was created by Lauren Tan. Open Pstack includes history from Michael Denyer's [pstack-claude](https://github.com/michael-denyer/pstack-claude) port and attributed MIT-licensed work from Cursor Team Kit and Superpowers. See [NOTICE.md](NOTICE.md) and the preserved license files for details.
