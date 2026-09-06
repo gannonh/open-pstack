@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
+import {
+  parseProviderOutput,
+  reportedCursorComposedModelMatches,
+  reportedModelMatches,
+} from "./parse-output.ts";
 import {
   concreteClaudeRevisionMatchesExplicitSelector,
   concreteClaudeRevisionMatchesRollingSelector,
@@ -139,11 +143,20 @@ describe("parseProviderOutput", () => {
       costUsd: null,
     });
     expect(
-      reportedModelMatches("cursor", "cursor-grok-4.6", parsed.reportedModel)
+      reportedCursorComposedModelMatches(
+        "cursor-grok-4.6-xhigh",
+        parsed.reportedModel
+      )
     ).toBe(true);
+    expect(
+      reportedCursorComposedModelMatches(
+        "cursor-grok-4.6-xhigh",
+        "cursor-grok-4.6-xhigh-fast"
+      )
+    ).toBe(false);
   });
 
-  it("matches Cursor Fable 5.1 display names to the catalog stem", () => {
+  it("matches Cursor Fable 5.1 display names to the composed CLI id", () => {
     const parsed = parseProviderOutput(
       "cursor",
       [
@@ -165,8 +178,17 @@ describe("parseProviderOutput", () => {
     );
     expect(parsed.reportedModel).toBe("claude-fable-5.1-max");
     expect(
-      reportedModelMatches("cursor", "claude-fable-5-1", parsed.reportedModel)
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-max",
+        parsed.reportedModel
+      )
     ).toBe(true);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-high",
+        parsed.reportedModel
+      )
+    ).toBe(false);
   });
 
   it("rejects a Cursor error result", () => {

@@ -124,10 +124,33 @@ if (stage === "model" && process.env.FAKE_SELF_SIGNAL) {
   process.kill(process.pid, process.env.FAKE_SELF_SIGNAL);
   await Bun.sleep(5_000);
 }
+function cursorReportedDisplay(model) {
+  if (String(model).startsWith("claude-fable-5-1")) {
+    if (model.endsWith("-max")) return "Claude Fable 5.1 Max";
+    if (model.endsWith("-xhigh")) return "Claude Fable 5.1 Extra High";
+    if (model.endsWith("-high")) return "Claude Fable 5.1 High";
+    if (model.endsWith("-medium")) return "Claude Fable 5.1 Medium";
+    if (model.endsWith("-low")) return "Claude Fable 5.1 Low";
+    return "Claude Fable 5.1 Max";
+  }
+  if (model.endsWith("-xhigh")) return "Cursor Grok 4.6 Extra High";
+  return "Cursor Grok 4.6 Extra High";
+}
+if (stage === "model" && process.env.FAKE_ENV_LOG_PATH) {
+  writeFileSync(
+    process.env.FAKE_ENV_LOG_PATH,
+    JSON.stringify({
+      CURSOR_AGENT: process.env.CURSOR_AGENT ?? null,
+      CURSOR_CONVERSATION_ID: process.env.CURSOR_CONVERSATION_ID ?? null,
+      CURSOR_REQUEST_ID: process.env.CURSOR_REQUEST_ID ?? null,
+      CURSOR_INVOKED_AS: process.env.CURSOR_INVOKED_AS ?? null,
+      CURSOR_API_KEY: process.env.CURSOR_API_KEY ?? null,
+    })
+  );
+}
 if (name === "cursor-agent") {
-  const display = String(model).startsWith("claude-fable-5-1")
-    ? "Claude Fable 5.1 Max"
-    : "Cursor Grok 4.6 Extra High";
+  const display =
+    process.env.FAKE_CURSOR_REPORTED_DISPLAY ?? cursorReportedDisplay(model);
   console.log(JSON.stringify({type:"system",subtype:"init",model:display,session_id:"cu1",permissionMode:"plan"}));
   console.log(JSON.stringify({type:"result",subtype:"success",is_error:false,result:"CURSOR_OK",session_id:"cu1",usage:{inputTokens:25,outputTokens:6,cacheReadTokens:3,cacheWriteTokens:0}}));
 } else if (name === "claude") {
@@ -285,6 +308,13 @@ afterEach(() => {
   delete process.env.FAKE_GROK_PREFLIGHT_LOG_PATH;
   delete process.env.FAKE_GROK_MISSING_MODEL;
   delete process.env.FAKE_CURSOR_MISSING_MODEL;
+  delete process.env.FAKE_CURSOR_REPORTED_DISPLAY;
+  delete process.env.FAKE_ENV_LOG_PATH;
+  delete process.env.CURSOR_AGENT;
+  delete process.env.CURSOR_CONVERSATION_ID;
+  delete process.env.CURSOR_REQUEST_ID;
+  delete process.env.CURSOR_INVOKED_AS;
+  delete process.env.CURSOR_API_KEY;
   delete process.env.FAKE_DESCENDANT_HOLDS_PIPES_MS;
   delete process.env.FAKE_DESCENDANT_PID_PATH;
   delete process.env.FAKE_SELF_SIGNAL;
@@ -997,6 +1027,7 @@ describe("runLane", () => {
       provider: "cursor",
       model: "cursor-grok-4.6",
       effort: "xhigh",
+      modelVerified: true,
     });
     for (const effort of ["high", "xhigh"] as const) {
       const fable = {
@@ -1012,8 +1043,69 @@ describe("runLane", () => {
         provider: "cursor",
         model: "claude-fable-5-1",
         effort,
+        modelVerified: true,
       });
     }
+  });
+
+  it("rejects cursor-agent model substitution for a Cursor parent route", async () => {
+    process.env.FAKE_CURSOR_REPORTED_DISPLAY = "Claude Fable 5.1 Max";
+    const input = {
+      ...options("cursor", "cursor-parent-fable-high"),
+      parent: "cursor" as const,
+      model: "claude-fable-5-1",
+      effort: "high" as const,
+    };
+    const result = await runLane(input);
+    expect(result.exitCode).not.toBe(0);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "malformed-output",
+      parent: "cursor",
+      provider: "cursor",
+      model: "claude-fable-5-1",
+      effort: "high",
+      modelVerified: false,
+    });
+    expect(existsSync(input.outputPath)).toBe(false);
+  });
+
+  it("rejects a cursor-agent fast neighbour for the composed id", async () => {
+    process.env.FAKE_CURSOR_REPORTED_DISPLAY =
+      "Cursor Grok 4.6 Extra High Fast";
+    const input = {
+      ...options("cursor", "cursor-parent-grok-fast-neighbour"),
+      parent: "cursor" as const,
+    };
+    const result = await runLane(input);
+    expect(result.exitCode).not.toBe(0);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "malformed-output",
+      model: "cursor-grok-4.6",
+      effort: "xhigh",
+      modelVerified: false,
+    });
+  });
+
+  it("scrubs inherited Cursor session identity for a Cursor parent route", async () => {
+    const envLog = join(scratch, "cursor-parent-env.json");
+    process.env.FAKE_ENV_LOG_PATH = envLog;
+    process.env.CURSOR_AGENT = "1";
+    process.env.CURSOR_CONVERSATION_ID = "bc-parent";
+    process.env.CURSOR_REQUEST_ID = "req-parent";
+    process.env.CURSOR_INVOKED_AS = "agent";
+    process.env.CURSOR_API_KEY = "secret";
+    const input = {
+      ...options("cursor", "cursor-parent-env-scrub"),
+      parent: "cursor" as const,
+    };
+    expect((await runLane(input)).exitCode).toBe(0);
+    expect(JSON.parse(readFileSync(envLog, "utf8"))).toEqual({
+      CURSOR_AGENT: null,
+      CURSOR_CONVERSATION_ID: null,
+      CURSOR_REQUEST_ID: null,
+      CURSOR_INVOKED_AS: null,
+      CURSOR_API_KEY: "secret",
+    });
   });
 
   it("runs every non-Cursor provider from a Cursor parent with a cursor receipt", async () => {
@@ -1099,6 +1191,11 @@ describe("childEnvironment", () => {
       PATH: "/bin",
       CURSOR_AGENT: "1",
       CURSOR_CONVERSATION_ID: "bc-1",
+      CURSOR_API_KEY: "secret",
+      KEEP_ME: "yes",
+    });
+    expect(childEnvironment("cursor", source, "cursor")).toEqual({
+      PATH: "/bin",
       CURSOR_API_KEY: "secret",
       KEEP_ME: "yes",
     });
