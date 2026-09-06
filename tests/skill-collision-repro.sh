@@ -36,13 +36,125 @@ fi
 verof() { { grep -m1 '"version"' "$1" || true; } | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/'; }
 vc="$(verof "$repo/plugins/pstack/.claude-plugin/plugin.json")"
 vx="$(verof "$repo/plugins/pstack/.codex-plugin/plugin.json")"
+vr="$(verof "$repo/plugins/pstack/.cursor-plugin/plugin.json")"
 vm="$(verof "$repo/.claude-plugin/marketplace.json")"
+vrm="$(verof "$repo/.cursor-plugin/marketplace.json")"
 vu="$(sed -n 's/| open-pstack version | `\([^`]*\)` |/\1/p' "$repo/UPSTREAM.md")"
-if [ -n "$vc" ] && [ "$vc" = "$vx" ] && [ "$vc" = "$vm" ] && [ "$vc" = "$vu" ]; then
-  note "ok: open-pstack version matches across UPSTREAM.md and the 3 manifests ($vc)"
+if [ -n "$vc" ] && [ "$vc" = "$vx" ] && [ "$vc" = "$vr" ] && [ "$vc" = "$vm" ] && [ "$vc" = "$vrm" ] && [ "$vc" = "$vu" ]; then
+  note "ok: open-pstack version matches across UPSTREAM.md, the 3 plugin manifests, and the 2 versioned marketplaces ($vc)"
 else
-  note "FAIL: open-pstack version differs: upstream=$vu claude-plugin=$vc codex-plugin=$vx marketplace=$vm"
+  note "FAIL: open-pstack version differs: upstream=$vu claude-plugin=$vc codex-plugin=$vx cursor-plugin=$vr claude-marketplace=$vm cursor-marketplace=$vrm"
   fail=1
+fi
+
+# The Cursor plugin is `open-pstack`, shares the tree, and selects its components
+# explicitly so Cursor's folder discovery cannot load Claude-only agents or hooks.
+# The Claude Code and Codex plugins keep their `pstack` identifiers.
+cursor_bad="$(
+  python3 - "$repo" <<'PY'
+import json, pathlib, re, sys
+repo = pathlib.Path(sys.argv[1])
+plugin = repo / "plugins/pstack"
+problems = []
+def load(path):
+    try:
+        return json.loads(path.read_text())
+    except Exception as error:
+        problems.append(f"{path}: {error}")
+        return {}
+def relative_ok(value):
+    return isinstance(value, str) and not value.startswith("/") and ".." not in value.split("/")
+manifest = load(plugin / ".cursor-plugin/plugin.json")
+if manifest.get("name") != "open-pstack":
+    problems.append("Cursor plugin name must be open-pstack")
+if manifest.get("skills") != "./skills/":
+    problems.append("Cursor manifest must select the shared ./skills/ tree")
+agents = manifest.get("agents")
+if not isinstance(agents, list) or not agents:
+    problems.append("Cursor manifest must list agents explicitly")
+else:
+    for entry in agents:
+        if not relative_ok(entry) or not (plugin / entry).is_file():
+            problems.append(f"Cursor agent path does not resolve: {entry}")
+        if pathlib.Path(entry).name.startswith("pstack-"):
+            problems.append(f"Cursor manifest selects a Claude-native model lane: {entry}")
+        text = (plugin / entry).read_text() if (plugin / entry).is_file() else ""
+        front = text.split("---")[1] if text.startswith("---") else ""
+        if re.search(r"^(model|effort|background|disallowedTools):", front, re.M):
+            problems.append(f"Cursor agent carries Claude-only frontmatter: {entry}")
+rules = manifest.get("rules")
+if not isinstance(rules, list) or not rules:
+    problems.append("Cursor manifest must list rules explicitly")
+else:
+    for entry in rules:
+        path = plugin / entry
+        if not relative_ok(entry) or not path.is_file():
+            problems.append(f"Cursor rule path does not resolve: {entry}")
+            continue
+        text = path.read_text()
+        if not re.search(r"^alwaysApply: true$", text, re.M):
+            problems.append(f"Cursor startup rule is not always applied: {entry}")
+        for needle in ("poteto-mode", "cursor-tools.md", "provider-dispatch.md", "open-pstack-models.mdc", "pstack-models.mdc"):
+            if needle not in text:
+                problems.append(f"Cursor startup rule does not mention {needle}: {entry}")
+        if len(text.splitlines()) > 40:
+            problems.append(f"Cursor startup rule is long enough to be copying workflow content: {entry}")
+hooks = manifest.get("hooks")
+if hooks is None:
+    problems.append("Cursor manifest must select hooks explicitly (folder discovery would load the Claude hooks.json)")
+elif isinstance(hooks, str):
+    if hooks.replace("./", "") == "hooks/hooks.json":
+        problems.append("Cursor manifest points at the Claude Code hooks.json")
+elif hooks != {"hooks": {}}:
+    problems.append("Cursor manifest inline hooks must be empty; Cursor's startup surface is the rule")
+if manifest.get("commands") not in (None, []):
+    problems.append("Cursor manifest must not add a commands layer")
+if "mcpServers" in manifest:
+    problems.append("Cursor manifest must not add MCP servers")
+logo = manifest.get("logo")
+if not relative_ok(logo) or not (plugin / logo).is_file():
+    problems.append(f"Cursor logo does not resolve: {logo}")
+marketplace = load(repo / ".cursor-plugin/marketplace.json")
+if marketplace.get("name") != "open-pstack":
+    problems.append("Cursor marketplace name must be open-pstack")
+entries = marketplace.get("plugins") or []
+if len(entries) != 1 or entries[0].get("name") != "open-pstack" or entries[0].get("source") != "plugins/pstack":
+    problems.append("Cursor marketplace must list exactly one plugin, open-pstack, sourced from plugins/pstack")
+if load(plugin / ".claude-plugin/plugin.json").get("name") != "pstack":
+    problems.append("Claude Code plugin identifier changed")
+if load(plugin / ".codex-plugin/plugin.json").get("name") != "pstack":
+    problems.append("Codex plugin identifier changed")
+for path in (plugin / ".claude-plugin/plugin.json", plugin / ".codex-plugin/plugin.json"):
+    if "rules" in load(path):
+        problems.append(f"{path} must not declare Cursor rules")
+claude_market = load(repo / ".claude-plugin/marketplace.json").get("plugins") or [{}]
+codex_market = load(repo / ".agents/plugins/marketplace.json").get("plugins") or [{}]
+if claude_market[0].get("name") != "pstack" or codex_market[0].get("name") != "pstack":
+    problems.append("Claude Code or Codex marketplace plugin identifier changed")
+print("\n".join(problems))
+PY
+)"
+cursor_setup="$repo/plugins/pstack/skills/setup-pstack/SKILL.md"
+cursor_tools="$repo/plugins/pstack/skills/poteto-mode/references/cursor-tools.md"
+cursor_dispatch="$repo/plugins/pstack/skills/poteto-mode/references/provider-dispatch.md"
+grep -Fq '~/.cursor/rules/open-pstack-models.mdc' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"setup-pstack does not write ~/.cursor/rules/open-pstack-models.mdc"
+grep -Fq 'alwaysApply: true' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"setup-pstack Cursor rule is not always applied"
+grep -Fq 'Claude Code, Codex, or Cursor' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"setup-pstack does not treat Cursor as a parent"
+grep -Eq 'Never read, migrate, overwrite, or delete .*pstack-models\.mdc' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"setup-pstack does not protect the original pstack-models.mdc"
+[ -f "$cursor_tools" ] || cursor_bad="${cursor_bad}"$'\n'"cursor-tools.md is missing"
+grep -Fq '| Cursor | external runner | external runner | external runner | native `Task` |' "$cursor_dispatch" || cursor_bad="${cursor_bad}"$'\n'"provider-dispatch route table lacks the Cursor parent row"
+grep -Fq -- '--parent <claude|codex|cursor>' "$cursor_dispatch" || cursor_bad="${cursor_bad}"$'\n'"provider-dispatch runner usage lacks the cursor parent"
+grep -Fq 'cursor-tools.md' "$repo/plugins/pstack/skills/poteto-mode/SKILL.md" || cursor_bad="${cursor_bad}"$'\n'"poteto-mode does not point Cursor at cursor-tools.md"
+for doc in "$repo/README.md" "$repo/docs/reference.md"; do
+  grep -Fq 'open-pstack' "$doc" && grep -Eiq 'disabl(e|ing) .*original' "$doc" || cursor_bad="${cursor_bad}"$'\n'"$doc does not advise disabling the original pstack plugin"
+done
+cursor_bad="$(printf '%s' "$cursor_bad" | sed '/^$/d')"
+if [ -n "$cursor_bad" ]; then
+  note "FAIL: Cursor plugin packaging invariants:"
+  note "$cursor_bad"
+  fail=1
+else
+  note "ok: Cursor plugin open-pstack selects shared skills, compatible agents, an always-applied startup rule, and no Claude hooks; pstack identifiers unchanged"
 fi
 
 # Shipped Claude Fable/Opus configuration may name only cataloged selectors:
