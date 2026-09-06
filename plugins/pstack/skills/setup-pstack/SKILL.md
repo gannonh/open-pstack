@@ -26,11 +26,23 @@ Codex writes `~/.codex/pstack-models.md`. Codex has no `@` include, so mirror th
 <!-- pstack:models:end -->
 ```
 
+Cursor writes `~/.cursor/rules/open-pstack-models.mdc`. Cursor loads every always-applied rule under `~/.cursor/rules/` itself, so the rule file is the sheet and the integration in one artifact: a frontmatter block followed by the exact sheet bytes.
+
+```text
+---
+description: Open PStack per-role model choices (overrides skill defaults)
+alwaysApply: true
+---
+<exact sheet contents, starting with the "# pstack model configuration" title>
+```
+
+Never read, migrate, overwrite, or delete Cursor's original `~/.cursor/rules/pstack-models.mdc`. It belongs to the original `pstack` plugin, and an operator who keeps both installed sees two competing model sheets; advise disabling the original plugin while Open PStack is in use.
+
 ## Steps
 
 ### 1. Establish the parent
 
-Use the harness and tool surface running this skill: Claude Code or Codex. Environment markers may corroborate that top-level answer, but do not launch a child and ask it to detect where it came from. Record the parent because the same descriptor takes a different route in each harness.
+Use the harness and tool surface running this skill: Claude Code, Codex, or Cursor. Environment markers may corroborate that top-level answer, but do not launch a child and ask it to detect where it came from. Record the parent because the same descriptor takes a different route in each harness.
 
 ### 2. Load current state
 
@@ -81,7 +93,7 @@ Apply only the edits the operator names. Untouched selections stay verbatim.
 
 Probe the unique cataloged `provider:model@effort` descriptors that the rendered sheet will contain. Do not probe aliases. Do not probe offerings the sheet does not use. Do not enumerate or offer older models as substitutes. A failed probe writes nothing: report the failing descriptor and provider, stop, and keep the active sheet plus parent integration bytes unchanged. A failed first run creates neither artifact.
 
-For each unique descriptor, use the parent route table in `provider-dispatch.md`. On a Claude parent, a `claude:*` probe is a one-turn run of `pstack-<nativeAgentStem>-<effort>`. On a Codex parent, a `codex:*` probe is native `spawn_agent` with the selected `reasoning_effort`. Every other pair uses the external runner with the catalog selector and selected effort. Never call the external launcher for the parent's own provider.
+For each unique descriptor, use the parent route table in `provider-dispatch.md`. On a Claude parent, a `claude:*` probe is a one-turn run of `pstack-<nativeAgentStem>-<effort>`. On a Codex parent, a `codex:*` probe is native `spawn_agent` with the selected `reasoning_effort`. On a Cursor parent, a `cursor:*` probe is a native `Task` whose `model` is the composed `<selector>-<effort>` id, checked against `cursor-agent models` first. Every other pair uses the external runner with the catalog selector and selected effort. Never call the external launcher for the parent's own provider.
 
 Use a tiny read-only probe that returns a unique marker. A login-status command alone proves credentials, not that the requested model and effort flags run. Record native and external results separately.
 
@@ -108,7 +120,7 @@ After the operator confirms, write the in-memory render from step 6. Never paste
 
 ### 8. Wire it in
 
-Render the parent integration in memory before either write. On Claude, the integration is the single `@~/.claude/pstack-models.md` include in `~/.claude/CLAUDE.md`. On Codex, it is the exact sheet bytes between one `<!-- pstack:models:begin -->` and `<!-- pstack:models:end -->` pair in `~/.codex/AGENTS.md`. Replace that whole bounded block on a rerun. Insert one block at the end on first run. If either marker is missing, duplicated, or reversed, stop and report inconsistent state instead of guessing a boundary.
+Render the parent integration in memory before either write. On Claude, the integration is the single `@~/.claude/pstack-models.md` include in `~/.claude/CLAUDE.md`. On Codex, it is the exact sheet bytes between one `<!-- pstack:models:begin -->` and `<!-- pstack:models:end -->` pair in `~/.codex/AGENTS.md`. Replace that whole bounded block on a rerun. Insert one block at the end on first run. If either marker is missing, duplicated, or reversed, stop and report inconsistent state instead of guessing a boundary. On Cursor, the integration is the rule file itself: `~/.cursor/rules/open-pstack-models.mdc` with the frontmatter shown above followed by the sheet. There is no include or block to maintain, and the original plugin's `pstack-models.mdc` is never touched.
 
 Snapshot every target's current bytes. Write the sheet and parent integration only after every unique-descriptor probe passes and the operator confirms. Read both targets back and compare them with the in-memory render. If either write or readback fails, restore every snapshot and report the failure. An unchanged rerun must produce byte-identical sheet and integration content after migration.
 
@@ -116,6 +128,6 @@ Do not copy the model sheet between harnesses without rerunning the parent-speci
 
 ### 9. Behavioral smoke
 
-Before declaring setup complete, run one small read-only mixed panel from this parent: the unique probed descriptors, distinct output/receipt paths, and an independent cross-judge. Launch Claude-native agents and every external process in the background with retained handles, then drain them. Verify the native transcript entries and every external receipt. A structural config check or unit test is not a substitute.
+Before declaring setup complete, run one small read-only mixed panel from this parent: the unique probed descriptors, distinct output/receipt paths, and an independent cross-judge. Launch the parent's native lanes (Claude `Agent`, Codex `spawn_agent`, or Cursor `Task`) and every external process in the background with retained handles, then drain them. Verify the native transcript entries and every external receipt. A structural config check or unit test is not a substitute.
 
 Report the sheet path, parent route table, probe results, smoke results, and external elapsed/token/cost receipts. Re-running this skill re-probes and updates the same sheet. Do not claim the provider exposed hidden applied-effort observability.
