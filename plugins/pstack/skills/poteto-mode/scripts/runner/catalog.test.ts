@@ -9,6 +9,11 @@ import {
   catalogToJson,
   composedCliModel,
   findOffering,
+  formatCursorTaskAllowlistError,
+  nativeTaskSlug,
+  nativeTaskSlugTable,
+  NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID,
+  resolveCursorDescriptorRoute,
   formatCatalogJson,
   formatDescriptor,
   loadModelCatalog,
@@ -340,6 +345,98 @@ describe("model catalog", () => {
     ).toThrow(UsageError);
   });
 
+  it("maps Cursor parent Task slugs for the preferred-sheet composed ids", () => {
+    const cursorFable = findOffering(catalog, "cursor", "claude-fable-5-1");
+    const cursorGrok = findOffering(catalog, "cursor", "cursor-grok-4.6");
+    expect(cursorFable).not.toBeNull();
+    expect(cursorGrok).not.toBeNull();
+    expect(composedCliModel(cursorGrok!, "xhigh")).toBe("cursor-grok-4.6-xhigh");
+    expect(nativeTaskSlug(cursorGrok!, "xhigh")).toBe("cursor-grok-4.6-xhigh");
+    expect(composedCliModel(cursorFable!, "high")).toBe("claude-fable-5-1-high");
+    expect(nativeTaskSlug(cursorFable!, "high")).toBe("claude-fable-5-1-thinking-high");
+    expect(composedCliModel(cursorFable!, "xhigh")).toBe("claude-fable-5-1-xhigh");
+    expect(nativeTaskSlug(cursorFable!, "xhigh")).toBe("claude-fable-5-1-thinking-xhigh");
+    for (const row of nativeTaskSlugTable(catalog)) {
+      expect(row.taskSlug.includes("-fast")).toBe(false);
+      expect(row.taskSlug.endsWith(`-${row.effort}`)).toBe(true);
+      expect(NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID[row.offeringId]).toBeDefined();
+    }
+    const cursorIds = catalog.offerings
+      .filter((row) => row.provider === "cursor")
+      .map((row) => row.id)
+      .sort();
+    expect(Object.keys(NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID).sort()).toEqual(cursorIds);
+  });
+
+  it("resolves Cursor parent cursor:* to native Task or external cursor-agent", () => {
+    const cursorFable = findOffering(catalog, "cursor", "claude-fable-5-1")!;
+    const cursorGrok = findOffering(catalog, "cursor", "cursor-grok-4.6")!;
+    const thinkingAllowlist = [
+      "claude-fable-5-1-thinking-high",
+      "claude-fable-5-1-thinking-xhigh",
+      "cursor-grok-4.6-xhigh-fast",
+    ];
+    expect(
+      resolveCursorDescriptorRoute({
+        parent: "cursor",
+        offering: cursorFable,
+        effort: "xhigh",
+        taskAllowlist: thinkingAllowlist,
+      })
+    ).toEqual({
+      kind: "native-task",
+      composedCliId: "claude-fable-5-1-xhigh",
+      taskSlug: "claude-fable-5-1-thinking-xhigh",
+    });
+    expect(
+      resolveCursorDescriptorRoute({
+        parent: "cursor",
+        offering: cursorFable,
+        effort: "high",
+        taskAllowlist: thinkingAllowlist,
+      })
+    ).toEqual({
+      kind: "native-task",
+      composedCliId: "claude-fable-5-1-high",
+      taskSlug: "claude-fable-5-1-thinking-high",
+    });
+    expect(
+      resolveCursorDescriptorRoute({
+        parent: "cursor",
+        offering: cursorGrok,
+        effort: "xhigh",
+        taskAllowlist: thinkingAllowlist,
+      })
+    ).toEqual({
+      kind: "external-cursor-agent",
+      composedCliId: "cursor-grok-4.6-xhigh",
+      taskSlug: "cursor-grok-4.6-xhigh",
+      nativeIneligibleReason: "mapped-slug-absent-from-allowlist",
+    });
+    expect(
+      resolveCursorDescriptorRoute({
+        parent: "codex",
+        offering: cursorFable,
+        effort: "xhigh",
+        taskAllowlist: thinkingAllowlist,
+      })
+    ).toEqual({
+      kind: "external-cursor-agent",
+      composedCliId: "claude-fable-5-1-xhigh",
+      taskSlug: "claude-fable-5-1-thinking-xhigh",
+      nativeIneligibleReason: "parent-is-not-cursor",
+    });
+    const miss = formatCursorTaskAllowlistError({
+      composedCliId: "claude-fable-5-1-xhigh",
+      taskSlug: "claude-fable-5-1-thinking-xhigh",
+      taskAllowlist: thinkingAllowlist,
+    });
+    expect(miss).toContain("claude-fable-5-1-xhigh");
+    expect(miss).toContain("claude-fable-5-1-thinking-xhigh");
+    expect(miss).toContain("cursor-grok-4.6-xhigh-fast");
+    expect(miss.includes("counted as success")).toBe(false);
+  });
+
   it("migrates uncataloged predecessor pins and preserves cataloged explicit versions", () => {
     expect(migrateDescriptorText(catalog, "claude:claude-fable-5@max")).toEqual({
       descriptor: "claude:fable@max",
@@ -553,6 +650,8 @@ describe("catalog-driven native agents and skill invariants", () => {
     expect(dispatch).not.toContain("## Model matrix");
     expect(dispatch).toContain("Do not rewrite a valid cataloged descriptor into another model");
     expect(dispatch).toContain("nativeAgentStem");
+    expect(dispatch).toContain("resolveCursorDescriptorRoute");
+    expect(setup).toContain("resolveCursorDescriptorRoute");
   });
 
   it("keeps workflow skills from copying model defaults", () => {

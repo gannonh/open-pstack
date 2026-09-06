@@ -17,8 +17,10 @@ const HELP = `Usage: pstack-runner --parent <claude|codex|cursor> --provider <cl
   --model <catalog selector> --effort <catalog effort> --mode <read-only|isolated-write> \\
   --prompt <file> --cwd <dir> --output <file> --receipt <file> [--timeout <seconds>]
 
-Runs exactly one external model lane. Same-provider calls are rejected; use the
-parent harness's native subagent primitive for those lanes. The model and effort
+Runs exactly one external model lane. Same-provider calls are rejected except
+--parent cursor --provider cursor, which is the Task-allowlist fallback for
+cataloged cursor:* offerings. Use the parent harness's native subagent primitive
+for Claude and Codex same-provider lanes. The model and effort
 must be a cataloged offering and one of its supportedEfforts (catalog/models.json);
 an unlisted pair is an unavailable-model receipt. Output and receipt paths must
 not already exist. There is no implicit timeout. Pass --timeout only when the

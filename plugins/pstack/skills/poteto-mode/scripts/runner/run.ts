@@ -19,8 +19,14 @@ import {
   catalogLaneError,
   loadModelCatalog,
 } from "./catalog.ts";
-import { parseProviderOutput, reportedModelMatches } from "./parse-output.ts";
+import {
+  parseProviderOutput,
+  reportedCursorComposedModelMatches,
+  reportedModelMatches,
+} from "./parse-output.ts";
 import type {
+  Effort,
+  Parent,
   Provider,
   ReceiptStatus,
   RunnerOptions,
@@ -157,11 +163,19 @@ const IDENTITY_BY_PROVIDER: Record<Provider, readonly string[]> = {
 
 export function childEnvironment(
   provider: Provider,
-  source: NodeJS.ProcessEnv = process.env
+  source: NodeJS.ProcessEnv = process.env,
+  parent?: Parent
 ): NodeJS.ProcessEnv {
   const result = { ...source };
   for (const [owner, keys] of Object.entries(IDENTITY_BY_PROVIDER)) {
-    if (owner === provider) continue;
+    if (owner === provider) {
+      // External cursor-agent from a Cursor parent must not inherit session
+      // identity or the child can detect nested Cursor routing.
+      if (owner === "cursor" && parent === "cursor") {
+        for (const key of keys) delete result[key];
+      }
+      continue;
+    }
     for (const key of keys) delete result[key];
   }
   return result;
@@ -463,12 +477,28 @@ function statusExitCode(status: ReceiptStatus): number {
 function modelProof(
   provider: Provider,
   requested: string,
+  effort: Effort,
   reported: string | null
 ): {
   readonly reportedModel: string | null;
   readonly modelVerified: boolean;
   readonly modelEvidence: "provider-report" | "pinned-argv" | null;
 } {
+  if (provider === "cursor") {
+    const composed = cursorCliModel(requested, effort);
+    if (reportedCursorComposedModelMatches(composed, reported)) {
+      return {
+        reportedModel: reported,
+        modelVerified: true,
+        modelEvidence: "provider-report",
+      };
+    }
+    return {
+      reportedModel: reported,
+      modelVerified: false,
+      modelEvidence: null,
+    };
+  }
   if (reportedModelMatches(provider, requested, reported)) {
     return {
       reportedModel: reported,
@@ -509,7 +539,7 @@ function completeReceipt(
 }
 
 export function validateOptions(options: RunnerOptions): void {
-  if (options.parent === options.provider) {
+  if (options.parent === options.provider && options.provider !== "cursor") {
     throw new UsageError(
       `provider ${options.provider} is native to parent ${options.parent}; use the parent subagent primitive`
     );
@@ -552,7 +582,7 @@ async function executeLane(
 ): Promise<RunResult> {
   const startedAt = new Date(started).toISOString();
   const prompt = readFileSync(options.promptPath, "utf8");
-  const env = childEnvironment(options.provider);
+  const env = childEnvironment(options.provider, process.env, options.parent);
   // Cursor's preflight listing carries composed model-effort ids, so the
   // availability check must look for the exact id the invocation will pin.
   const preflightModel = options.provider === "cursor"
@@ -831,6 +861,7 @@ async function executeLane(
     const proof = modelProof(
       options.provider,
       options.model,
+      options.effort,
       parsed.reportedModel
     );
     if (!proof.modelVerified && proof.modelEvidence !== "pinned-argv") {

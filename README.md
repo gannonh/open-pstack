@@ -78,7 +78,7 @@ cursor-agent --plugin-dir /path/to/open-pstack/plugins/pstack
 
 The plugin directory must sit outside the workspace. The CLI drops a plugin's skills when the plugin directory is inside the workspace. `--plugin-dir` does not apply the startup rule. Invoke `/poteto-mode` yourself. An installed plugin applies the rule.
 
-The CLI also limits subagents to a short list of models that can differ from `cursor-agent models`. A configured `cursor:*` model missing from that list fails the lane. pstack does not swap in another model.
+The CLI also limits subagents to a short list of models that can differ from `cursor-agent models`. `resolveCursorDescriptorRoute` maps catalog composed ids onto that list (`claude-fable-5-1-xhigh` to `claude-fable-5-1-thinking-xhigh`) and uses print-mode `cursor-agent` with the composed id when the mapped slug is absent. pstack does not swap in a `-fast` neighbour.
 
 Uninstall from the same plugin settings page.
 

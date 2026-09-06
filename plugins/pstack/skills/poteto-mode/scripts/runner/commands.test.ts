@@ -225,5 +225,17 @@ describe("invocationCommand", () => {
     expect(cursorFable.args).toEqual(
       expect.arrayContaining(["--model", "claude-fable-5-1-max"])
     );
+    for (const effort of ["high", "xhigh"] as const) {
+      const spec = invocationCommand(
+        options({
+          provider: "cursor",
+          model: "claude-fable-5-1",
+          effort,
+        })
+      );
+      expect(spec.args).toEqual(
+        expect.arrayContaining(["--model", `claude-fable-5-1-${effort}`])
+      );
+    }
   });
 });

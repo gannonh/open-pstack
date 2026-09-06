@@ -142,7 +142,7 @@ grep -Fq 'alwaysApply: true' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"
 grep -Fq 'Claude Code, Codex, or Cursor' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"setup-pstack does not treat Cursor as a parent"
 grep -Eq 'Never read, migrate, overwrite, or delete .*pstack-models\.mdc' "$cursor_setup" || cursor_bad="${cursor_bad}"$'\n'"setup-pstack does not protect the original pstack-models.mdc"
 [ -f "$cursor_tools" ] || cursor_bad="${cursor_bad}"$'\n'"cursor-tools.md is missing"
-grep -Fq '| Cursor | external runner | external runner | external runner | native `Task` |' "$cursor_dispatch" || cursor_bad="${cursor_bad}"$'\n'"provider-dispatch route table lacks the Cursor parent row"
+grep -Fq '| Cursor | external runner | external runner | external runner | `resolveCursorDescriptorRoute` |' "$cursor_dispatch" || cursor_bad="${cursor_bad}"$'\n'"provider-dispatch route table lacks the Cursor parent row"
 grep -Fq -- '--parent <claude|codex|cursor>' "$cursor_dispatch" || cursor_bad="${cursor_bad}"$'\n'"provider-dispatch runner usage lacks the cursor parent"
 grep -Fq 'cursor-tools.md' "$repo/plugins/pstack/skills/poteto-mode/SKILL.md" || cursor_bad="${cursor_bad}"$'\n'"poteto-mode does not point Cursor at cursor-tools.md"
 for doc in "$repo/README.md" "$repo/docs/reference.md"; do

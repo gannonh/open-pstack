@@ -233,6 +233,32 @@ function comparableModel(value: string): string {
   return value.trim().toLowerCase().replace(/\./g, "-");
 }
 
+const CURSOR_REPORTED_EFFORT_ALIASES: Readonly<Record<string, string>> = {
+  "extra-high": "xhigh",
+};
+
+function normalizeCursorModelId(value: string): string {
+  let normalized = comparableModel(value);
+  for (const [alias, effort] of Object.entries(CURSOR_REPORTED_EFFORT_ALIASES)) {
+    const suffix = `-${alias}`;
+    if (normalized.endsWith(suffix)) {
+      normalized = `${normalized.slice(0, -suffix.length)}-${effort}`;
+      break;
+    }
+  }
+  return normalized;
+}
+
+export function reportedCursorComposedModelMatches(
+  composedCliId: string,
+  reported: string | null
+): boolean {
+  if (reported === null) return false;
+  return (
+    normalizeCursorModelId(reported) === normalizeCursorModelId(composedCliId)
+  );
+}
+
 export function reportedModelMatches(
   provider: Provider,
   requested: string,
@@ -245,6 +271,11 @@ export function reportedModelMatches(
       return concreteClaudeRevisionMatchesRollingSelector(offering.selector, reported);
     }
     return concreteClaudeRevisionMatchesExplicitSelector(requested, reported);
+  }
+  if (provider === "cursor") {
+    throw new Error(
+      "cursor verification requires the composed CLI id; use reportedCursorComposedModelMatches"
+    );
   }
   const requestedN = comparableModel(requested);
   const reportedN = comparableModel(reported);

@@ -5,6 +5,7 @@ import {
   PROVIDERS,
   UsageError,
   type Effort,
+  type Parent,
   type Provider,
 } from "./types.ts";
 
@@ -536,6 +537,116 @@ export function composedCliModel(offering: ModelOffering, effort: Effort): strin
   return offering.selectorComposition === "effort-suffix"
     ? `${offering.selector}-${effort}`
     : offering.selector;
+}
+
+export type NativeTaskSlugRule = "thinking-infix" | "identity";
+
+export const NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID: Readonly<
+  Record<string, NativeTaskSlugRule>
+> = {
+  "cursor-fable-5-1": "thinking-infix",
+  "cursor-grok-4-6": "identity",
+};
+
+export interface NativeTaskSlugEntry {
+  readonly offeringId: string;
+  readonly selector: string;
+  readonly effort: Effort;
+  readonly composedCliId: string;
+  readonly taskSlug: string;
+}
+
+export type NativeIneligibleReason =
+  | "parent-is-not-cursor"
+  | "mapped-slug-absent-from-allowlist";
+
+export type CursorDescriptorRoute =
+  | {
+      readonly kind: "native-task";
+      readonly composedCliId: string;
+      readonly taskSlug: string;
+    }
+  | {
+      readonly kind: "external-cursor-agent";
+      readonly composedCliId: string;
+      readonly taskSlug: string;
+      readonly nativeIneligibleReason: NativeIneligibleReason;
+    };
+
+export function nativeTaskSlug(offering: ModelOffering, effort: Effort): string {
+  const composed = composedCliModel(offering, effort);
+  if (offering.provider !== "cursor") {
+    throw new Error(`nativeTaskSlug is cursor-only; got ${offering.provider}`);
+  }
+  const rule = NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID[offering.id];
+  if (rule === undefined) {
+    throw new Error(`no native Task slug rule for ${offering.id}`);
+  }
+  const slug =
+    rule === "thinking-infix"
+      ? `${offering.selector}-thinking-${effort}`
+      : composed;
+  if (slug.includes("-fast") || !slug.endsWith(`-${effort}`)) {
+    throw new Error(
+      `native Task slug ${slug} is not an exact-effort mapping for ${effort}`
+    );
+  }
+  return slug;
+}
+
+export function nativeTaskSlugTable(catalog: ModelCatalog): readonly NativeTaskSlugEntry[] {
+  const rows: NativeTaskSlugEntry[] = [];
+  for (const offering of catalog.offerings) {
+    if (offering.provider !== "cursor") continue;
+    for (const effort of offering.supportedEfforts) {
+      const composedCliId = composedCliModel(offering, effort);
+      rows.push({
+        offeringId: offering.id,
+        selector: offering.selector,
+        effort,
+        composedCliId,
+        taskSlug: nativeTaskSlug(offering, effort),
+      });
+    }
+  }
+  return rows;
+}
+
+export function resolveCursorDescriptorRoute(input: {
+  readonly parent: Parent;
+  readonly offering: ModelOffering;
+  readonly effort: Effort;
+  readonly taskAllowlist: readonly string[];
+}): CursorDescriptorRoute {
+  if (input.offering.provider !== "cursor") {
+    throw new Error(
+      `resolveCursorDescriptorRoute is cursor-only; got ${input.offering.provider}`
+    );
+  }
+  const composedCliId = composedCliModel(input.offering, input.effort);
+  const taskSlug = nativeTaskSlug(input.offering, input.effort);
+  if (input.parent === "cursor" && input.taskAllowlist.includes(taskSlug)) {
+    return { kind: "native-task", composedCliId, taskSlug };
+  }
+  return {
+    kind: "external-cursor-agent",
+    composedCliId,
+    taskSlug,
+    nativeIneligibleReason:
+      input.parent === "cursor"
+        ? "mapped-slug-absent-from-allowlist"
+        : "parent-is-not-cursor",
+  };
+}
+
+export function formatCursorTaskAllowlistError(input: {
+  readonly composedCliId: string;
+  readonly taskSlug: string;
+  readonly taskAllowlist: readonly string[];
+}): string {
+  const allowlist =
+    input.taskAllowlist.length === 0 ? "(empty)" : input.taskAllowlist.join(", ");
+  return `Task allowlist rejected composed id ${input.composedCliId} (native slug ${input.taskSlug}). Allowlist: ${allowlist}.`;
 }
 
 export function catalogLaneError(
