@@ -1,9 +1,9 @@
 {
   "name": "open-pstack",
   "owner": {
-    "name": "Eric Litman"
+    "name": "Gannon Hall"
   },
-  "description": "Pstack for Claude Code and Codex, tracking Cursor's upstream pstack.",
+  "description": "Open PSTACK for Cursor, Claude Code, and Codex, tracking Cursor's upstream pstack with one shared skill tree and model catalog.",
   "plugins": [
     {
       "name": "pstack",
