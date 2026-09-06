@@ -2,6 +2,10 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Cursor parent Task resolution, 2026-09-06
+
+`resolveCursorDescriptorRoute` maps catalog composed CLI ids to native `Task` slugs and falls back to `cursor-agent -p` when the mapped slug is absent from the session allowlist. Tested rows: `cursor-grok-4.6-xhigh` stays identity; `claude-fable-5-1-{high,xhigh}` use the `thinking` infix. The runner accepts `--parent cursor --provider cursor` for that fallback. Claude and Codex same-provider calls still reject. A `-fast` neighbour is never counted as the requested model.
+
 ## Docs and remotes, 2026-09-06
 
 Docs and git remotes treat Cursor pstack as the only content-sync upstream. In this repository, "upstream" means Lauren Tan's pstack at `cursor/plugins` path `pstack/`. `ericlitman/open-pstack` is historical lineage. Soft-fork tracking of that repository ended on this date. Plugin version is unchanged.

@@ -541,14 +541,15 @@ export function composedCliModel(offering: ModelOffering, effort: Effort): strin
 
 export type NativeTaskSlugRule = "thinking-infix" | "identity";
 
-export const NATIVE_TASK_SLUG_RULE_BY_SELECTOR: Readonly<
+export const NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID: Readonly<
   Record<string, NativeTaskSlugRule>
 > = {
-  "claude-fable-5-1": "thinking-infix",
-  "cursor-grok-4.6": "identity",
+  "cursor-fable-5-1": "thinking-infix",
+  "cursor-grok-4-6": "identity",
 };
 
 export interface NativeTaskSlugEntry {
+  readonly offeringId: string;
   readonly selector: string;
   readonly effort: Effort;
   readonly composedCliId: string;
@@ -573,7 +574,24 @@ export type CursorDescriptorRoute =
     };
 
 export function nativeTaskSlug(offering: ModelOffering, effort: Effort): string {
-  return composedCliModel(offering, effort);
+  const composed = composedCliModel(offering, effort);
+  if (offering.provider !== "cursor") {
+    throw new Error(`nativeTaskSlug is cursor-only; got ${offering.provider}`);
+  }
+  const rule = NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID[offering.id];
+  if (rule === undefined) {
+    throw new Error(`no native Task slug rule for ${offering.id}`);
+  }
+  const slug =
+    rule === "thinking-infix"
+      ? `${offering.selector}-thinking-${effort}`
+      : composed;
+  if (slug.includes("-fast") || !slug.endsWith(`-${effort}`)) {
+    throw new Error(
+      `native Task slug ${slug} is not an exact-effort mapping for ${effort}`
+    );
+  }
+  return slug;
 }
 
 export function nativeTaskSlugTable(catalog: ModelCatalog): readonly NativeTaskSlugEntry[] {
@@ -583,6 +601,7 @@ export function nativeTaskSlugTable(catalog: ModelCatalog): readonly NativeTaskS
     for (const effort of offering.supportedEfforts) {
       const composedCliId = composedCliModel(offering, effort);
       rows.push({
+        offeringId: offering.id,
         selector: offering.selector,
         effort,
         composedCliId,
@@ -599,9 +618,25 @@ export function resolveCursorDescriptorRoute(input: {
   readonly effort: Effort;
   readonly taskAllowlist: readonly string[];
 }): CursorDescriptorRoute {
+  if (input.offering.provider !== "cursor") {
+    throw new Error(
+      `resolveCursorDescriptorRoute is cursor-only; got ${input.offering.provider}`
+    );
+  }
   const composedCliId = composedCliModel(input.offering, input.effort);
   const taskSlug = nativeTaskSlug(input.offering, input.effort);
-  return { kind: "native-task", composedCliId, taskSlug };
+  if (input.parent === "cursor" && input.taskAllowlist.includes(taskSlug)) {
+    return { kind: "native-task", composedCliId, taskSlug };
+  }
+  return {
+    kind: "external-cursor-agent",
+    composedCliId,
+    taskSlug,
+    nativeIneligibleReason:
+      input.parent === "cursor"
+        ? "mapped-slug-absent-from-allowlist"
+        : "parent-is-not-cursor",
+  };
 }
 
 export function formatCursorTaskAllowlistError(input: {
@@ -609,7 +644,9 @@ export function formatCursorTaskAllowlistError(input: {
   readonly taskSlug: string;
   readonly taskAllowlist: readonly string[];
 }): string {
-  return "unavailable-model";
+  const allowlist =
+    input.taskAllowlist.length === 0 ? "(empty)" : input.taskAllowlist.join(", ");
+  return `Task allowlist rejected composed id ${input.composedCliId} (native slug ${input.taskSlug}). Allowlist: ${allowlist}.`;
 }
 
 export function catalogLaneError(

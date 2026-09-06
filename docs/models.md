@@ -67,6 +67,18 @@ A reroute is an explicit operator change. Nothing reroutes automatically.
 
 The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent chooses native versus external execution from the route table while preserving the selected provider model.
 
+### Cursor parent `cursor:*` resolution
+
+`cursor-agent models` lists composed CLI ids (`<selector>-<effort>`). The Cursor `Task` tool lists a shorter, session-varying set of slugs. Setup probes and panel dispatch both call `resolveCursorDescriptorRoute` with that session's `Task` allowlist.
+
+| Descriptor | Composed CLI id | Native Task slug |
+| --- | --- | --- |
+| `cursor:cursor-grok-4.6@xhigh` | `cursor-grok-4.6-xhigh` | `cursor-grok-4.6-xhigh` |
+| `cursor:claude-fable-5-1@high` | `claude-fable-5-1-high` | `claude-fable-5-1-thinking-high` |
+| `cursor:claude-fable-5-1@xhigh` | `claude-fable-5-1-xhigh` | `claude-fable-5-1-thinking-xhigh` |
+
+Native `Task` runs only when the mapped slug is an exact allowlist token. Otherwise the parent runs `pstack-runner --parent cursor --provider cursor` and `cursor-agent -p --model` still receives the composed CLI id. A listed `-fast` slug is not a substitute. A rejected native dispatch names the composed id, the mapped slug, and the allowlist. Codex and Claude parents keep the external `cursor:*` path they already use.
+
 ### Codex sheet and the `~/.codex/AGENTS.md` block
 
 Claude Code loads `~/.claude/pstack-models.md` through an `@` include in `~/.claude/CLAUDE.md`. Codex has no include, so setup mirrors the sheet's exact bytes into one bounded block in `~/.codex/AGENTS.md`:

@@ -12,7 +12,7 @@ import {
   formatCursorTaskAllowlistError,
   nativeTaskSlug,
   nativeTaskSlugTable,
-  NATIVE_TASK_SLUG_RULE_BY_SELECTOR,
+  NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID,
   resolveCursorDescriptorRoute,
   formatCatalogJson,
   formatDescriptor,
@@ -359,13 +359,13 @@ describe("model catalog", () => {
     for (const row of nativeTaskSlugTable(catalog)) {
       expect(row.taskSlug.includes("-fast")).toBe(false);
       expect(row.taskSlug.endsWith(`-${row.effort}`)).toBe(true);
-      expect(NATIVE_TASK_SLUG_RULE_BY_SELECTOR[row.selector]).toBeDefined();
+      expect(NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID[row.offeringId]).toBeDefined();
     }
-    const cursorSelectors = catalog.offerings
+    const cursorIds = catalog.offerings
       .filter((row) => row.provider === "cursor")
-      .map((row) => row.selector)
+      .map((row) => row.id)
       .sort();
-    expect(Object.keys(NATIVE_TASK_SLUG_RULE_BY_SELECTOR).sort()).toEqual(cursorSelectors);
+    expect(Object.keys(NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID).sort()).toEqual(cursorIds);
   });
 
   it("resolves Cursor parent cursor:* to native Task or external cursor-agent", () => {
@@ -650,6 +650,8 @@ describe("catalog-driven native agents and skill invariants", () => {
     expect(dispatch).not.toContain("## Model matrix");
     expect(dispatch).toContain("Do not rewrite a valid cataloged descriptor into another model");
     expect(dispatch).toContain("nativeAgentStem");
+    expect(dispatch).toContain("resolveCursorDescriptorRoute");
+    expect(setup).toContain("resolveCursorDescriptorRoute");
   });
 
   it("keeps workflow skills from copying model defaults", () => {
