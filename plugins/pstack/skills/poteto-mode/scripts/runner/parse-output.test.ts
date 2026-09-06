@@ -191,6 +191,80 @@ describe("parseProviderOutput", () => {
     ).toBe(false);
   });
 
+  it("matches Cursor Fable display names that add context-window and thinking-mode tokens", () => {
+    const parsed = parseProviderOutput(
+      "cursor",
+      [
+        JSON.stringify({
+          type: "system",
+          subtype: "init",
+          model: "Claude Fable 5.1 300K High No Thinking",
+          session_id: "cursor-fable-live",
+        }),
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          result: "CURSOR_OK",
+        }),
+      ].join("\n"),
+      "",
+      "claude-fable-5-1"
+    );
+    expect(parsed.reportedModel).toBe("claude-fable-5.1-300k-high-no-thinking");
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-high",
+        parsed.reportedModel
+      )
+    ).toBe(true);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-high",
+        "claude-fable-5.1-max"
+      )
+    ).toBe(false);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-high",
+        "cursor-grok-4.6-extra-high"
+      )
+    ).toBe(false);
+    expect(
+      reportedCursorComposedModelMatches(
+        "cursor-grok-4.6-xhigh",
+        "cursor-grok-4.6-extra-high"
+      )
+    ).toBe(true);
+    expect(
+      reportedCursorComposedModelMatches(
+        "cursor-grok-4.6-xhigh",
+        "cursor-grok-4.6-xhigh-fast"
+      )
+    ).toBe(false);
+  });
+
+  it("rejects a thinking selector when the live display omits thinking", () => {
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-thinking-high",
+        "claude-fable-5.1-high"
+      )
+    ).toBe(false);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-thinking-xhigh",
+        "claude-fable-5.1-xhigh"
+      )
+    ).toBe(false);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-thinking-high",
+        "claude-fable-5.1-300k-high-no-thinking"
+      )
+    ).toBe(false);
+  });
+
   it("rejects a Cursor error result", () => {
     expect(() =>
       parseProviderOutput(

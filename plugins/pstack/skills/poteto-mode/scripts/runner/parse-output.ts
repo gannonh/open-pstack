@@ -163,8 +163,9 @@ function parseCodex(stdout: string): ParsedOutput {
 }
 
 // Cursor's init event reports a display name ("Cursor Grok 4.6 Extra High"),
-// not a model id. Kebab-casing it makes the family stem comparable with
-// reportedModelMatches: "Cursor Grok 4.6 Low" -> "cursor-grok-4.6-low".
+// not a model id. Kebab-casing it yields a token list that
+// reportedCursorComposedModelMatches compares to the composed CLI id after
+// dropping context-window and thinking-mode tokens.
 function kebabModel(display: string): string {
   return display.trim().toLowerCase().replace(/\s+/g, "-");
 }
@@ -237,16 +238,40 @@ const CURSOR_REPORTED_EFFORT_ALIASES: Readonly<Record<string, string>> = {
   "extra-high": "xhigh",
 };
 
-function normalizeCursorModelId(value: string): string {
-  let normalized = comparableModel(value);
-  for (const [alias, effort] of Object.entries(CURSOR_REPORTED_EFFORT_ALIASES)) {
-    const suffix = `-${alias}`;
-    if (normalized.endsWith(suffix)) {
-      normalized = `${normalized.slice(0, -suffix.length)}-${effort}`;
-      break;
+function normalizeCursorReportedModelId(value: string): string {
+  const tokens = comparableModel(value)
+    .split("-")
+    .filter((token) => token.length > 0);
+  const kept: string[] = [];
+  for (let i = 0; i < tokens.length; ) {
+    const token = tokens[i]!;
+    if (/^\d+[km]$/.test(token)) {
+      i += 1;
+      continue;
     }
+    if (token === "no" && tokens[i + 1] === "thinking") {
+      i += 2;
+      continue;
+    }
+    if (token === "thinking") {
+      i += 1;
+      continue;
+    }
+    let aliased = false;
+    for (const [alias, effort] of Object.entries(CURSOR_REPORTED_EFFORT_ALIASES)) {
+      const parts = alias.split("-");
+      if (parts.every((part, offset) => tokens[i + offset] === part)) {
+        kept.push(effort);
+        i += parts.length;
+        aliased = true;
+        break;
+      }
+    }
+    if (aliased) continue;
+    kept.push(token);
+    i += 1;
   }
-  return normalized;
+  return kept.join("-");
 }
 
 export function reportedCursorComposedModelMatches(
@@ -255,7 +280,7 @@ export function reportedCursorComposedModelMatches(
 ): boolean {
   if (reported === null) return false;
   return (
-    normalizeCursorModelId(reported) === normalizeCursorModelId(composedCliId)
+    normalizeCursorReportedModelId(reported) === comparableModel(composedCliId)
   );
 }
 

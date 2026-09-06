@@ -2,6 +2,10 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Cursor Fable display-name verification, 2026-09-06
+
+`reportedCursorComposedModelMatches` still requires exact equality with the composed CLI id after normalization. Normalization now drops context-window tokens (`300k`, `1m`) and thinking-mode tokens (`no thinking`, `thinking`) from the kebab-cased init display name, then keeps the existing `extra-high` to `xhigh` alias. A wrong effort, a `-fast` neighbour, and unknown extra tokens still fail closed. This lets `cursor:claude-fable-5-1@high` complete on the external `cursor-agent` path when live init reports `Claude Fable 5.1 300K High No Thinking`.
+
 ## Cursor parent Task resolution, 2026-09-06
 
 `resolveCursorDescriptorRoute` maps catalog composed CLI ids to native `Task` slugs and falls back to `cursor-agent -p` when the mapped slug is absent from the session allowlist. Tested rows: `cursor-grok-4.6-xhigh` stays identity; `claude-fable-5-1-{high,xhigh}` use the `thinking` infix. The runner accepts `--parent cursor --provider cursor` for that fallback. Claude and Codex same-provider calls still reject. A `-fast` neighbour is never counted as the requested model.

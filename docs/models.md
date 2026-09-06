@@ -79,6 +79,8 @@ The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent c
 
 Native `Task` runs only when the mapped slug is an exact allowlist token. Otherwise the parent runs `pstack-runner --parent cursor --provider cursor` and `cursor-agent -p --model` still receives the composed CLI id. A listed `-fast` slug is not a substitute. A rejected native dispatch names the composed id, the mapped slug, and the allowlist. Codex and Claude parents keep the external `cursor:*` path they already use.
 
+External `cursor-agent` verification compares that composed CLI id to the kebab-cased init display name. `normalizeCursorReportedModelId` drops display-only hyphen-delimited context-window tokens (`300k`, `1m`) and thinking-mode tokens (`thinking`, or `no` immediately followed by `thinking`) from the reported init name, maps known effort aliases (`extra-high` to `xhigh`), and then requires exact equality to the composed CLI id. Identity tokens such as `thinking` in a catalog selector stay on the requested side. Unknown extra report tokens, a wrong effort, and a `-fast` neighbour fail closed. The listing display on `cursor-agent models` is not the match key, because live init names can carry extra tokens the listing omits.
+
 ### Codex sheet and the `~/.codex/AGENTS.md` block
 
 Claude Code loads `~/.claude/pstack-models.md` through an `@` include in `~/.claude/CLAUDE.md`. Codex has no include, so setup mirrors the sheet's exact bytes into one bounded block in `~/.codex/AGENTS.md`:
