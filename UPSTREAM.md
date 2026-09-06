@@ -6,8 +6,9 @@ Do not name a remote `upstream`. Soft-fork tracking of `ericlitman/open-pstack` 
 
 ## Add remotes
 
+`git clone https://github.com/gannonh/open-pstack.git` already creates `origin`. Add the remaining remotes once per clone:
+
 ```shell
-git remote add origin https://github.com/gannonh/open-pstack.git
 git remote add cursor https://github.com/cursor/plugins.git
 # optional archive only; never merge from it
 git remote add ericlitman https://github.com/ericlitman/open-pstack.git
@@ -34,7 +35,7 @@ The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves
 
 ## Check for changes
 
-The repository already names Cursor's repository as the `cursor` remote in the maintainer checkout. A fresh clone can add it once. See [Add remotes](#add-remotes).
+The maintainer checkout already has the `cursor` remote. A fresh clone has only `origin`; add `cursor` once as shown in [Add remotes](#add-remotes).
 
 Fetch and inspect only commits that touched pstack after the recorded sync point:
 
