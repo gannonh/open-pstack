@@ -238,7 +238,7 @@ const CURSOR_REPORTED_EFFORT_ALIASES: Readonly<Record<string, string>> = {
   "extra-high": "xhigh",
 };
 
-function normalizeCursorModelId(value: string): string {
+function normalizeCursorReportedModelId(value: string): string {
   const tokens = comparableModel(value)
     .split("-")
     .filter((token) => token.length > 0);
@@ -280,7 +280,7 @@ export function reportedCursorComposedModelMatches(
 ): boolean {
   if (reported === null) return false;
   return (
-    normalizeCursorModelId(reported) === normalizeCursorModelId(composedCliId)
+    normalizeCursorReportedModelId(reported) === comparableModel(composedCliId)
   );
 }
 

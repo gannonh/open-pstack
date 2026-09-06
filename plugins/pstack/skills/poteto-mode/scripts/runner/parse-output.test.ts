@@ -244,6 +244,27 @@ describe("parseProviderOutput", () => {
     ).toBe(false);
   });
 
+  it("rejects a thinking selector when the live display omits thinking", () => {
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-thinking-high",
+        "claude-fable-5.1-high"
+      )
+    ).toBe(false);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-thinking-xhigh",
+        "claude-fable-5.1-xhigh"
+      )
+    ).toBe(false);
+    expect(
+      reportedCursorComposedModelMatches(
+        "claude-fable-5-1-thinking-high",
+        "claude-fable-5.1-300k-high-no-thinking"
+      )
+    ).toBe(false);
+  });
+
   it("rejects a Cursor error result", () => {
     expect(() =>
       parseProviderOutput(
