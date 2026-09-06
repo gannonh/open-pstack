@@ -97,7 +97,7 @@ For each unique descriptor, use the parent route table in `provider-dispatch.md`
 
 Use a tiny read-only probe that returns a unique marker. A login-status command alone proves credentials, not that the requested model and effort flags run. Record native and external results separately.
 
-Receipts and native transcripts prove the requested effort and the route. They do not prove a provider's hidden applied reasoning depth. A native lane whose harness exposes no served-model field (Cursor `Task` in CLI 2026.09.02) is recorded with `modelVerified: false` and `modelEvidence: "pinned-dispatch"`; do not write `provider-report` for it. There is no implicit timeout, weaker-model fallback, same-provider external fallback, automatic provider fallback, or second mutable configuration source.
+Receipts and native transcripts prove the requested effort and the route. They do not prove a provider's hidden applied reasoning depth. A native lane whose harness exposes no served-model field (Cursor `Task` in CLI 2026.09.02) is recorded with `modelVerified: false` and `modelEvidence: "pinned-dispatch"`; do not write `provider-report` for it. Panel synthesis counts it as a dropout. There is no implicit timeout, weaker-model fallback, same-provider external fallback, automatic provider fallback, or second mutable configuration source.
 
 ### 6. Render, preserving untouched selections
 
