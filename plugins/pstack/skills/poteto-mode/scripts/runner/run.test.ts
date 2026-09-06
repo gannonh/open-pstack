@@ -980,11 +980,40 @@ describe("runLane", () => {
     expect(receipt(retry.receiptPath).status).toBe("complete");
   });
 
-  it("rejects same-provider recursion", async () => {
+  it("rejects same-provider recursion for Claude and Codex", async () => {
     const input = { ...options("claude"), parent: "claude" as const };
     await expect(runLane(input)).rejects.toThrow("native to parent");
-    const cursorParent = { ...options("cursor"), parent: "cursor" as const };
-    await expect(runLane(cursorParent)).rejects.toThrow("native to parent");
+    await expect(
+      runLane({ ...options("codex"), parent: "codex" as const })
+    ).rejects.toThrow("native to parent");
+  });
+
+  it("runs cursor-agent from a Cursor parent for cataloged cursor offerings", async () => {
+    const grok = { ...options("cursor", "cursor-parent-grok-xhigh"), parent: "cursor" as const };
+    expect((await runLane(grok)).exitCode).toBe(0);
+    expect(receipt(grok.receiptPath)).toMatchObject({
+      status: "complete",
+      parent: "cursor",
+      provider: "cursor",
+      model: "cursor-grok-4.6",
+      effort: "xhigh",
+    });
+    for (const effort of ["high", "xhigh"] as const) {
+      const fable = {
+        ...options("cursor", `cursor-parent-fable-${effort}`),
+        parent: "cursor" as const,
+        model: "claude-fable-5-1",
+        effort,
+      };
+      expect((await runLane(fable)).exitCode).toBe(0);
+      expect(receipt(fable.receiptPath)).toMatchObject({
+        status: "complete",
+        parent: "cursor",
+        provider: "cursor",
+        model: "claude-fable-5-1",
+        effort,
+      });
+    }
   });
 
   it("runs every non-Cursor provider from a Cursor parent with a cursor receipt", async () => {

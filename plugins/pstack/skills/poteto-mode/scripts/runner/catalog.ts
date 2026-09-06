@@ -5,6 +5,7 @@ import {
   PROVIDERS,
   UsageError,
   type Effort,
+  type Parent,
   type Provider,
 } from "./types.ts";
 
@@ -536,6 +537,79 @@ export function composedCliModel(offering: ModelOffering, effort: Effort): strin
   return offering.selectorComposition === "effort-suffix"
     ? `${offering.selector}-${effort}`
     : offering.selector;
+}
+
+export type NativeTaskSlugRule = "thinking-infix" | "identity";
+
+export const NATIVE_TASK_SLUG_RULE_BY_SELECTOR: Readonly<
+  Record<string, NativeTaskSlugRule>
+> = {
+  "claude-fable-5-1": "thinking-infix",
+  "cursor-grok-4.6": "identity",
+};
+
+export interface NativeTaskSlugEntry {
+  readonly selector: string;
+  readonly effort: Effort;
+  readonly composedCliId: string;
+  readonly taskSlug: string;
+}
+
+export type NativeIneligibleReason =
+  | "parent-is-not-cursor"
+  | "mapped-slug-absent-from-allowlist";
+
+export type CursorDescriptorRoute =
+  | {
+      readonly kind: "native-task";
+      readonly composedCliId: string;
+      readonly taskSlug: string;
+    }
+  | {
+      readonly kind: "external-cursor-agent";
+      readonly composedCliId: string;
+      readonly taskSlug: string;
+      readonly nativeIneligibleReason: NativeIneligibleReason;
+    };
+
+export function nativeTaskSlug(offering: ModelOffering, effort: Effort): string {
+  return composedCliModel(offering, effort);
+}
+
+export function nativeTaskSlugTable(catalog: ModelCatalog): readonly NativeTaskSlugEntry[] {
+  const rows: NativeTaskSlugEntry[] = [];
+  for (const offering of catalog.offerings) {
+    if (offering.provider !== "cursor") continue;
+    for (const effort of offering.supportedEfforts) {
+      const composedCliId = composedCliModel(offering, effort);
+      rows.push({
+        selector: offering.selector,
+        effort,
+        composedCliId,
+        taskSlug: nativeTaskSlug(offering, effort),
+      });
+    }
+  }
+  return rows;
+}
+
+export function resolveCursorDescriptorRoute(input: {
+  readonly parent: Parent;
+  readonly offering: ModelOffering;
+  readonly effort: Effort;
+  readonly taskAllowlist: readonly string[];
+}): CursorDescriptorRoute {
+  const composedCliId = composedCliModel(input.offering, input.effort);
+  const taskSlug = nativeTaskSlug(input.offering, input.effort);
+  return { kind: "native-task", composedCliId, taskSlug };
+}
+
+export function formatCursorTaskAllowlistError(input: {
+  readonly composedCliId: string;
+  readonly taskSlug: string;
+  readonly taskAllowlist: readonly string[];
+}): string {
+  return "unavailable-model";
 }
 
 export function catalogLaneError(
