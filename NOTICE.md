@@ -1,6 +1,8 @@
 # NOTICE
 
-This plugin is a port of upstream MIT-licensed work. All upstream copyright notices and license terms are preserved. The open-pstack history begins from `michael-denyer/pstack-claude` through proven import commit `053ed78732e3b71826933170eafe7f7782dda844`.
+This plugin ports MIT-licensed work from Cursor pstack. In this repository, "upstream" means Lauren Tan's pstack at `cursor/plugins` path `pstack/`. All upstream copyright notices and license terms are preserved.
+
+`michael-denyer/pstack-claude` and `ericlitman/open-pstack` are historical lineage. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. The open-pstack git history includes import commit `053ed78732e3b71826933170eafe7f7782dda844`.
 
 ## Upstream sources
 
@@ -27,8 +29,8 @@ Summary of structural changes:
 
 - Plugin content lives at `plugins/pstack/` (with its own `.claude-plugin/plugin.json`). The repo root holds `.claude-plugin/marketplace.json` and the LICENSE / NOTICE / README / CHANGES docs.
 - `.claude-plugin/marketplace.json` added at repo root so the repo is installable via `/plugin marketplace add`. The marketplace's single plugin entry sources from `./plugins/pstack`.
-- The native `plugins/pstack/skills/` tree is the only user-facing workflow surface. Claude Code and Codex invoke those skills directly.
-- Seven skills imported from `cursor-team-kit`: `deslop`, `thermo-nuclear-code-quality-review`, `make-pr-easy-to-review`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `what-did-i-get-done`. All copied verbatim — no rewiring needed.
+- The native `plugins/pstack/skills/` tree is the only user-facing workflow surface. Cursor, Claude Code, and Codex invoke those skills directly.
+- Seven skills imported from `cursor-team-kit`: `deslop`, `thermo-nuclear-code-quality-review`, `make-pr-easy-to-review`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `what-did-i-get-done`. All copied verbatim. No rewiring needed.
 - `plugins/pstack/skills/babysit/` is independently authored as the Claude Code analog of Cursor's `/babysit` built-in. It has no upstream pstack equivalent; its workflow is informed by Cursor's public `/babysit` behavior. No code or prose was copied from any source.
 - `plugins/pstack/skills/poteto-mode/scripts/` is vendored from upstream (`watch-pr`, `orch`, `bootstrap.ts`, `worktree-audit.sh`, `package.json`, `bun.lock`) with these port edits: `worktree-audit.sh` reads `~/.claude/projects/` instead of Cursor's transcript directory and warns when `jq` or `rg` is missing (their absence silently blanks the columns the prune decision reads), the private workspace package is named `@open-pstack/poteto-mode-tools`, `bootstrap.ts` rejects Node before it reads Bun-only APIs, and `package.json` includes the port-authored tests in `bun run test`. `check-plan.mjs` is the Cursor 0.14.3 checker adapted for the shared Claude Code and Codex skeleton. `bootstrap.test.ts` and `check-plan.test.ts` are authored for this port.
 - `plugins/pstack/agents/comment-sicko.md` is upstream's `Comment Sicko` agent, renamed to `comment-sicko` so the name works as a Claude Code `subagent_type`. The body is verbatim.

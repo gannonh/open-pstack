@@ -1,8 +1,18 @@
 # Upstream synchronization
 
-This fork (`gannonh/open-pstack`) tracks [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) as its direct upstream (`git remote add upstream https://github.com/ericlitman/open-pstack.git`), carrying the cursor-provider delta described in `CHANGES.md` (fork entries 1.3.0 and 1.3.1) on top. Fork versions increment past the upstream version they include so the two release lines never share a number. The rest of this file documents how open-pstack itself tracks Lauren's original pstack.
+This repository is `gannonh/open-pstack`. In this repository, "upstream" means Lauren Tan's Cursor pstack. The tree lives at [cursor/plugins `pstack/`](https://github.com/cursor/plugins/tree/main/pstack). Fetch it from the `cursor` remote, path `pstack/`.
 
-open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main/pstack) while adapting Cursor-specific primitives for Claude Code and Codex.
+Do not name a remote `upstream`. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. Gannon decided that Cursor pstack is the only content-sync source. `ericlitman/open-pstack` and `michael-denyer/pstack-claude` are historical lineage. An `ericlitman` remote is an optional archive. Never merge from it.
+
+## Add remotes
+
+`git clone https://github.com/gannonh/open-pstack.git` already creates `origin`. Add the remaining remotes once per clone:
+
+```shell
+git remote add cursor https://github.com/cursor/plugins.git
+# optional archive only; never merge from it
+git remote add ericlitman https://github.com/ericlitman/open-pstack.git
+```
 
 ## Current sync point
 
@@ -14,7 +24,7 @@ open-pstack tracks [Cursor's pstack](https://github.com/cursor/plugins/tree/main
 | Upstream version | `0.14.8` |
 | open-pstack version | `1.6.0` |
 
-The table above is the current Cursor sync point. Fork release 1.3.1 carries the 0.14.8 sync on top of Open Pstack 1.3.0. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
+The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
 
 ## Upstream-only exclusions
 
@@ -25,11 +35,7 @@ The table above is the current Cursor sync point. Fork release 1.3.1 carries the
 
 ## Check for changes
 
-The repository already names Cursor's repository as the `cursor` remote in the maintainer checkout. A fresh clone can add it once:
-
-```shell
-git remote add cursor https://github.com/cursor/plugins.git
-```
+The maintainer checkout already has the `cursor` remote. A fresh clone has only `origin`; add `cursor` once as shown in [Add remotes](#add-remotes).
 
 Fetch and inspect only commits that touched pstack after the recorded sync point:
 
@@ -43,11 +49,11 @@ No output means the tracked pstack tree has not changed. This comparison does no
 
 ## Incorporate a change
 
-1. Create or update the Linear issue that specs the sync and branch from current `main`. Fork-delta work is tracked in Linear project Open Pstack. Changes meant for `ericlitman/open-pstack` still go through that repository's issues.
-2. Read each upstream pstack commit in order. Bring over its intent and content, then apply only the Claude Code and Codex substitutions documented in `CHANGES.md`.
-3. Keep one shared `plugins/pstack/skills/` tree. Put harness translation in the existing `codex-tools.md` and `cursor-tools.md` and provider routing in `provider-dispatch.md`; do not fork a skill per harness. The Cursor plugin (`open-pstack`) reads the same tree through `plugins/pstack/.cursor-plugin/plugin.json`.
+1. Create or update the Linear issue that specs the sync. Branch from current `main`. Product work stays in Linear project Open Pstack and in this repository. GitHub Issues are inbound reports only. Do not file product work on `ericlitman/open-pstack`.
+2. Read each upstream pstack commit in order. Bring over its intent and content. Then apply only the Claude Code and Codex substitutions documented in `CHANGES.md`.
+3. Keep one shared `plugins/pstack/skills/` tree. Put harness translation in the existing `codex-tools.md` and `cursor-tools.md` and provider routing in `provider-dispatch.md`. Do not fork a skill per harness. The Cursor plugin `open-pstack` reads the same tree through `plugins/pstack/.cursor-plugin/plugin.json`.
 4. Update the commit and version in this file, the affected provenance rows in `NOTICE.md`, and `README-UPSTREAM.md` when upstream changes it.
-5. Run CI-equivalent checks locally, then run the installed behavioral lanes required by the changed surface in every affected harness: Claude Code, Codex, and Cursor when the sync touches shared skills, catalog, dispatch references, or other Cursor-consumed surfaces. Unit tests alone are not a release gate.
-6. Merge the reviewed PR before tagging the next open-pstack release.
+5. Run CI-equivalent checks locally, then run the installed behavioral lanes required by the changed surface in every affected harness. Cover Claude Code, Codex, and Cursor when the sync touches shared skills, catalog, dispatch references, or other Cursor-consumed surfaces. Unit tests alone are not a release gate.
+6. Merge the reviewed PR before tagging the next Open Pstack release.
 
-Cursor's version and open-pstack's version are independent. Cursor's version identifies the imported content; open-pstack's version identifies the cross-harness distribution.
+Cursor's version and Open Pstack's version are independent. Cursor's version identifies the imported content. Open Pstack's version identifies the three-plugin distribution.

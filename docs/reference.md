@@ -1,16 +1,41 @@
-# open-pstack technical reference
+# Open Pstack technical reference
 
 This page contains the full skill, dependency, runtime, and porting reference. For the plain-English introduction and quick start, see the [main README](../README.md).
 
-[Poteto](https://x.com/poteto)'s [pstack](https://github.com/cursor/plugins/tree/main/pstack), adapted to run in Claude Code and Codex, and packaged again for Cursor as `open-pstack`. One shared skill tree serves all three harnesses; Grok remains available as a model-provider lane. Version 1.6.0 (gannonh fork) is synced to Cursor pstack v0.14.8 at `7314f723a487ec406b6369fe5865ba034cfed166`. See [UPSTREAM.md](../UPSTREAM.md) for the exact sync contract.
+Open Pstack is one repository with one shared skill tree and catalog, and three installable plugins. The repo is `gannonh/open-pstack`. The marketplace name is `open-pstack`.
 
-Original by Lauren Tan. This distribution builds on Michael Denyer's [pstack-claude](https://github.com/michael-denyer/pstack-claude) port and retains its history and MIT attribution. It imports seven MIT-licensed skills from [cursor-team-kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit): `deslop`, `thermo-nuclear-code-quality-review`, `make-pr-easy-to-review`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `what-did-i-get-done`.
+- Cursor plugin id: `open-pstack`. Distinct from Lauren Tan's official Cursor plugin `pstack`.
+- Claude Code plugin id: `pstack` via marketplace `open-pstack`.
+- Codex plugin id: `pstack` via marketplace `open-pstack`.
+
+The shared tree is `plugins/pstack/skills/` plus `plugins/pstack/catalog/`. Grok remains available as a model-provider lane. Open Pstack 1.6.0 tracks Cursor pstack v0.14.8 at `7314f723a487ec406b6369fe5865ba034cfed166`. See [UPSTREAM.md](../UPSTREAM.md) for the exact sync contract.
+
+Original by [Lauren Tan (@poteto)](https://x.com/poteto). [pstack](https://github.com/cursor/plugins/tree/main/pstack) is the content-sync upstream. `michael-denyer/pstack-claude` and `ericlitman/open-pstack` are historical lineage. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. This distribution retains that history and MIT attribution. It imports seven MIT-licensed skills from [cursor-team-kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit): `deslop`, `thermo-nuclear-code-quality-review`, `make-pr-easy-to-review`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `what-did-i-get-done`.
 
 > if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence.
 
-This is not a verbatim copy. Skill bodies have been edited so every Cursor-specific primitive resolves to its Claude Code or Codex equivalent — see [Differences from upstream](#differences-from-upstream) for the full list. The Cursor plugin reads the same edited bodies and maps those names back through [`cursor-tools.md`](../plugins/pstack/skills/poteto-mode/references/cursor-tools.md). The exhaustive per-skill audit lives in [CHANGES.md](../CHANGES.md); license attribution lives in [NOTICE.md](../NOTICE.md); the upstream README is preserved verbatim at [README-UPSTREAM.md](../README-UPSTREAM.md).
+Skill bodies map Cursor-specific primitives to Claude Code or Codex equivalents. See [Differences from upstream](#differences-from-upstream) for the full list. The Cursor plugin reads the same edited bodies and maps those names back through [`cursor-tools.md`](../plugins/pstack/skills/poteto-mode/references/cursor-tools.md). The exhaustive per-skill audit lives in [CHANGES.md](../CHANGES.md). License attribution lives in [NOTICE.md](../NOTICE.md). The upstream README is preserved verbatim at [README-UPSTREAM.md](../README-UPSTREAM.md).
 
 ## Install
+
+### Cursor
+
+The same plugin root carries a `.cursor-plugin/plugin.json` manifest, and the repository root carries `.cursor-plugin/marketplace.json`. The Cursor plugin identifier is `open-pstack`, not `pstack`, because Cursor's official marketplace already ships Lauren's original `pstack`. The two plugins ship skills with identical names, so disable the original `pstack` plugin while `open-pstack` is enabled. Open Pstack never reads, migrates, overwrites, or deletes the original plugin's `~/.cursor/rules/pstack-models.mdc`.
+
+Register the marketplace from the CLI, then install `open-pstack` from Cursor's plugin settings (**Settings > Plugins**). One installation serves the IDE and the CLI. Cursor CLI 2026.09.02 has no `plugin install` subcommand. Installation happens in the IDE or dashboard and syncs to the CLI. Re-index the marketplace entry with `update`:
+
+```shell
+cursor-agent plugin marketplace add https://github.com/gannonh/open-pstack
+cursor-agent plugin marketplace update open-pstack
+```
+
+To exercise a checkout without installing, load the plugin root directly:
+
+```shell
+cursor-agent --plugin-dir /path/to/open-pstack/plugins/pstack
+```
+
+Observed with that CLI version: `--plugin-dir` loads the manifest's skills and agents. An agent excluded from the explicit `agents` list stays hidden. `--plugin-dir` does not apply the plugin's `rules/open-pstack.mdc`. The rule loads for an installed plugin. Point `--plugin-dir` at a plugin root outside the workspace you are running in. When the plugin directory sits inside the workspace, the CLI lists its agents but drops its skills. In `--plugin-dir` mode, invoke `/poteto-mode` yourself. Skills carry no namespace prefix in Cursor: `/poteto-mode`, `/architect`, `/setup-pstack`. Uninstall from the same plugin settings page. `~/.cursor/rules/open-pstack-models.mdc` is user configuration and stays until you delete it.
 
 ### Claude Code
 
@@ -22,7 +47,7 @@ This repo ships as a Claude Code marketplace containing one plugin (`pstack`).
 /reload-plugins
 ```
 
-The plugin auto-fires through a `SessionStart` hook on startup, `/clear`, and post-compact. The hook injects a small mandate that routes non-trivial engineering work into `poteto-mode`; the full skill loads only when invoked. Dispatched subagents ignore the mandate, and explicit user instructions take precedence. To opt out, delete `hooks/hooks.json` from the installed copy at `~/.claude/plugins/cache/open-pstack/pstack/<version>/hooks/hooks.json`; a plugin update restores it.
+The plugin auto-fires through a `SessionStart` hook on startup, `/clear`, and post-compact. The hook injects a small mandate that routes non-trivial engineering work into `poteto-mode`. The full skill loads only when invoked. Dispatched subagents ignore the mandate, and explicit user instructions take precedence. To opt out, delete `hooks/hooks.json` from the installed copy at `~/.claude/plugins/cache/open-pstack/pstack/<version>/hooks/hooks.json`. A plugin update restores it.
 
 ### Codex
 
@@ -49,25 +74,6 @@ for s in plugins/pstack/skills/*/; do ln -s "$PWD/$s" ~/.agents/skills/"$(basena
 ```
 
 The marketplace install is the normal user path. Direct links are only for testing a checkout before publishing it. Remove the linked skill directories when the test is over.
-
-### Cursor
-
-The same plugin root carries a `.cursor-plugin/plugin.json` manifest, and the repository root carries `.cursor-plugin/marketplace.json`. The Cursor plugin identifier is `open-pstack`, not `pstack`, because Cursor's official marketplace already ships Lauren's original `pstack`. The two plugins ship skills with identical names, so disable the original `pstack` plugin while `open-pstack` is enabled. Open PStack never reads, migrates, overwrites, or deletes the original plugin's `~/.cursor/rules/pstack-models.mdc`.
-
-Register the marketplace from the CLI, then install `open-pstack` from Cursor's plugin settings (Settings > Plugins). One installation serves the IDE and the CLI, and the marketplace entry can be re-indexed later with `update`:
-
-```shell
-cursor-agent plugin marketplace add https://github.com/gannonh/open-pstack
-cursor-agent plugin marketplace update open-pstack
-```
-
-Cursor CLI 2026.09.02 has no `plugin install` subcommand; installation happens in the IDE or dashboard and syncs to the CLI. To exercise a checkout without installing, load the plugin root directly:
-
-```shell
-cursor-agent --plugin-dir /path/to/open-pstack/plugins/pstack
-```
-
-Observed with that CLI version: `--plugin-dir` loads the manifest's skills and agents (an agent excluded from the explicit `agents` list stays hidden) but does not apply the plugin's `rules/open-pstack.mdc`; the rule loads for an installed plugin. Point `--plugin-dir` at a plugin root outside the workspace you are running in; when the plugin directory sits inside the workspace, the CLI lists its agents but drops its skills. In `--plugin-dir` mode, invoke `/poteto-mode` yourself. Skills carry no namespace prefix in Cursor: `/poteto-mode`, `/architect`, `/setup-pstack`. Uninstall from the same plugin settings page; `~/.cursor/rules/open-pstack-models.mdc` is user configuration and stays until you delete it.
 
 ## Layout
 
@@ -106,13 +112,13 @@ Plugin-internal `skills/<name>/` path references in the docs below are relative 
 The Codex build shares one `skills/` tree with the Claude Code build. Nothing is forked or generated. Two narrow references keep runtime translation separate: `codex-tools.md` maps harness primitives and `provider-dispatch.md` maps model providers. pstack otherwise keeps the upstream Claude-native prose and adds a one-line Platform note to each skill that names a Claude primitive, so the port stays in lockstep with upstream sync.
 
 - **Skill invocation.** Codex loads `SKILL.md` natively. There is no `Skill` tool. You invoke a skill by name (ask for it, or pick `pstack:poteto-mode` from the list).
-- **Package surface.** The native `skills/` tree is the only workflow source. The plugin ships no `commands/` layer and does not link prompts into `~/.codex/prompts/`. Codex would migrate such files into duplicate source-command skills while loading the native skill tree. The 21 `principle-*` leaves declare `user-invocable: false`. Claude keeps them out of its user picker; Codex 0.149.0 currently shows them despite that metadata ([#8](https://github.com/ericlitman/open-pstack/issues/8)).
+- **Package surface.** The native `skills/` tree is the only workflow source. The plugin ships no `commands/` layer and does not link prompts into `~/.codex/prompts/`. Codex would migrate such files into duplicate source-command skills while loading the native skill tree. The 21 `principle-*` leaves declare `user-invocable: false`. Claude keeps them out of its user picker. Codex 0.149.0 currently shows them despite that metadata. Historical report: [ericlitman/open-pstack#8](https://github.com/ericlitman/open-pstack/issues/8).
 - **Tool and built-in mapping.** Claude tool names and built-in skills resolve through [`codex-tools.md`](../plugins/pstack/skills/poteto-mode/references/codex-tools.md). Model execution resolves separately through [`provider-dispatch.md`](../plugins/pstack/skills/poteto-mode/references/provider-dispatch.md), so Codex can keep Sol native while invoking Claude and Grok externally.
 - **Subagents.** The `Agent` tool maps to Codex `spawn_agent` / `wait_agent`, enabled by `multi_agent = true`. Parallel fan-out is multiple `spawn_agent` calls in one turn. If the native Codex lane is unavailable, record that lane as a dropout; external Claude and Grok lanes still run, and no provider is silently substituted. There is no `poteto-agent` subagent type on Codex; route ad-hoc subagents by dispatching a `spawn_agent` told to read `poteto-mode` first.
 - **Auto-fire.** The `hooks/` SessionStart injection is Claude Code-only; Codex has no plugin hook runtime. Enter `pstack:poteto-mode` by name, or add a standing instruction to `~/.codex/AGENTS.md` if you want the same always-on routing.
 - **Models.** `/setup-pstack` writes provider-qualified descriptors from the installed catalog (`catalog/models.json` and `catalog/role-defaults.json`). It enumerates offerings dynamically, including alternate providers for the same logical model, and lets the operator change provider, model, and effort per named role or panel lane. Effort is not global per family. The first-run panel is Fable max, GPT-5.6 Sol max, Grok 4.6 xhigh, and Opus xhigh. Claude Fable 5.1 uses the rolling `fable` selector; Cursor Fable 5.1 uses `claude-fable-5-1`. A valid cataloged descriptor is preserved verbatim. Uncataloged predecessor version pins migrate in memory to the rolling alias. In Codex, Sol uses native `spawn_agent`; Claude, Grok, and Cursor use the deterministic external runner. In Claude Code, cataloged Claude offerings use native agents; other providers use the runner. Children never detect the parent or reroute themselves. The `bug-fix`, `perf-issue`, and `hillclimb` roles stay on GPT-5.6 Sol max instead of upstream's Fable default because Sol costs less for these frequent delegated code roles. Operator guide: [models.md](models.md).
 
-Verified in fresh installed Claude Code and Codex sessions: the user-facing skills are discovered and namespaced under `pstack`; both parents fan out the frontier quad through the documented native/external route table, retain long-running handles without a default timeout, and cross-judge only after every candidate is terminal. The `principle-*` leaves remain available for `poteto-mode` to read by path. Claude honors their `user-invocable: false` metadata; Codex 0.149.0 does not ([#8](https://github.com/ericlitman/open-pstack/issues/8)).
+Verified in fresh installed Claude Code and Codex sessions: the user-facing skills are discovered and namespaced under `pstack`; both parents fan out the frontier quad through the documented native/external route table, retain long-running handles without a default timeout, and cross-judge only after every candidate is terminal. The `principle-*` leaves remain available for `poteto-mode` to read by path. Claude honors their `user-invocable: false` metadata. Codex 0.149.0 does not. Historical report: [ericlitman/open-pstack#8](https://github.com/ericlitman/open-pstack/issues/8).
 
 ## Running on Cursor
 
@@ -199,7 +205,7 @@ Fable and Opus each ship generated native agents at every selectable effort. Nam
 
 ## Differences from upstream
 
-The port is editorial, not mechanical. Anywhere upstream pstack assumed Cursor-specific primitives, this port substitutes the Claude Code equivalent so refs actually resolve. Two prior ports ([v1truv1us/ai-eng-system](https://github.com/v1truv1us/ai-eng-system), [Evan-Kim2028/agent-fleet](https://github.com/Evan-Kim2028/agent-fleet)) stop at namespacing — they vendor pstack under `pstack/` and leave the Cursor refs intact. This port does the content surgery.
+The port is editorial, not mechanical. Anywhere upstream pstack assumed Cursor-specific primitives, this port substitutes the Claude Code equivalent so refs actually resolve. Two prior ports ([v1truv1us/ai-eng-system](https://github.com/v1truv1us/ai-eng-system), [Evan-Kim2028/agent-fleet](https://github.com/Evan-Kim2028/agent-fleet)) stop at namespacing. They vendor pstack under `pstack/` and leave the Cursor refs intact. This port does the content surgery.
 
 ### What's added
 
