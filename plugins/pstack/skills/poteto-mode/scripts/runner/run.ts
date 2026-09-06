@@ -139,17 +139,31 @@ const CLAUDE_IDENTITY = [
   "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS",
 ] as const;
 
+// Cursor's CLI marks the sessions it spawns. CURSOR_API_KEY is credential,
+// not identity, so it stays for every child.
+const CURSOR_IDENTITY = [
+  "CURSOR_AGENT",
+  "CURSOR_CONVERSATION_ID",
+  "CURSOR_REQUEST_ID",
+  "CURSOR_INVOKED_AS",
+] as const;
+
+const IDENTITY_BY_PROVIDER: Record<Provider, readonly string[]> = {
+  claude: CLAUDE_IDENTITY,
+  codex: CODEX_IDENTITY,
+  cursor: CURSOR_IDENTITY,
+  grok: [],
+};
+
 export function childEnvironment(
   provider: Provider,
   source: NodeJS.ProcessEnv = process.env
 ): NodeJS.ProcessEnv {
   const result = { ...source };
-  const remove = provider === "claude"
-    ? CODEX_IDENTITY
-    : provider === "codex"
-      ? CLAUDE_IDENTITY
-      : [...CODEX_IDENTITY, ...CLAUDE_IDENTITY];
-  for (const key of remove) delete result[key];
+  for (const [owner, keys] of Object.entries(IDENTITY_BY_PROVIDER)) {
+    if (owner === provider) continue;
+    for (const key of keys) delete result[key];
+  }
   return result;
 }
 

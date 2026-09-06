@@ -41,6 +41,14 @@ describe("runner CLI parsing", () => {
     );
   });
 
+  it("accepts cursor as a parent and rejects an unknown parent", () => {
+    const args = argv();
+    args[args.indexOf("--parent") + 1] = "cursor";
+    expect(parseArgs(args)?.parent).toBe("cursor");
+    args[args.indexOf("--parent") + 1] = "vscode";
+    expect(() => parseArgs(args)).toThrow("parent must be one of: claude, codex, cursor");
+  });
+
   it("accepts any catalog effort identifier and leaves membership to the catalog", () => {
     const args = argv();
     args[args.indexOf("--effort") + 1] = "ultra";

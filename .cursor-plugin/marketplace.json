@@ -1,22 +1,28 @@
 {
   "name": "open-pstack",
   "owner": {
-    "name": "Eric Litman"
+    "name": "Gannon Hall"
   },
-  "description": "Pstack for Claude Code and Codex, tracking Cursor's upstream pstack.",
+  "metadata": {
+    "description": "Open PStack for Cursor, Claude Code, and Codex, tracking Cursor's upstream pstack with one shared skill tree and model catalog."
+  },
   "plugins": [
     {
-      "name": "pstack",
-      "source": "./plugins/pstack",
+      "name": "open-pstack",
+      "source": "plugins/pstack",
       "description": "if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence.",
       "version": "1.6.0",
       "author": {
-        "name": "Lauren Tan (original)"
+        "name": "Lauren Tan"
       },
       "homepage": "https://github.com/gannonh/open-pstack",
+      "repository": "https://github.com/gannonh/open-pstack",
       "license": "MIT",
+      "logo": "plugins/pstack/assets/logo.png",
+      "category": "developer-tools",
       "keywords": [
         "pstack",
+        "open-pstack",
         "poteto-mode",
         "workflow",
         "principles",

@@ -18,7 +18,7 @@ The **model sheet** is the operator's routing control. The **catalog** is the re
 | `plugins/pstack/catalog/role-defaults.json` | First-run role and panel-lane assignments |
 | `plugins/pstack/agents/pstack-<stem>-<effort>.md` | Claude-native agent files generated from the Claude offerings |
 | `plugins/pstack/skills/poteto-mode/scripts/runner/pstack-models` | Maintainer command for discovery and catalog membership |
-| `~/.claude/pstack-models.md` or `~/.codex/pstack-models.md` | Operator sheet (Claude include / Codex bounded block) |
+| `~/.claude/pstack-models.md`, `~/.codex/pstack-models.md`, or `~/.cursor/rules/open-pstack-models.mdc` | Operator sheet (Claude include / Codex bounded block / Cursor always-applied rule) |
 
 Providers are predefined: `claude`, `codex`, `cursor`, and `grok`. A catalog change cannot invent a new provider string without a checked-in adapter.
 
@@ -48,24 +48,24 @@ An invalid or unavailable descriptor is a validation or probe failure. Setup doe
 
 ### Run setup as a guided editor and probe
 
-In Claude Code: `/pstack:setup-pstack`. In Codex: ask for `pstack:setup-pstack`.
+In Claude Code: `/pstack:setup-pstack`. In Codex: ask for `pstack:setup-pstack`. In Cursor: `/setup-pstack`.
 
 Setup loads the catalog and the current sheet. It shows current selections plus every cataloged offering, including alternate providers for the same logical model. Each offering appears with its label, selector, supported efforts in catalog order, default effort, and a copyable `provider:selector@effort` value for every supported effort. Rolling aliases are labeled "(rolling alias)". Resolution evidence appears only when setup has it (see [Rolling aliases versus explicit pins](#rolling-aliases-versus-explicit-pins)); otherwise it prints unknown.
 
 Setup asks which **named** roles or panel lanes to change. Empty input keeps everything. `how critics[3]` changes one panel lane without walking the whole list. For a changed role, setup offers that offering's efforts in catalog order and accepts the default effort on empty input.
 
-It then probes the exact unique descriptors from the current parent harness. A failed probe leaves the active sheet and parent integration bytes unchanged and reports the failing descriptor. After confirmation it writes the Claude include or the Codex bounded block.
+It then probes the exact unique descriptors from the current parent harness. A failed probe leaves the active sheet and parent integration bytes unchanged and reports the failing descriptor. After confirmation it writes the Claude include, the Codex bounded block, or the Cursor rule.
 
 ### Manual reroute during a provider outage
 
 A reroute is an explicit operator change. Nothing reroutes automatically.
 
-1. Open the parent sheet (`~/.claude/pstack-models.md` or `~/.codex/pstack-models.md`).
+1. Open the parent sheet (`~/.claude/pstack-models.md`, `~/.codex/pstack-models.md`, or `~/.cursor/rules/open-pstack-models.mdc`).
 2. Replace affected role or lane descriptors with another cataloged offering, for example Cursor Fable 5.1 instead of Claude's rolling Fable alias.
 3. Optionally rerun setup so it probes the new descriptors before writing.
 4. Keep Why and Reflect on `inherit-parent` or `auto` unless you accept losing the parent's live MCP surface.
 
-The same sheet is interpreted from Claude Code and Codex. Each parent chooses native versus external execution from the route table while preserving the selected provider model.
+The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent chooses native versus external execution from the route table while preserving the selected provider model.
 
 ### Codex sheet and the `~/.codex/AGENTS.md` block
 
@@ -80,6 +80,25 @@ Claude Code loads `~/.claude/pstack-models.md` through an `@` include in `~/.cla
 The sheet is the source of truth. The block is a byte-for-byte copy. Setup rewrites the whole block on every successful write and leaves text outside the markers untouched. A missing, duplicated, or reversed marker pair is inconsistent state; setup stops and reports it.
 
 A hand edit to `~/.codex/pstack-models.md` leaves the block stale until it is re-synced. Either rerun setup, which re-probes and rewrites the block from the sheet, or edit both files so the block again holds the sheet's exact bytes.
+
+### Cursor rule `~/.cursor/rules/open-pstack-models.mdc`
+
+Cursor loads every always-applied rule under `~/.cursor/rules/` on its own, so the Cursor sheet needs no include or bounded block. The file is a frontmatter block followed by the shared sheet bytes:
+
+```text
+---
+description: Open PStack per-role model choices (overrides skill defaults)
+alwaysApply: true
+---
+# pstack model configuration
+
+Provider-qualified per-role choices. ...
+
+feature, refactoring: cursor:cursor-grok-4.6@xhigh
+...
+```
+
+A hand edit to a role line is read back by the same parser the other parents use; the frontmatter lines are preamble. The `open-pstack` plugin never reads, migrates, overwrites, or deletes the original Cursor pstack plugin's `~/.cursor/rules/pstack-models.mdc`. Disable that plugin while Open PStack is in use so the agent sees one model sheet.
 
 ## Maintainer guide
 

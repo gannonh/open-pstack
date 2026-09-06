@@ -1,0 +1,41 @@
+{
+  "name": "open-pstack",
+  "displayName": "Open PStack",
+  "version": "1.6.0",
+  "description": "if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence. Open PStack build of cursor/plugins/pstack that shares one skill tree and model catalog with the Claude Code and Codex plugins.",
+  "author": {
+    "name": "Lauren Tan"
+  },
+  "homepage": "https://github.com/gannonh/open-pstack",
+  "repository": "https://github.com/gannonh/open-pstack",
+  "license": "MIT",
+  "logo": "assets/logo.png",
+  "keywords": [
+    "pstack",
+    "open-pstack",
+    "poteto-mode",
+    "workflow",
+    "principles",
+    "agent-style",
+    "subagents",
+    "unslop"
+  ],
+  "category": "developer-tools",
+  "tags": [
+    "workflow",
+    "principles",
+    "review",
+    "planning"
+  ],
+  "skills": "./skills/",
+  "agents": [
+    "./agents/poteto-agent.md",
+    "./agents/comment-sicko.md"
+  ],
+  "rules": [
+    "./rules/open-pstack.mdc"
+  ],
+  "hooks": {
+    "hooks": {}
+  }
+}

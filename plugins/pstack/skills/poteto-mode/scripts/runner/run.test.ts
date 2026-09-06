@@ -983,6 +983,26 @@ describe("runLane", () => {
   it("rejects same-provider recursion", async () => {
     const input = { ...options("claude"), parent: "claude" as const };
     await expect(runLane(input)).rejects.toThrow("native to parent");
+    const cursorParent = { ...options("cursor"), parent: "cursor" as const };
+    await expect(runLane(cursorParent)).rejects.toThrow("native to parent");
+  });
+
+  it("runs every non-Cursor provider from a Cursor parent with a cursor receipt", async () => {
+    for (const provider of ["claude", "codex", "grok"] as const) {
+      const input = {
+        ...options(provider, `cursor-parent-${provider}`),
+        parent: "cursor" as const,
+      };
+      const result = await runLane(input);
+      expect(result.exitCode).toBe(0);
+      expect(receipt(input.receiptPath)).toMatchObject({
+        status: "complete",
+        parent: "cursor",
+        provider,
+        model: input.model,
+        effort: input.effort,
+      });
+    }
   });
 
   it("rejects an uncataloged Claude version pin with an unavailable-model receipt", async () => {
@@ -1027,22 +1047,35 @@ describe("childEnvironment", () => {
       CODEX_CI: "1",
       CLAUDECODE: "1",
       CLAUDE_CODE_CHILD_SESSION: "1",
+      CURSOR_AGENT: "1",
+      CURSOR_CONVERSATION_ID: "bc-1",
+      CURSOR_API_KEY: "secret",
       KEEP_ME: "yes",
     };
     expect(childEnvironment("claude", source)).toEqual({
       PATH: "/bin",
       CLAUDECODE: "1",
       CLAUDE_CODE_CHILD_SESSION: "1",
+      CURSOR_API_KEY: "secret",
       KEEP_ME: "yes",
     });
     expect(childEnvironment("codex", source)).toEqual({
       PATH: "/bin",
       CODEX_THREAD_ID: "codex",
       CODEX_CI: "1",
+      CURSOR_API_KEY: "secret",
+      KEEP_ME: "yes",
+    });
+    expect(childEnvironment("cursor", source)).toEqual({
+      PATH: "/bin",
+      CURSOR_AGENT: "1",
+      CURSOR_CONVERSATION_ID: "bc-1",
+      CURSOR_API_KEY: "secret",
       KEEP_ME: "yes",
     });
     expect(childEnvironment("grok", source)).toEqual({
       PATH: "/bin",
+      CURSOR_API_KEY: "secret",
       KEEP_ME: "yes",
     });
   });

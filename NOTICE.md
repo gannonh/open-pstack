@@ -34,6 +34,7 @@ Summary of structural changes:
 - `plugins/pstack/agents/comment-sicko.md` is upstream's `Comment Sicko` agent, renamed to `comment-sicko` so the name works as a Claude Code `subagent_type`. The body is verbatim.
 - Claude-native Fable and Opus lanes are generated from the catalog. They select the catalog selector plus requested effort for every selectable Claude-native pair.
 - A Codex build shares the same `skills/` tree. It adds `plugins/pstack/.codex-plugin/plugin.json`, a root `.agents/plugins/marketplace.json`, and `plugins/pstack/skills/poteto-mode/references/codex-tools.md` (the Claude-to-Codex tool, model, and built-in map), plus a one-line Platform note in the skills that name a Claude primitive. The skill content itself is unchanged. See [CHANGES.md](CHANGES.md#codex-port).
+- A Cursor build (`open-pstack`) shares the same `skills/` tree. It adds `plugins/pstack/.cursor-plugin/plugin.json`, a root `.cursor-plugin/marketplace.json`, `plugins/pstack/rules/open-pstack.mdc` (the always-applied startup rule), and `plugins/pstack/skills/poteto-mode/references/cursor-tools.md` (the Claude-to-Cursor tool and built-in map). The skill content itself is unchanged.
 
 ## Modifications
 
@@ -46,6 +47,11 @@ Files authored for this port (not derived from upstream):
 - `plugins/pstack/.codex-plugin/plugin.json`
 - `.agents/plugins/marketplace.json` (repo root)
 - `plugins/pstack/skills/poteto-mode/references/codex-tools.md`
+- `plugins/pstack/.cursor-plugin/plugin.json`
+- `.cursor-plugin/marketplace.json` (repo root)
+- `plugins/pstack/rules/open-pstack.mdc`
+- `plugins/pstack/skills/poteto-mode/references/cursor-tools.md`
+- `plugins/pstack/skills/poteto-mode/scripts/runner/cursor-rule.test.ts`
 - `plugins/pstack/skills/poteto-mode/scripts/bootstrap.test.ts`
 - `plugins/pstack/skills/poteto-mode/scripts/check-plan.test.ts`
 - `plugins/pstack/skills/babysit/SKILL.md` (independently authored; workflow informed by Cursor's public `/babysit` behavior)

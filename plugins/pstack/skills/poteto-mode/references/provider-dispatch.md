@@ -45,8 +45,9 @@ The top-level harness resolves the route once. A child receives an assigned prov
 |---|---|---|---|---|
 | Claude Code | native `Agent` | external runner | external runner | external runner |
 | Codex | external runner | native `spawn_agent` | external runner | external runner |
+| Cursor | external runner | external runner | external runner | native `Task` |
 
-Native versus external execution is decided by this parent/provider table. The configured catalog selector must survive the route. A hard-coded native-agent default must not override it. Provider-specific transformations are catalog/adapter behavior (Cursor effort suffix versus Claude effort flag), not model substitutions.
+A provider is native exactly when it is the parent's own provider. Native versus external execution is decided by this parent/provider table. The configured catalog selector must survive the route. A hard-coded native-agent default must not override it. Provider-specific transformations are catalog/adapter behavior (Cursor effort suffix versus Claude effort flag), not model substitutions.
 
 ## Native lanes
 
@@ -54,6 +55,7 @@ Native dispatch avoids a second CLI startup and its base context.
 
 - Claude Code: look up the descriptor in `catalog/models.json`. Dispatch it through `pstack-<nativeAgentStem>-<effort>` using that offering's stem and the descriptor's effort. Those generated definitions select the catalog selector, requested effort, and `background: true`. `pstack-fable-max` and `pstack-opus-xhigh` remain in that generated set. Pass the complete task, grounding paths, access mode, and unique output location in the `Agent` prompt. Retain the task handle and drain it only after fan-out.
 - Codex: call `spawn_agent` with the descriptor's catalog selector and `reasoning_effort`, the complete task, grounding paths, access mode, and unique output location. Use an isolated worktree for a writer. Codex subagents already run concurrently.
+- Cursor: call `Task` with `model` set to the offering's composed CLI id, `<selector>-<effort>` for the catalog's `effort-suffix` Cursor offerings (the same id the runner composes for an external Cursor lane), `run_in_background: true`, and the complete task, grounding paths, access mode, and unique output location in the prompt. Preflight the composed id against the `Task` tool's own allowed model list, which its description enumerates and its rejection error repeats. That list is the availability proof for a native lane; `cursor-agent models` proves only the print-mode id the external runner uses, and the two differ. An id absent from the `Task` list is an `unavailable-model` dropout. Do not reroute it through the external runner, which rejects the parent's own provider. Cursor may replace a configured subagent model under account or administrator restrictions, so compare the exposed execution evidence with the requested id after the lane ends; a mismatch is a dropout, and a model's self-report is not evidence. When Cursor exposes no served-model field, record `modelEvidence: "pinned-dispatch"` (the exact slug was accepted at dispatch), never `provider-report`; panel synthesis does not treat that as verified completion because silent substitution remains possible. Use an isolated worktree for a writer. Tool names resolve through [`cursor-tools.md`](cursor-tools.md).
 
 Do not send a same-provider descriptor to the external runner. It rejects that call because the native route is cheaper and already available.
 
@@ -65,7 +67,7 @@ The launcher lives at `skills/poteto-mode/scripts/runner/pstack-runner` under th
 
 ```text
 pstack-runner \
-  --parent <claude|codex> \
+  --parent <claude|codex|cursor> \
   --provider <claude|codex|grok|cursor> \
   --model <catalog selector> \
   --effort <catalog effort> \
@@ -91,6 +93,7 @@ The parent invocation must itself be resumable background work:
 
 - Claude Code: call the launcher through a Bash tool invocation with `run_in_background: true` and retain its task ID. A foreground Bash tool call has an automatic ten-minute ceiling even when the runner's own timeout is longer. Shelling out with `&` and losing the task handle is not equivalent.
 - Codex: run the launcher in a persistent exec session that returns a session ID, then wait or poll that handle. Do not hold one foreground tool call open for the model's full runtime.
+- Cursor: call the launcher through a `Shell` tool invocation with `block_until_ms: 0` in a tmux-backed session and retain the returned shell id, then poll it with `AwaitShell`. Do not hold one foreground `Shell` call open for the model's full runtime.
 
 Start the background process, continue launching the other lanes, then drain their handles. Native and external lanes belong in the same fan-out phase.
 
@@ -106,11 +109,11 @@ Success requires all of these:
 
 1. Exit status `0`.
 2. Receipt status `complete`.
-3. Either `modelVerified: true` with `modelEvidence: "provider-report"`, or a Codex receipt with `reportedModel: null`, `modelVerified: false`, and `modelEvidence: "pinned-argv"`. For Claude rolling aliases, the concrete provider report must belong to the requested family. Codex 0.149.0 accepts the exact `--model` argument but does not report the served model in its JSONL stream.
+3. Either `modelVerified: true` with `modelEvidence: "provider-report"`, or a Codex receipt with `reportedModel: null`, `modelVerified: false`, and `modelEvidence: "pinned-argv"`. For Claude rolling aliases, the concrete provider report must belong to the requested family. Codex 0.149.0 accepts the exact `--model` argument but does not report the served model in its JSONL stream. A native Cursor `Task` lane records `modelEvidence: "pinned-dispatch"` when no served-model field is exposed, but that does not satisfy this criterion: Cursor may silently substitute the configured model under account restrictions, so panel synthesis treats an unverifiable native Cursor lane as a dropout unless `modelVerified: true` with a matching `provider-report`.
 4. A non-empty output file.
 
 The receipt also carries elapsed time, token usage when the CLI exposes it, and cost when available. Keep it with the arena or review artifacts so parent-harness comparisons are evidence-based.
 
-Any missing CLI, failed login, unavailable model, invalid catalog selection, explicit timeout, cancellation, catchable post-reservation launcher failure, non-zero child exit, malformed result, or model mismatch is a receipt-bearing dropout. Record it and apply the calling skill's existing dropout policy. A `cancelled` receipt proves that the runner received the signal; its `signal` field is non-null only when the runner sent that signal to a still-active direct CLI child, and remains null when cancellation only stopped a post-exit pipe drain. The provider CLI owns any processes it starts beneath that direct child; the receipt does not claim a process-tree kill. Do not delete or overwrite the receipt. Never substitute the parent model, retry another provider, or reinterpret an external descriptor as a native model slug.
+Any missing CLI, failed login, unavailable model, invalid catalog selection, explicit timeout, cancellation, catchable post-reservation launcher failure, non-zero child exit, malformed result, model mismatch, or unverifiable native Cursor substitution is a receipt-bearing dropout. Record it and apply the calling skill's existing dropout policy. A `cancelled` receipt proves that the runner received the signal; its `signal` field is non-null only when the runner sent that signal to a still-active direct CLI child, and remains null when cancellation only stopped a post-exit pipe drain. The provider CLI owns any processes it starts beneath that direct child; the receipt does not claim a process-tree kill. Do not delete or overwrite the receipt. Never substitute the parent model, retry another provider, or reinterpret an external descriptor as a native model slug.
 
 Start native and external lanes in the same fan-out phase, then wait for all of them before judging. A judge must not read candidate paths while their owners are still writing.
