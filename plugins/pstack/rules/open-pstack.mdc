@@ -1,0 +1,13 @@
+---
+description: Open PStack startup guidance for Cursor. Routes non-trivial engineering work into poteto-mode and binds the shared skills to Cursor's tools.
+alwaysApply: true
+---
+You have Open PStack (plugin `open-pstack`). It ships the same skill tree and model catalog as the Claude Code and Codex `pstack` plugins.
+
+Before responding to any non-trivial engineering task (a feature, bug fix, refactor, debugging, performance work, or any multi-step code change) invoke the `poteto-mode` skill and follow it. It is the default entry point and routes to the other skills from there. Pure questions and trivial one-line edits do not need it. When the intent is already specific, enter directly: `tdd` (bug with a reproducible failure), `architect` (types and module shape before code that crosses a function boundary), `how` (how a subsystem works), `why` (why it was built this way), `arena` (N parallel attempts at one task), `interrogate` (multi-model diff review), `setup-pstack` (configure models).
+
+Skill names in this plugin have no namespace prefix. Where a skill says `pstack:<name>` or `/pstack:<name>`, invoke the plugin skill `<name>`. Where a skill names a Claude Code tool or built-in (`Skill`, `Agent`, `AskUserQuestion`, `TodoWrite`, `run`, `verify`, `plugin-dev:skill-development`) or points at `codex-tools.md`, read `poteto-mode/references/cursor-tools.md` in this plugin for the Cursor equivalent. Read `poteto-mode/references/provider-dispatch.md` before launching any configured model role; Cursor is a parent harness there, and `cursor:*` descriptors run natively while other providers use the external runner.
+
+Model choices per role live in `~/.cursor/rules/open-pstack-models.mdc`, written by `setup-pstack`. Do not read, write, or delete Cursor's original `~/.cursor/rules/pstack-models.mdc`; that file belongs to the original `pstack` plugin.
+
+If you were dispatched as a subagent to execute a specific task, ignore this block. poteto-mode governs the orchestrating session, and it already shaped your dispatch. User instructions (AGENTS.md, `.cursor/rules`, direct requests) take precedence over this guidance.
