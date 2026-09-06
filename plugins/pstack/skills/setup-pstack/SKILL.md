@@ -36,7 +36,7 @@ alwaysApply: true
 <exact sheet contents, starting with the "# pstack model configuration" title>
 ```
 
-Never read, migrate, overwrite, or delete Cursor's original `~/.cursor/rules/pstack-models.mdc`. It belongs to the original `pstack` plugin, and an operator who keeps both installed sees two competing model sheets; advise disabling the original plugin while Open PStack is in use.
+Never read, migrate, overwrite, or delete Cursor's original `~/.cursor/rules/pstack-models.mdc`. It belongs to the original `pstack` plugin. Cursor loads every always-applied user rule independently of which plugins are enabled, so if that file exists, stop and require the operator to remove or disable it before writing `open-pstack-models.mdc`; two complete role maps would otherwise stay active and conflict.
 
 ## Steps
 
@@ -120,7 +120,7 @@ After the operator confirms, write the in-memory render from step 6. Never paste
 
 ### 8. Wire it in
 
-Render the parent integration in memory before either write. On Claude, the integration is the single `@~/.claude/pstack-models.md` include in `~/.claude/CLAUDE.md`. On Codex, it is the exact sheet bytes between one `<!-- pstack:models:begin -->` and `<!-- pstack:models:end -->` pair in `~/.codex/AGENTS.md`. Replace that whole bounded block on a rerun. Insert one block at the end on first run. If either marker is missing, duplicated, or reversed, stop and report inconsistent state instead of guessing a boundary. On Cursor, the integration is the rule file itself: `~/.cursor/rules/open-pstack-models.mdc` with the frontmatter shown above followed by the sheet. There is no include or block to maintain, and the original plugin's `pstack-models.mdc` is never touched.
+Render the parent integration in memory before either write. On Claude, the integration is the single `@~/.claude/pstack-models.md` include in `~/.claude/CLAUDE.md`. On Codex, it is the exact sheet bytes between one `<!-- pstack:models:begin -->` and `<!-- pstack:models:end -->` pair in `~/.codex/AGENTS.md`. Replace that whole bounded block on a rerun. Insert one block at the end on first run. If either marker is missing, duplicated, or reversed, stop and report inconsistent state instead of guessing a boundary. On Cursor, the integration is the rule file itself: `~/.cursor/rules/open-pstack-models.mdc` with the frontmatter shown above followed by the sheet. If `~/.cursor/rules/pstack-models.mdc` exists, stop and require the operator to remove or disable it before writing; setup never touches that file. There is no include or block to maintain.
 
 Snapshot every target's current bytes. Write the sheet and parent integration only after every unique-descriptor probe passes and the operator confirms. Read both targets back and compare them with the in-memory render. If either write or readback fails, restore every snapshot and report the failure. An unchanged rerun must produce byte-identical sheet and integration content after migration.
 

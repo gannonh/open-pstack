@@ -47,7 +47,7 @@ No output means the tracked pstack tree has not changed. This comparison does no
 2. Read each upstream pstack commit in order. Bring over its intent and content, then apply only the Claude Code and Codex substitutions documented in `CHANGES.md`.
 3. Keep one shared `plugins/pstack/skills/` tree. Put harness translation in the existing `codex-tools.md` and `cursor-tools.md` and provider routing in `provider-dispatch.md`; do not fork a skill per harness. The Cursor plugin (`open-pstack`) reads the same tree through `plugins/pstack/.cursor-plugin/plugin.json`.
 4. Update the commit and version in this file, the affected provenance rows in `NOTICE.md`, and `README-UPSTREAM.md` when upstream changes it.
-5. Run CI-equivalent checks locally, then run the installed Claude Code and Codex behavioral lanes required by the changed surface. Unit tests alone are not a release gate.
+5. Run CI-equivalent checks locally, then run the installed behavioral lanes required by the changed surface in every affected harness: Claude Code, Codex, and Cursor when the sync touches shared skills, catalog, dispatch references, or other Cursor-consumed surfaces. Unit tests alone are not a release gate.
 6. Merge the reviewed PR before tagging the next open-pstack release.
 
 Cursor's version and open-pstack's version are independent. Cursor's version identifies the imported content; open-pstack's version identifies the cross-harness distribution.

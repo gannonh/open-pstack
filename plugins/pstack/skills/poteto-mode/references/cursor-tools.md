@@ -32,7 +32,7 @@ poteto-mode's Subagents section sets Claude-specific defaults (`subagent_type: "
 
 - `poteto-agent` and `comment-sicko` are plugin agents and valid `subagent_type` values. `run_in_background: true` is a `Task` parameter.
 - The `pstack-<stem>-<effort>` agent files are Claude-native lanes. The Cursor manifest does not select them. A native Cursor lane pins its model through the `Task` tool's `model` parameter instead (see below).
-- The `Task` tool exposes no per-call read-only flag. State the access mode in the prompt. A read-only native participant that edits files is a dropout; record it.
+- The `Task` tool exposes no per-call read-only flag. State the access mode in the prompt. A read-only native participant that modifies files outside its assigned output path is a dropout; record it. Writing the assigned output or receipt path is required, not a violation.
 - Isolation is the parent's job. Create a dedicated worktree (`git worktree add`) or unique output directory for every writer and name it in the prompt. Never route a writer into the primary checkout.
 - Keep the rest of the policy unchanged. Pass file pointers not inlined context, review every subagent's diff yourself.
 
