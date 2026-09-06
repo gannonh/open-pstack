@@ -1048,6 +1048,28 @@ describe("runLane", () => {
     }
   });
 
+  it("accepts a Cursor Fable display name with context-window and thinking-mode suffixes", async () => {
+    process.env.FAKE_CURSOR_REPORTED_DISPLAY =
+      "Claude Fable 5.1 300K High No Thinking";
+    const input = {
+      ...options("cursor", "cursor-parent-fable-high-live-display"),
+      parent: "cursor" as const,
+      model: "claude-fable-5-1",
+      effort: "high" as const,
+    };
+    expect((await runLane(input)).exitCode).toBe(0);
+    expect(receipt(input.receiptPath)).toMatchObject({
+      status: "complete",
+      parent: "cursor",
+      provider: "cursor",
+      model: "claude-fable-5-1",
+      effort: "high",
+      modelVerified: true,
+      modelEvidence: "provider-report",
+    });
+    expect(readFileSync(input.outputPath, "utf8")).toBe("CURSOR_OK");
+  });
+
   it("rejects cursor-agent model substitution for a Cursor parent route", async () => {
     process.env.FAKE_CURSOR_REPORTED_DISPLAY = "Claude Fable 5.1 Max";
     const input = {
