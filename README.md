@@ -60,7 +60,7 @@ To try a checkout in the CLI without installing, pass the plugin root directly:
 cursor-agent --plugin-dir /path/to/open-pstack/plugins/pstack
 ```
 
-In Cursor CLI 2026.09.02, `--plugin-dir` loads the plugin's skills and agents but does not apply the plugin's startup rule; invoke `/poteto-mode` yourself in that mode. An installed plugin applies the rule. Update with `cursor-agent plugin marketplace update open-pstack`, and uninstall from the same plugin settings page.
+In Cursor CLI 2026.09.02, `--plugin-dir` loads the plugin's skills and agents but does not apply the plugin's startup rule; invoke `/poteto-mode` yourself in that mode. Point it at a checkout outside the workspace you are working in, because the CLI drops a plugin's skills when the plugin directory is inside the workspace. An installed plugin applies the rule. The CLI also limits subagents to a short list of models that can differ from `cursor-agent models`; a configured `cursor:*` model missing from that list fails the lane rather than being swapped. Update with `cursor-agent plugin marketplace update open-pstack`, and uninstall from the same plugin settings page.
 
 ### Claude Code
 
