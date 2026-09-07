@@ -54,7 +54,7 @@ You need a current Cursor, Claude Code, or Codex installation. For the full four
 
 ### Cursor
 
-The plugin id is `open-pstack`. Disable Lauren's `pstack` plugin while it is enabled.
+The plugin id is `open-pstack`. Disable Lauren's original `pstack` plugin while `open-pstack` is enabled.
 
 Install:
 
