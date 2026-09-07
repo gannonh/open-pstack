@@ -76,6 +76,9 @@ The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent c
 | `cursor:cursor-grok-4.6@xhigh` | `cursor-grok-4.6-xhigh` | `cursor-grok-4.6-xhigh` |
 | `cursor:claude-fable-5-1@high` | `claude-fable-5-1-high` | `claude-fable-5-1-thinking-high` |
 | `cursor:claude-fable-5-1@xhigh` | `claude-fable-5-1-xhigh` | `claude-fable-5-1-thinking-xhigh` |
+| `cursor:claude-fable-5-1-thinking@high` | `claude-fable-5-1-thinking-high` | `claude-fable-5-1-thinking-high` |
+| `cursor:gpt-5.6-sol@max` | `gpt-5.6-sol-max` | `gpt-5.6-sol-max` |
+| `cursor:claude-opus-5@high` | `claude-opus-5-high` | `claude-opus-5-high` |
 
 Native `Task` runs only when the mapped slug is an exact allowlist token. Otherwise the parent runs `pstack-runner --parent cursor --provider cursor` and `cursor-agent -p --model` still receives the composed CLI id. A listed `-fast` slug is not a substitute. A rejected native dispatch names the composed id, the mapped slug, and the allowlist. Codex and Claude parents keep the external `cursor:*` path they already use.
 
@@ -254,7 +257,7 @@ Claude serves rolling aliases such as `fable` and `opus`. The alias name stays f
 | observed at execution | a runner receipt's `reportedModel` | the revision Claude served during a real run |
 | unknown | neither supplied | no claim |
 
-An explicit Claude version is a separate offering with its own selector. This release catalogs `claude:claude-fable-5-1[1m]`, display name `Fable 5.1`, with the `[1m]` context modifier passed to Claude unchanged and native agent stem `fable-5-1-1m`. An operator who wants a fixed revision selects that offering. An operator who wants Claude's current Fable selects `claude:fable`.
+An explicit Claude version is a separate offering with its own selector. This release catalogs `claude:claude-fable-5-1[1m]`, display name `Fable 5.1`, with the `[1m]` context modifier passed to Claude unchanged and native agent stem `fable-5-1-1m`. An operator who wants a fixed revision selects that offering. An operator who wants Claude's current Fable selects `claude:fable`. `claude:opus[1m]` is the rolling Opus alias with the same modifier; report matching strips `[1m]` from the requested selector and accepts a concrete `claude-opus-*` revision.
 
 The two are never rewritten into each other. A sheet that names `claude:fable` keeps the alias. A sheet that names `claude:claude-fable-5-1[1m]` keeps the pin. Only uncataloged predecessor pins that match a `legacyMigrations` pattern migrate, and only to the rolling alias.
 
@@ -282,9 +285,16 @@ Each offering declares `supportedEfforts` as an ordered list of safe identifiers
 | --- | --- | --- |
 | `claude:fable` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
 | `cursor:cursor-grok-4.6` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
+| `codex:gpt-5.6-sol` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `max` |
 | `codex:gpt-6-astra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
 | `codex:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
 | `codex:gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` |
+| `claude:opus[1m]` | `low`, `medium`, `high`, `xhigh`, `max` | `xhigh` |
+| `cursor:gpt-5.6-sol` | `high`, `xhigh`, `low`, `medium`, `max` | `max` |
+| `cursor:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` |
+| `cursor:gpt-5.6-luna` | `high`, `low`, `medium`, `xhigh`, `max` | `medium` |
+| `cursor:claude-fable-5-1-thinking` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
+| `cursor:claude-opus-5` | `low`, `medium`, `high` | `high` |
 
 An effort outside the bound offering's list fails at every layer with no substitution. Sheet validation and setup reject the row. The runner rejects the `(provider, model, effort)` tuple before preflight. A Claude-native agent file exists only for listed efforts, so an unlisted effort has no agent to dispatch. Nothing rounds `ultra` down to `max` or `max` up to `ultra`.
 

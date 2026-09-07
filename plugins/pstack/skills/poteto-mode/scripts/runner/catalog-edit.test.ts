@@ -222,7 +222,7 @@ describe("proposeEdit", () => {
   });
 
   it("rejects an edit that makes the default unlisted", () => {
-    const proposal = proposeEdit(loadModelCatalog(), "codex-gpt-5-6-sol", {
+    const proposal = proposeEdit(loadModelCatalog(), "codex-gpt-5-6-luna", {
       defaultEffort: "ultra",
     });
     expect(proposal.kind).toBe("rejected");
