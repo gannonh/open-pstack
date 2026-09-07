@@ -2,9 +2,20 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
-## 1.6.3 catalogs Codex Sol ultra
+## 1.6.3 catalogs Codex Sol ultra plus Claude opus[1m] and Cursor Sol/Terra/Luna/Fable thinking/Opus 5
 
 `pstack-models discover --provider codex` on 2026-09-07 advertised `gpt-5.6-sol` efforts `low` through `ultra`. The shipped offering now lists `ultra`. Default effort stays `max`. Role defaults stay `codex:gpt-5.6-sol@max`.
+
+The same inventory also cataloged:
+
+- `claude:opus[1m]` (rolling alias, family `opus`, default `xhigh`)
+- `cursor:gpt-5.6-sol` (advertised efforts `high`, `xhigh`, `low`, `medium`, `max`; default `max`)
+- `cursor:gpt-5.6-terra` (low through max; default `medium`)
+- `cursor:gpt-5.6-luna` (advertised `high`, `low`, `medium`, `xhigh`, `max`; default `medium`)
+- `cursor:claude-fable-5-1-thinking` (low through max; default `max`)
+- `cursor:claude-opus-5` (low, medium, high; default `high`)
+
+Cursor Task slugs for the new stems are identity with the composed CLI id. `cursor:claude-fable-5-1` still uses the thinking infix. Rolling-alias report matching strips a `[1m]` modifier from the requested selector so `claude:opus[1m]` accepts `claude-opus-5`.
 
 ## 1.6.2 catalogs Codex Terra and Luna, and adds a manual release
 

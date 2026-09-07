@@ -320,6 +320,16 @@ describe("parseProviderOutput", () => {
     expect(
       concreteClaudeRevisionMatchesRollingSelector("fable", "claude-fable-9-9[1m]")
     ).toBe(true);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("opus[1m]", "claude-opus-5[1m]")
+    ).toBe(true);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("opus[1m]", "claude-opus-5")
+    ).toBe(true);
+    expect(
+      concreteClaudeRevisionMatchesRollingSelector("opus[1m]", "claude-fable-5-1")
+    ).toBe(false);
+    expect(reportedModelMatches("claude", "opus[1m]", "claude-opus-5[1m]")).toBe(true);
   });
 
   it("matches an explicit Claude selector whether or not the report keeps the context suffix", () => {

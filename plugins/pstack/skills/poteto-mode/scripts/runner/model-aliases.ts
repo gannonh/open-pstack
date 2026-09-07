@@ -16,7 +16,7 @@ export function concreteClaudeRevisionMatchesRollingSelector(
   selector: string,
   reported: string
 ): boolean {
-  const normalizedSelector = comparableSelector(selector);
+  const normalizedSelector = comparableSelector(stripContextModifier(selector));
   const normalizedReported = comparableSelector(stripContextModifier(reported));
   const pattern = new RegExp(
     `^claude-${escapeRegExp(normalizedSelector)}-[0-9]+(?:-[0-9]+)*$`

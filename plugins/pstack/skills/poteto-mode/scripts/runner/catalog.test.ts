@@ -95,6 +95,12 @@ describe("model catalog", () => {
       "claude-claude-fable-5-1-1m",
       "codex-gpt-5-6-terra",
       "codex-gpt-5-6-luna",
+      "claude-opus-long-context",
+      "cursor-gpt-5-6-sol",
+      "cursor-gpt-5-6-terra",
+      "cursor-gpt-5-6-luna",
+      "cursor-claude-fable-5-1-thinking",
+      "cursor-claude-opus-5",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -109,6 +115,12 @@ describe("model catalog", () => {
       "claude:claude-fable-5-1[1m]",
       "codex:gpt-5.6-terra",
       "codex:gpt-5.6-luna",
+      "claude:opus[1m]",
+      "cursor:gpt-5.6-sol",
+      "cursor:gpt-5.6-terra",
+      "cursor:gpt-5.6-luna",
+      "cursor:claude-fable-5-1-thinking",
+      "cursor:claude-opus-5",
     ]);
   });
 
@@ -141,6 +153,32 @@ describe("model catalog", () => {
     expect(luna?.defaultEffort).toBe("medium");
     expect(bindDescriptor(catalog, "codex:gpt-5.6-luna@max").offering?.id).toBe("codex-gpt-5-6-luna");
     expect(() => bindDescriptor(catalog, "codex:gpt-5.6-luna@ultra")).toThrow("unsupported effort ultra");
+
+    const opus1m = findOffering(catalog, "claude", "opus[1m]");
+    expect(opus1m?.id).toBe("claude-opus-long-context");
+    expect(opus1m?.rollingAlias).toBe(true);
+    expect(opus1m?.nativeAgentStem).toBe("opus-1m");
+    expect(opus1m?.defaultEffort).toBe("xhigh");
+    expect(bindDescriptor(catalog, "claude:opus[1m]@xhigh").offering?.id).toBe(
+      "claude-opus-long-context"
+    );
+
+    const cursorSol = findOffering(catalog, "cursor", "gpt-5.6-sol");
+    expect(cursorSol?.supportedEfforts).toEqual(["high", "xhigh", "low", "medium", "max"]);
+    expect(bindDescriptor(catalog, "cursor:gpt-5.6-sol@max").offering?.id).toBe("cursor-gpt-5-6-sol");
+    expect(bindDescriptor(catalog, "cursor:gpt-5.6-terra@medium").offering?.id).toBe(
+      "cursor-gpt-5-6-terra"
+    );
+    expect(bindDescriptor(catalog, "cursor:gpt-5.6-luna@max").offering?.id).toBe("cursor-gpt-5-6-luna");
+    expect(bindDescriptor(catalog, "cursor:claude-fable-5-1-thinking@max").offering?.id).toBe(
+      "cursor-claude-fable-5-1-thinking"
+    );
+    expect(bindDescriptor(catalog, "cursor:claude-opus-5@high").offering?.id).toBe(
+      "cursor-claude-opus-5"
+    );
+    expect(() => bindDescriptor(catalog, "cursor:claude-opus-5@xhigh")).toThrow(
+      "unsupported effort xhigh"
+    );
 
     const pin = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
     expect(pin?.displayName).toBe("Fable 5.1");
@@ -206,6 +244,9 @@ describe("model catalog", () => {
     const opus = findOffering(catalog, "claude", "opus");
     expect(offeringLabel(fable!)).toBe("Fable (rolling alias)");
     expect(offeringLabel(opus!)).toBe("Opus (rolling alias)");
+    expect(offeringLabel(findOffering(catalog, "claude", "opus[1m]")!)).toBe(
+      "Opus long context (rolling alias)"
+    );
     expect(offeringLabel(findOffering(catalog, "cursor", "claude-fable-5-1")!)).toBe(
       "Fable 5.1"
     );
@@ -382,6 +423,16 @@ describe("model catalog", () => {
     expect(nativeTaskSlug(cursorFable!, "high")).toBe("claude-fable-5-1-thinking-high");
     expect(composedCliModel(cursorFable!, "xhigh")).toBe("claude-fable-5-1-xhigh");
     expect(nativeTaskSlug(cursorFable!, "xhigh")).toBe("claude-fable-5-1-thinking-xhigh");
+    const cursorFableThinking = findOffering(catalog, "cursor", "claude-fable-5-1-thinking");
+    expect(cursorFableThinking).not.toBeNull();
+    expect(composedCliModel(cursorFableThinking!, "high")).toBe("claude-fable-5-1-thinking-high");
+    expect(nativeTaskSlug(cursorFableThinking!, "high")).toBe("claude-fable-5-1-thinking-high");
+    expect(nativeTaskSlug(findOffering(catalog, "cursor", "gpt-5.6-sol")!, "max")).toBe(
+      "gpt-5.6-sol-max"
+    );
+    expect(nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5")!, "high")).toBe(
+      "claude-opus-5-high"
+    );
     for (const row of nativeTaskSlugTable(catalog)) {
       expect(row.taskSlug.includes("-fast")).toBe(false);
       expect(row.taskSlug.endsWith(`-${row.effort}`)).toBe(true);
