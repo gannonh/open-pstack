@@ -28,7 +28,7 @@ Open Pstack is an unofficial community project. If you want Lauren's Cursor-nati
 
 **Cursor is a supported parent.** The `open-pstack` Cursor plugin loads the same skills from the same plugin root. In Cursor, `cursor:*` descriptors run as native subagents. Claude, Codex, and Grok descriptors run through the same external runner the other parents use. Setup writes `~/.cursor/rules/open-pstack-models.mdc` and leaves the original plugin's `pstack-models.mdc` alone.
 
-The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under 1.3.0 and 1.3.1. Catalog-driven routing is 1.4.0 and 1.5.0. The Cursor plugin is 1.6.0.
+The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under 1.3.0 and 1.3.1. Catalog-driven routing is 1.4.0 and 1.5.0. The Cursor plugin is 1.6.0. The Why and Reflect role-map split is 1.6.1.
 
 ## What pstack does
 
@@ -106,9 +106,17 @@ The shell path has no reload step. The plugin loads when the next Claude Code se
 Run these commands in your shell:
 
 ```shell
-codex plugin marketplace add gannonh/open-pstack --ref main
+codex plugin marketplace add gannonh/open-pstack 
 codex plugin add pstack@open-pstack
 ```
+
+Update:
+
+```shell
+codex plugin marketplace upgrade gannonh/open-pstack 
+```
+
+
 
 Turn on Codex subagents in `~/.codex/config.toml` so pstack can compare work in parallel:
 
@@ -224,7 +232,7 @@ This repository also keeps:
 
 ## Staying close to Lauren's pstack
 
-Open Pstack 1.6.0 tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
+Open Pstack 1.6.1 tracks pstack 0.14.8 at Cursor commit [`7314f723a487ec406b6369fe5865ba034cfed166`](https://github.com/cursor/plugins/commit/7314f723a487ec406b6369fe5865ba034cfed166).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Cursor, Claude Code, and Codex package built from it.
 
