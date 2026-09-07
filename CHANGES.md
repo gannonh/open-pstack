@@ -2,9 +2,9 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
-## Why and Reflect role rows, 2026-09-07
+## 1.6.1 restores original Why and Reflect role rows
 
-The first-run role map splits Why and Reflect back to the original pstack rows: `why investigators`, `why synthesizer`, `reflect tooling`, and `reflect judgment, divergent, synthesizer`. Each stays `inherit-parent`. Combined ids `why investigators, synthesizer` and `reflect tooling, judgment, divergent, synthesizer` are unknown. A sheet that still uses them fails parse until the operator edits those lines or reruns setup after installing this candidate. Plugin version is unchanged.
+The first-run role map splits Why and Reflect back to the original pstack rows: `why investigators`, `why synthesizer`, `reflect tooling`, and `reflect judgment, divergent, synthesizer`. Each stays `inherit-parent`. Combined ids `why investigators, synthesizer` and `reflect tooling, judgment, divergent, synthesizer` are unknown. A sheet that still uses them fails parse until the operator edits those lines or reruns setup after installing this candidate.
 
 ## Cursor Fable display-name verification, 2026-09-06
 
