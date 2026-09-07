@@ -57,12 +57,22 @@
       ]
     },
     {
-      "id": "why investigators, synthesizer",
+      "id": "why investigators",
       "kind": "scalar",
       "descriptors": ["inherit-parent"]
     },
     {
-      "id": "reflect tooling, judgment, divergent, synthesizer",
+      "id": "why synthesizer",
+      "kind": "scalar",
+      "descriptors": ["inherit-parent"]
+    },
+    {
+      "id": "reflect tooling",
+      "kind": "scalar",
+      "descriptors": ["inherit-parent"]
+    },
+    {
+      "id": "reflect judgment, divergent, synthesizer",
       "kind": "scalar",
       "descriptors": ["inherit-parent"]
     },

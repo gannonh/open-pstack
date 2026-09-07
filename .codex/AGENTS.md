@@ -80,8 +80,10 @@ hardest tasks: claude:claude-fable-5.1@max
 how explorer: cursor:cursor-grok-4.6@xhigh
 how explainer: claude:claude-fable-5.1@max
 how critics: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
-why investigators, synthesizer: inherit-parent
-reflect tooling, judgment, divergent, synthesizer: inherit-parent
+why investigators: inherit-parent
+why synthesizer: inherit-parent
+reflect tooling: inherit-parent
+reflect judgment, divergent, synthesizer: inherit-parent
 arena runners: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
 arena cross-judge pool: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
 swarm workers: cursor:cursor-grok-4.6@xhigh

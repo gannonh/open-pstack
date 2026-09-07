@@ -484,8 +484,10 @@ hardest tasks: claude:fable@max
 how explorer: cursor:cursor-grok-4.6@xhigh
 how explainer: claude:fable@max
 how critics: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
-why investigators, synthesizer: inherit-parent
-reflect tooling, judgment, divergent, synthesizer: auto
+why investigators: inherit-parent
+why synthesizer: inherit-parent
+reflect tooling: auto
+reflect judgment, divergent, synthesizer: inherit-parent
 arena runners: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
 arena cross-judge pool: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
 swarm workers: cursor:cursor-grok-4.6@xhigh
@@ -502,8 +504,64 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     expect(parsed.sheet?.roles.find((role) => role.id === "perf-issue")?.lanes[0]?.raw).toBe(
       "codex:gpt-5.6-sol@high"
     );
+    expect(parsed.sheet?.roles.find((role) => role.id === "reflect tooling")?.lanes[0]?.raw).toBe(
+      "auto"
+    );
     expect(
-      parsed.sheet?.roles.find((role) => role.id === "reflect tooling, judgment, divergent, synthesizer")
+      parsed.sheet?.roles.find((role) => role.id === "reflect judgment, divergent, synthesizer")
+        ?.lanes[0]?.raw
+    ).toBe("inherit-parent");
+  });
+
+  it("rejects combined Why and Reflect role ids", () => {
+    const collapsed = firstRunSheet(catalog, roles)
+      .replace(
+        "why investigators: inherit-parent\nwhy synthesizer: inherit-parent\n",
+        "why investigators, synthesizer: inherit-parent\n"
+      )
+      .replace(
+        "reflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\n",
+        "reflect tooling, judgment, divergent, synthesizer: inherit-parent\n"
+      );
+    const parsed = parseSheet(collapsed, catalog, roles);
+    expect(parsed.sheet).toBeNull();
+    expect(parsed.issues.map((issue) => issue.message)).toEqual(
+      expect.arrayContaining([
+        "unknown role: why investigators, synthesizer",
+        "unknown role: reflect tooling, judgment, divergent, synthesizer",
+        "missing documented role: why investigators",
+        "missing documented role: why synthesizer",
+        "missing documented role: reflect tooling",
+        "missing documented role: reflect judgment, divergent, synthesizer",
+      ])
+    );
+  });
+
+  it("accepts independent Why and Reflect descriptors", () => {
+    const edited = firstRunSheet(catalog, roles)
+      .replace(
+        "why investigators: inherit-parent",
+        "why investigators: cursor:cursor-grok-4.6@xhigh"
+      )
+      .replace("why synthesizer: inherit-parent", "why synthesizer: claude:fable@max")
+      .replace("reflect tooling: inherit-parent", "reflect tooling: codex:gpt-5.6-sol@max")
+      .replace(
+        "reflect judgment, divergent, synthesizer: inherit-parent",
+        "reflect judgment, divergent, synthesizer: auto"
+      );
+    const parsed = parseSheet(edited, catalog, roles);
+    expect(parsed.issues).toEqual([]);
+    expect(parsed.sheet?.roles.find((role) => role.id === "why investigators")?.lanes[0]?.raw).toBe(
+      "cursor:cursor-grok-4.6@xhigh"
+    );
+    expect(parsed.sheet?.roles.find((role) => role.id === "why synthesizer")?.lanes[0]?.raw).toBe(
+      "claude:fable@max"
+    );
+    expect(parsed.sheet?.roles.find((role) => role.id === "reflect tooling")?.lanes[0]?.raw).toBe(
+      "codex:gpt-5.6-sol@max"
+    );
+    expect(
+      parsed.sheet?.roles.find((role) => role.id === "reflect judgment, divergent, synthesizer")
         ?.lanes[0]?.raw
     ).toBe("auto");
   });
@@ -668,6 +726,15 @@ describe("catalog-driven native agents and skill invariants", () => {
     expect(sheet).toContain(
       "arena runners: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh"
     );
-    expect(sheet).toContain("why investigators, synthesizer: inherit-parent");
+    expect(sheet).toContain(
+      [
+        "why investigators: inherit-parent",
+        "why synthesizer: inherit-parent",
+        "reflect tooling: inherit-parent",
+        "reflect judgment, divergent, synthesizer: inherit-parent",
+      ].join("\n")
+    );
+    expect(sheet).not.toContain("why investigators, synthesizer:");
+    expect(sheet).not.toContain("reflect tooling, judgment, divergent, synthesizer:");
   });
 });

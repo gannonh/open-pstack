@@ -2,6 +2,10 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Why and Reflect role rows, 2026-09-07
+
+The first-run role map splits Why and Reflect back to the original pstack rows: `why investigators`, `why synthesizer`, `reflect tooling`, and `reflect judgment, divergent, synthesizer`. Each stays `inherit-parent`. Combined ids `why investigators, synthesizer` and `reflect tooling, judgment, divergent, synthesizer` are unknown. A sheet that still uses them fails parse until the operator edits those lines or reruns setup after installing this candidate. Plugin version is unchanged.
+
 ## Cursor Fable display-name verification, 2026-09-06
 
 `reportedCursorComposedModelMatches` still requires exact equality with the composed CLI id after normalization. Normalization now drops context-window tokens (`300k`, `1m`) and thinking-mode tokens (`no thinking`, `thinking`) from the kebab-cased init display name, then keeps the existing `extra-high` to `xhigh` alias. A wrong effort, a `-fast` neighbour, and unknown extra tokens still fail closed. This lets `cursor:claude-fable-5-1@high` complete on the external `cursor-agent` path when live init reports `Claude Fable 5.1 300K High No Thinking`.
