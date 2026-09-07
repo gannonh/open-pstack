@@ -93,6 +93,8 @@ describe("model catalog", () => {
       "claude-opus",
       "codex-gpt-6-astra",
       "claude-claude-fable-5-1-1m",
+      "codex-gpt-5-6-terra",
+      "codex-gpt-5-6-luna",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -105,6 +107,8 @@ describe("model catalog", () => {
       "claude:opus",
       "codex:gpt-6-astra",
       "claude:claude-fable-5-1[1m]",
+      "codex:gpt-5.6-terra",
+      "codex:gpt-5.6-luna",
     ]);
   });
 
@@ -115,6 +119,19 @@ describe("model catalog", () => {
     expect(astra?.defaultEffort).toBe("medium");
     expect(bindDescriptor(catalog, "codex:gpt-6-astra@ultra").offering?.id).toBe("codex-gpt-6-astra");
     expect(() => bindDescriptor(catalog, "codex:gpt-5.6-sol@ultra")).toThrow("unsupported effort ultra");
+
+    const terra = findOffering(catalog, "codex", "gpt-5.6-terra");
+    expect(terra?.displayName).toBe("GPT-5.6-Terra");
+    expect(terra?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    expect(terra?.defaultEffort).toBe("medium");
+    expect(bindDescriptor(catalog, "codex:gpt-5.6-terra@ultra").offering?.id).toBe("codex-gpt-5-6-terra");
+
+    const luna = findOffering(catalog, "codex", "gpt-5.6-luna");
+    expect(luna?.displayName).toBe("GPT-5.6-Luna");
+    expect(luna?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max"]);
+    expect(luna?.defaultEffort).toBe("medium");
+    expect(bindDescriptor(catalog, "codex:gpt-5.6-luna@max").offering?.id).toBe("codex-gpt-5-6-luna");
+    expect(() => bindDescriptor(catalog, "codex:gpt-5.6-luna@ultra")).toThrow("unsupported effort ultra");
 
     const pin = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
     expect(pin?.displayName).toBe("Fable 5.1");
