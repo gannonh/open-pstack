@@ -2,6 +2,10 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## 1.6.3 catalogs Codex Sol ultra
+
+`pstack-models discover --provider codex` on 2026-09-07 advertised `gpt-5.6-sol` efforts `low` through `ultra`. The shipped offering now lists `ultra`. Default effort stays `max`. Role defaults stay `codex:gpt-5.6-sol@max`.
+
 ## 1.6.2 catalogs Codex Terra and Luna, and adds a manual release
 
 `pstack-models discover --provider codex` on 2026-09-07 advertised `gpt-5.6-terra` (efforts `low` through `ultra`, default `medium`) and `gpt-5.6-luna` (efforts `low` through `max`, default `medium`). Those offerings are now in `catalog/models.json` as `codex:gpt-5.6-terra` and `codex:gpt-5.6-luna`. Role defaults are unchanged. Stale `gpt-6-terra` / `gpt-6-luna` names stay uncataloged.

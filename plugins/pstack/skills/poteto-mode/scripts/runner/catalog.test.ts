@@ -118,7 +118,16 @@ describe("model catalog", () => {
     expect(astra?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
     expect(astra?.defaultEffort).toBe("medium");
     expect(bindDescriptor(catalog, "codex:gpt-6-astra@ultra").offering?.id).toBe("codex-gpt-6-astra");
-    expect(() => bindDescriptor(catalog, "codex:gpt-5.6-sol@ultra")).toThrow("unsupported effort ultra");
+    expect(findOffering(catalog, "codex", "gpt-5.6-sol")?.supportedEfforts).toEqual([
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max",
+      "ultra",
+    ]);
+    expect(findOffering(catalog, "codex", "gpt-5.6-sol")?.defaultEffort).toBe("max");
+    expect(bindDescriptor(catalog, "codex:gpt-5.6-sol@ultra").offering?.id).toBe("codex-gpt-5-6-sol");
 
     const terra = findOffering(catalog, "codex", "gpt-5.6-terra");
     expect(terra?.displayName).toBe("GPT-5.6-Terra");
@@ -250,7 +259,7 @@ describe("model catalog", () => {
     duplicate.offerings[2] = { ...duplicate.offerings[2], supportedEfforts: ["low", "low"] };
     expect(() => parseModelCatalog(duplicate)).toThrow("contains duplicates");
     const unlistedDefault = cloneCatalog();
-    unlistedDefault.offerings[2] = { ...unlistedDefault.offerings[2], defaultEffort: "ultra" };
+    unlistedDefault.offerings[2] = { ...unlistedDefault.offerings[2], defaultEffort: "turbo" };
     expect(() => parseModelCatalog(unlistedDefault)).toThrow("defaultEffort is not selectable");
     expect(() => bindDescriptor(catalog, "codex:gpt-5.6-sol@Max")).toThrow("invalid descriptor");
   });

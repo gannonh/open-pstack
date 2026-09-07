@@ -282,6 +282,7 @@ Each offering declares `supportedEfforts` as an ordered list of safe identifiers
 | --- | --- | --- |
 | `claude:fable` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
 | `cursor:cursor-grok-4.6` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
+| `codex:gpt-5.6-sol` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `max` |
 | `codex:gpt-6-astra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
 | `codex:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
 | `codex:gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` |

@@ -40,7 +40,7 @@
       "provider": "codex",
       "selector": "gpt-5.6-sol",
       "selectorComposition": "effort-flag",
-      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max", "ultra"],
       "defaultEffort": "max",
       "nativeAgentStem": null,
       "nativeAgentTitle": null,
