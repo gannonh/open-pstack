@@ -22,7 +22,7 @@ git remote add ericlitman https://github.com/ericlitman/open-pstack.git
 | Path | `pstack/` |
 | Commit | `7314f723a487ec406b6369fe5865ba034cfed166` |
 | Upstream version | `0.14.8` |
-| open-pstack version | `1.6.2` |
+| open-pstack version | `1.6.3` |
 
 The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance.
 
