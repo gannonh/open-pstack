@@ -1,7 +1,7 @@
 {
   "name": "open-pstack",
   "displayName": "Open PStack",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence. Open PStack build of cursor/plugins/pstack that shares one skill tree and model catalog with the Claude Code and Codex plugins.",
   "author": {
     "name": "Lauren Tan"
