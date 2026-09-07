@@ -16,7 +16,11 @@ import {
   nativeAgentsFor,
 } from "./catalog.ts";
 import { supportedDescriptor, type InventoryEntry, type InventorySource } from "./inventory.ts";
-import { baseCatalog, copyPluginTree as copyBaseTree } from "./catalog-fixture.test-helper.ts";
+import {
+  ADDED_OFFERING_IDS,
+  baseCatalog,
+  copyPluginTree as copyBaseTree,
+} from "./catalog-fixture.test-helper.ts";
 import {
   adapterProposal,
   agentsDirectory,
@@ -373,22 +377,24 @@ describe("nativeAgentsFor fixture", () => {
 });
 
 describe("shipped catalog provenance", () => {
-  it("is reproduced byte-for-byte by adding Astra and the Fable 5.1 [1m] pin through the tool", () => {
+  it("is reproduced byte-for-byte by adding the post-base offerings through the tool", () => {
     const root = copyPluginTree();
     const shipped = loadModelCatalog();
-    const astra = shipped.offerings.find((row) => row.id === "codex-gpt-6-astra");
-    const pin = shipped.offerings.find((row) => row.id === "claude-claude-fable-5-1-1m");
-    if (astra === undefined || pin === undefined) throw new Error("shipped offerings missing");
+    const added = ADDED_OFFERING_IDS.map((id) => {
+      const row = shipped.offerings.find((offering) => offering.id === id);
+      if (row === undefined) throw new Error(`shipped offerings missing ${id}`);
+      return row;
+    });
     const paths = { catalogPath: catalogFilePath(root), agentsDir: agentsDirectory(root) };
 
-    const first = proposeAdd(baseCatalog(), { ...astra }, root);
-    expect(first.kind).toBe("change");
-    if (first.kind !== "change") return;
-    expect(applyProposal(first, paths).ok).toBe(true);
-    const second = proposeAdd(readCatalogFile(paths.catalogPath).catalog, { ...pin }, root);
-    expect(second.kind).toBe("change");
-    if (second.kind !== "change") return;
-    expect(applyProposal(second, paths).ok).toBe(true);
+    let catalog = baseCatalog();
+    for (const offering of added) {
+      const proposal = proposeAdd(catalog, { ...offering }, root);
+      expect(proposal.kind).toBe("change");
+      if (proposal.kind !== "change") return;
+      expect(applyProposal(proposal, paths).ok).toBe(true);
+      catalog = readCatalogFile(paths.catalogPath).catalog;
+    }
 
     expect(readFileSync(paths.catalogPath, "utf8")).toBe(
       readFileSync(catalogFilePath(PLUGIN_ROOT), "utf8")

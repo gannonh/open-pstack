@@ -13,7 +13,12 @@ import {
 
 // The offerings this release added through `pstack-models add`. Tests that
 // exercise the add path start from the tree as it was before them.
-export const ADDED_OFFERING_IDS = ["codex-gpt-6-astra", "claude-claude-fable-5-1-1m"] as const;
+export const ADDED_OFFERING_IDS = [
+  "codex-gpt-6-astra",
+  "claude-claude-fable-5-1-1m",
+  "codex-gpt-5-6-terra",
+  "codex-gpt-5-6-luna",
+] as const;
 
 export function baseCatalog(): ModelCatalog {
   const shipped = loadModelCatalog();

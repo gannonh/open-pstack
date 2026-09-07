@@ -2,6 +2,12 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## 1.6.2 catalogs Codex Terra and Luna, and adds a manual release
+
+`pstack-models discover --provider codex` on 2026-09-07 advertised `gpt-5.6-terra` (efforts `low` through `ultra`, default `medium`) and `gpt-5.6-luna` (efforts `low` through `max`, default `medium`). Those offerings are now in `catalog/models.json` as `codex:gpt-5.6-terra` and `codex:gpt-5.6-luna`. Role defaults are unchanged. Stale `gpt-6-terra` / `gpt-6-luna` names stay uncataloged.
+
+A manual `Release` workflow (`workflow_dispatch`) updates the six lockstep version files, tags `vX.Y.Z`, and creates the GitHub release. Leave the `version` input empty to patch-bump the current lockstep version. Type `X.Y.Z` to use that version. The workflow refuses a non-increasing or invalid version, an existing tag, and any ref other than `main`.
+
 ## 1.6.1 restores original Why and Reflect role rows
 
 The first-run role map splits Why and Reflect back to the original pstack rows: `why investigators`, `why synthesizer`, `reflect tooling`, and `reflect judgment, divergent, synthesizer`. Each stays `inherit-parent`. Combined ids `why investigators, synthesizer` and `reflect tooling, judgment, divergent, synthesizer` are unknown. A sheet that still uses them fails parse until the operator edits those lines or reruns setup after installing this candidate.

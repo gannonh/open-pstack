@@ -283,6 +283,8 @@ Each offering declares `supportedEfforts` as an ordered list of safe identifiers
 | `claude:fable` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
 | `cursor:cursor-grok-4.6` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
 | `codex:gpt-6-astra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
+| `codex:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
+| `codex:gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` |
 
 An effort outside the bound offering's list fails at every layer with no substitution. Sheet validation and setup reject the row. The runner rejects the `(provider, model, effort)` tuple before preflight. A Claude-native agent file exists only for listed efforts, so an unlisted effort has no agent to dispatch. Nothing rounds `ultra` down to `max` or `max` up to `ultra`.
 
@@ -293,6 +295,6 @@ The catalog ships inside the plugin. There is no personal overlay, environment o
 1. Run `discover`, `add`, `edit`, or `remove` in a checkout.
 2. Run `pstack-models validate` and the Bun tests.
 3. Open a PR to this repository that names its Linear issue. Update `CHANGES.md` and `NOTICE.md` as the change requires. Do not edit Arena, Architect, How, Interrogate, setup control flow, or runner provider switch cases. Those read the catalog.
-4. After merge, cut the plugin release. Operators receive the new membership when they update the plugin.
+4. After merge, run the `Release` workflow on `main`. Leave `version` empty to patch-bump, or type `X.Y.Z`. Operators receive the new membership when they update the plugin.
 
 Removal affects downstream sheets. `remove` refuses while `role-defaults.json` references the offering, but an operator's sheet may still name a removed offering. That sheet fails validation on the next parent run and the operator must pick a cataloged replacement. Deprecate with a successor first so setup warns and shows the replacement while the offering still dispatches, ship that release, then remove in a later one.

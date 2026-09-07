@@ -28,7 +28,7 @@ Open Pstack is an unofficial community project. If you want Lauren's Cursor-nati
 
 **Cursor is a supported parent.** The `open-pstack` Cursor plugin loads the same skills from the same plugin root. In Cursor, `cursor:*` descriptors run as native subagents. Claude, Codex, and Grok descriptors run through the same external runner the other parents use. Setup writes `~/.cursor/rules/open-pstack-models.mdc` and leaves the original plugin's `pstack-models.mdc` alone.
 
-The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under 1.3.0 and 1.3.1. Catalog-driven routing is 1.4.0 and 1.5.0. The Cursor plugin is 1.6.0. The Why and Reflect role-map split is 1.6.1.
+The Cursor provider change is recorded in [CHANGES.md](CHANGES.md) under 1.3.0 and 1.3.1. Catalog-driven routing is 1.4.0 and 1.5.0. The Cursor plugin is 1.6.0. The Why and Reflect role-map split is 1.6.1. Codex Terra and Luna are 1.6.2.
 
 ## What pstack does
 
@@ -54,7 +54,7 @@ You need a current Cursor, Claude Code, or Codex installation. For the full four
 
 ### Cursor
 
-The plugin id is `open-pstack`. Disable Lauren's `pstack` plugin while it is enabled.
+The plugin id is `open-pstack`. Disable Lauren's original `pstack` plugin while Open Pstack is enabled.
 
 Install:
 

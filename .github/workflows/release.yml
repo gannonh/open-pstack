@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Plugin version (X.Y.Z). Leave empty to patch-bump.
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require main
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Release only runs on main (ref=${GITHUB_REF})" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.2
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Resolve version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="$(bun scripts/release-version.ts --repo . --requested "${REQUESTED_VERSION:-}")"
+          if git rev-parse -q --verify "refs/tags/v${version}" >/dev/null; then
+            echo "tag v${version} already exists" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Bump lockstep version
+        run: bun scripts/release-version.ts --repo . --requested "${{ steps.version.outputs.version }}" --apply
+
+      - name: Install
+        working-directory: plugins/pstack/skills/poteto-mode/scripts
+        run: bun install --frozen-lockfile
+
+      - name: Test
+        working-directory: plugins/pstack/skills/poteto-mode/scripts
+        run: bun run test
+
+      - name: Typecheck
+        working-directory: plugins/pstack/skills/poteto-mode/scripts
+        run: bun run typecheck
+
+      - name: Validate manifests and static invariants
+        run: |
+          bun test scripts/release-version.test.ts
+          bun -e 'for (const path of [".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json", "plugins/pstack/.claude-plugin/plugin.json", "plugins/pstack/.codex-plugin/plugin.json", "plugins/pstack/.cursor-plugin/plugin.json"]) JSON.parse(await Bun.file(path).text())'
+          PSTACK_STATIC_ONLY=1 bash tests/skill-collision-repro.sh
+
+      - name: Commit, tag, and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            plugins/pstack/.claude-plugin/plugin.json \
+            plugins/pstack/.codex-plugin/plugin.json \
+            plugins/pstack/.cursor-plugin/plugin.json \
+            .claude-plugin/marketplace.json \
+            .cursor-plugin/marketplace.json \
+            UPSTREAM.md
+          git commit -m "chore: release ${version}"
+          git tag "v${version}"
+          git push origin HEAD:main
+          git push origin "v${version}"
+          gh release create "v${version}" --title "v${version}" --notes "Open Pstack ${version}. See CHANGES.md."
