@@ -1,0 +1,7 @@
+why investigators: inherit-parent  
+why synthesizer: inherit-parent  
+reflect tooling: inherit-parent  
+reflect judgment, divergent, synthesizer: inherit-parent  
+
+Plugin version: **1.6.1**  
+Read from: `/home/gannonh/.cursor/plugins/cache/gannonh-open-pstack/open-pstack/75d0c184b3429678f4c2d1b9f3f0481acfc0d2cd/.cursor-plugin/plugin.json`
