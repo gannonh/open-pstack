@@ -54,33 +54,21 @@ You need a current Cursor, Claude Code, or Codex installation. For the full four
 
 ### Cursor
 
-The Cursor plugin is named `open-pstack` to tell it apart from Lauren's original `pstack` plugin. Both ship skills with the same names, including `poteto-mode` and `arena`. Disable the original `pstack` plugin while `open-pstack` is enabled. Otherwise two copies of `/poteto-mode` compete. Two model sheets give the agent conflicting instructions. Open Pstack never reads or changes `~/.cursor/rules/pstack-models.mdc`.
+The plugin id is `open-pstack`. Disable Lauren's `pstack` plugin while it is enabled.
 
-Register this repository as a plugin marketplace:
+Install:
 
 ```shell
 cursor-agent plugin marketplace add https://github.com/gannonh/open-pstack
 ```
 
-Install `open-pstack` from Cursor plugin settings (**Settings > Plugins**). One install serves the IDE and the CLI. Cursor CLI 2026.09.02 has no `plugin install` subcommand.
+Then install `open-pstack` from **Settings > Plugins**.
 
-Update the marketplace index:
-
-```shell
-cursor-agent plugin marketplace update open-pstack
-```
-
-To try a checkout in the CLI without installing, pass the plugin root directly:
+Update:
 
 ```shell
-cursor-agent --plugin-dir /path/to/open-pstack/plugins/pstack
+cursor-agent plugin marketplace update gannonh-open-pstack
 ```
-
-The plugin directory must sit outside the workspace. The CLI drops a plugin's skills when the plugin directory is inside the workspace. `--plugin-dir` does not apply the startup rule. Invoke `/poteto-mode` yourself. An installed plugin applies the rule.
-
-The CLI also limits subagents to a short list of models that can differ from `cursor-agent models`. `resolveCursorDescriptorRoute` maps catalog composed ids onto that list (`claude-fable-5-1-xhigh` to `claude-fable-5-1-thinking-xhigh`) and uses print-mode `cursor-agent` with the composed id when the mapped slug is absent. pstack does not swap in a `-fast` neighbour.
-
-Uninstall from the same plugin settings page.
 
 ### Claude Code
 
@@ -103,20 +91,19 @@ The shell path has no reload step. The plugin loads when the next Claude Code se
 
 ### Codex
 
-Run these commands in your shell:
+Install:
 
 ```shell
-codex plugin marketplace add gannonh/open-pstack 
+codex plugin marketplace add gannonh/open-pstack
 codex plugin add pstack@open-pstack
 ```
 
 Update:
 
 ```shell
-codex plugin marketplace upgrade gannonh/open-pstack 
+codex plugin marketplace upgrade open-pstack
+codex plugin add pstack@open-pstack
 ```
-
-
 
 Turn on Codex subagents in `~/.codex/config.toml` so pstack can compare work in parallel:
 
@@ -125,7 +112,7 @@ Turn on Codex subagents in `~/.codex/config.toml` so pstack can compare work in 
 multi_agent = true
 ```
 
-Start a new Codex task after installation so it can discover the new skills and setting.
+Start a new Codex task after install or upgrade so it can discover the skills and setting.
 
 ## Get started
 
