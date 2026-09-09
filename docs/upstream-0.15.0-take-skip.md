@@ -14,7 +14,7 @@ Three commits, 95 paths, +550/−816.
 
 | Commit | Summary | Decision |
 | --- | --- | --- |
-| `e8d856f` | Density and mannered-prose pass. Adds `principle-attack-the-premise` and `principle-test-behavior-not-implementation`. Removes how critique mode and its two reference files. | Take skill/playbook/principle content. |
+| `e8d856f` | Density and mannered-prose pass. Adds `principle-attack-the-premise` and `principle-test-behavior-not-implementation`. Removes how critique mode and its two reference files. | Take skill/playbook/principle content. Skip the babysit density cut that pastes `<pr>` into executable Origin commands. |
 | `d7cde2b` | Semicolon, em dash, and connector-colon punctuation in `pstack/skills`. | Take. |
 | `71ed0d1` | Version `0.15.0`. README playbook count 22→23. Guide principle-count copy. | Take README into `README-UPSTREAM.md`. Skip version file and `docs/guide/`. |
 
@@ -39,6 +39,8 @@ New principles keep the existing principle convention (`user-invocable: false`) 
 | Claude manifest `logo` | Not in this delta. |
 
 No new standing exclusion. Removing `how critics` is taking 0.15.0, not a new skip.
+
+The babysit density cut in `e8d856f` is a one-off skip of that hunk, not a new standing exclusion. Upstream shortened the playbook and wrote `origin pr view <pr>` / `origin pr checks <pr> --watch` as executable templates. Open Pstack already quotes those values as `"$pr"` and pins the GitHub watcher. Taking the cut would fail `tests/skill-collision-repro.sh` and drop the forge-neutral adaptations. Punctuation from `d7cde2b` that still matches the adapted sentences is taken (`Those are GitHub watcher verdicts.` / split `READY` sentence).
 
 ## Merge method
 

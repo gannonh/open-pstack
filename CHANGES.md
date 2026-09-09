@@ -12,6 +12,8 @@ New principles use `user-invocable: false` instead of `disable-model-invocation:
 
 Standing exclusions are unchanged: `docs/guide/`, Cursor plugin.json version, `disable-model-invocation` on `how` / `why` / `unslop` / `typescript-best-practices`, Sol defaults for `bug-fix` / `perf-issue` / `hillclimb`, Claude manifest logo field. `make-bot-ui` was not in this delta.
 
+The babysit density cut that writes `origin pr … <pr>` into executable templates is skipped. The playbook keeps quoted `"$pr"` templates and the pinned GitHub watcher. That is a one-off hunk skip, not a new standing exclusion.
+
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
 ## 1.6.3 catalogs Codex Sol ultra plus Claude opus[1m] and Cursor Sol/Terra/Luna/Fable thinking/Opus 5
