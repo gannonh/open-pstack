@@ -22,7 +22,7 @@ git remote add ericlitman https://github.com/ericlitman/open-pstack.git
 | Path | `pstack/` |
 | Commit | `71ed0d1076fec562c1b74ee353121a8d00f75382` |
 | Upstream version | `0.15.0` |
-| open-pstack version | `1.6.3` |
+| open-pstack version | `1.6.4` |
 
 The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance. The 0.14.8→0.15.0 take vs skip record is [docs/upstream-0.15.0-take-skip.md](docs/upstream-0.15.0-take-skip.md).
 
