@@ -2,6 +2,20 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Sync to Cursor pstack 0.15.0 (open-pstack version stays 1.6.3)
+
+Tracks Cursor pstack 0.15.0 at `71ed0d1076fec562c1b74ee353121a8d00f75382`. Take vs skip: [docs/upstream-0.15.0-take-skip.md](docs/upstream-0.15.0-take-skip.md).
+
+Three upstream commits (`e8d856f`, `d7cde2b`, `71ed0d1`) land the density and mannered-prose pass, semicolon/em-dash/connector-colon cleanup, two new principle leaves (`principle-attack-the-premise`, `principle-test-behavior-not-implementation`), how critique-mode removal, PR-body briefing rules, and README playbook count 22→23.
+
+New principles use `user-invocable: false` instead of `disable-model-invocation: true`. The `how critics` catalog role is gone because how no longer has critique mode. Setup lane-edit examples use `arena runners[3]`. A sheet that still names `how critics` fails parse as an unknown role.
+
+Standing exclusions are unchanged: `docs/guide/`, Cursor plugin.json version, `disable-model-invocation` on `how` / `why` / `unslop` / `typescript-best-practices`, Sol defaults for `bug-fix` / `perf-issue` / `hillclimb`, Claude manifest logo field. `make-bot-ui` was not in this delta.
+
+The babysit density cut that writes `origin pr … <pr>` into executable templates is skipped. The playbook keeps quoted `"$pr"` templates and the pinned GitHub watcher. That is a one-off hunk skip, not a new standing exclusion.
+
+Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
+
 ## 1.6.3 catalogs Codex Sol ultra plus Claude opus[1m] and Cursor Sol/Terra/Luna/Fable thinking/Opus 5
 
 `pstack-models discover --provider codex` on 2026-09-07 advertised `gpt-5.6-sol` efforts `low` through `ultra`. The shipped offering now lists `ultra`. Default effort stays `max`. Role defaults stay `codex:gpt-5.6-sol@max`.

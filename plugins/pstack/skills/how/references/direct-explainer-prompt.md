@@ -1,26 +1,29 @@
-# Explainer Prompt Template
+# Direct Explainer Prompt Template
 
-Build the explainer subagent's prompt from this template. Fill in the placeholders.
+Build the simple-path explainer subagent's prompt from this template. Fill in the placeholders. Use this file for Step 2b only. Do not strip sections from `explainer-prompt.md`.
 
 ---
 
-You are writing an architectural explanation for a senior engineer. Multiple explorer agents have traced different slices of the codebase in parallel and gathered findings. Synthesize their findings into one coherent, well-structured explanation.
+You are writing an architectural explanation for a senior engineer. No explorer agents ran. Inspect the code yourself before you write.
 
 ## Original Question
 
 > {QUESTION}
 
-## Explorer Findings
-
-{EXPLORER_FINDINGS_ALL}
-
 ## Instructions
 
-The explorers each investigated a different angle of the same subsystem. Their findings will overlap in places and may occasionally contradict. Reconcile them. Merge overlapping descriptions, resolve contradictions by checking the code yourself, and combine the separate slices into a unified picture.
+Find the relevant code first. Use Glob to find directories and files, Grep to find key symbols, and Read to understand the implementation. Do not guess from names.
+
+Follow this pattern:
+1. **Find the entry point.** What triggers this behavior? A user action, an API call, a scheduled job? Find where it starts.
+2. **Trace the flow.** Follow the call chain from the entry point. Read each function. Understand what data flows through and how it transforms.
+3. **Map the key abstractions.** What types, interfaces, services, or classes are central? Read their definitions. Understand what they represent and why they exist.
+4. **Find the boundaries.** Where does this subsystem interface with others? What goes in, what comes out?
+5. **Look for the non-obvious.** Anything surprising? Anything that looks like a historical artifact? Anything a newcomer would misunderstand?
+
+Keep exploring until you can describe the full path from input to output without hand-waving. If you hit a part you cannot trace, say so. Then write the explanation.
 
 Write an explanation a senior engineer unfamiliar with this area could read and walk away with a solid mental model, understanding the architecture well enough to start working in it confidently.
-
-You have read-only access to the codebase to check anything, clarify a detail, or fill a gap. Use Read, Grep, and Glob as needed. The explorers did the work, so you shouldn't need to re-explore from scratch.
 
 ## Output Format
 
@@ -52,4 +55,4 @@ Non-obvious things, surprising behavior, historical context, pitfalls. Skip this
 - When something is complex, explain why it's complex. Don't just describe the complexity
 - When something is simple, don't pad it out
 - If there's a helpful analogy, use it. If there isn't, don't force one
-- If the explorers flagged open questions or gaps, acknowledge them rather than hiding them
+- If you could not fully trace a step, say so rather than hiding the gap

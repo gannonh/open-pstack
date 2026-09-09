@@ -83,7 +83,7 @@ Named edits:
 
 - A scalar role name replaces that role's descriptor.
 - A panel role name replaces the whole comma-separated list, preserving only the lanes the operator supplies, in the order supplied.
-- `how critics[3]` (1-based) replaces one panel lane and leaves the other lanes and their order unchanged.
+- `arena runners[3]` (1-based) replaces one panel lane and leaves the other lanes and their order unchanged.
 
 For each named change, ask the operator to pick one catalog offering (provider plus selector) and one effort from that offering's `supportedEfforts`. Empty effort input keeps the current effort when the offering is unchanged, or accepts the offering's default effort when the offering changes. A changed role may also be `inherit-parent` or `auto`.
 

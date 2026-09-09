@@ -33,6 +33,94 @@ else
   note "ok: all principle-* leaves request user-hidden and remain model-readable"
 fi
 
+principle_count="$(find "$repo/plugins/pstack/skills" -maxdepth 1 -type d -name 'principle-*' | wc -l | tr -d ' ')"
+if [ "$principle_count" != "23" ]; then
+  note "FAIL: expected 23 principle-* leaves, found $principle_count"
+  fail=1
+else
+  note "ok: 23 principle-* leaves"
+fi
+
+if grep -Fq '"id": "how critics"' "$repo/plugins/pstack/catalog/role-defaults.json" \
+  || grep -Fq 'how critics' "$repo/plugins/pstack/skills/how/SKILL.md" \
+  || [ -e "$repo/plugins/pstack/skills/how/references/critic-prompt.md" ] \
+  || [ -e "$repo/plugins/pstack/skills/how/references/critique-rubric.md" ]; then
+  note "FAIL: how critique mode or how critics role is still present"
+  fail=1
+else
+  note "ok: how critique mode and how critics role are gone"
+fi
+
+how_skill="$repo/plugins/pstack/skills/how/SKILL.md"
+how_direct="$repo/plugins/pstack/skills/how/references/direct-explainer-prompt.md"
+how_simple_bad=""
+if grep -Fq 'without the explorer-findings section' "$how_skill"; then
+  how_simple_bad="${how_simple_bad}simple /how path still strips explorer findings from explainer-prompt.md"$'\n'
+fi
+if ! grep -Fq 'references/direct-explainer-prompt.md' "$how_skill"; then
+  how_simple_bad="${how_simple_bad}simple /how path does not use references/direct-explainer-prompt.md"$'\n'
+fi
+if [ ! -f "$how_direct" ]; then
+  how_simple_bad="${how_simple_bad}direct explainer prompt is missing"$'\n'
+else
+  if ! grep -Eq 'Use Glob to find directories and files, Grep to find key symbols, and Read to understand' "$how_direct"; then
+    how_simple_bad="${how_simple_bad}direct explainer prompt does not require Glob/Grep/Read"$'\n'
+  fi
+  if grep -Eq 'Multiple explorer agents have traced|The explorers did the work|shouldn.t need to re-explore' "$how_direct"; then
+    how_simple_bad="${how_simple_bad}direct explainer prompt still assumes explorer findings"$'\n'
+  fi
+fi
+if [ -n "$how_simple_bad" ]; then
+  note "FAIL: simple /how path must explore without explorer findings:"
+  note "$how_simple_bad"
+  fail=1
+else
+  note "ok: simple /how path uses a dedicated Glob/Grep/Read prompt"
+fi
+
+graft="$repo/scripts/graft-0150-onto-ours.py"
+graft_bad="$(
+  python3 - "$graft" <<'PY'
+import ast, pathlib, re, sys
+path = pathlib.Path(sys.argv[1])
+tree = ast.parse(path.read_text())
+ns = {}
+for node in tree.body:
+    if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+        name = node.targets[0].id
+        if name in {"CONFLICTED", "TAKE_OURS", "OURS"}:
+            ns[name] = ast.literal_eval(node.value)
+problems = []
+source = path.read_text()
+if 'Path("/workspace")' in source or "Path('/workspace')" in source:
+    problems.append("REPO is hardcoded to /workspace")
+if "/tmp/ours-head" in source:
+    problems.append("graft still requires /tmp/ours-head")
+if "Path(__file__).resolve().parents[1]" not in source:
+    problems.append("REPO is not derived from __file__")
+conflicted = ns.get("CONFLICTED") or []
+take_ours = ns.get("TAKE_OURS") or set()
+babysit = "plugins/pstack/skills/poteto-mode/playbooks/babysit.md"
+if babysit in conflicted:
+    problems.append("babysit.md is still in CONFLICTED")
+if babysit not in take_ours:
+    problems.append("babysit.md is not recorded as TAKE-OURS")
+ours = ns.get("OURS")
+if not re.fullmatch(r"[0-9a-f]{40}", ours or ""):
+    problems.append(f"OURS is not a full commit SHA: {ours!r}")
+if "{OURS}:" not in source:
+    problems.append("graft does not read the ours baseline from git")
+print("\n".join(problems))
+PY
+)"
+if [ -n "$graft_bad" ]; then
+  note "FAIL: 0.15.0 graft replay is not self-contained:"
+  note "$graft_bad"
+  fail=1
+else
+  note "ok: 0.15.0 graft resolves the repo from __file__, reads ours from git, and skips babysit"
+fi
+
 verof() { { grep -m1 '"version"' "$1" || true; } | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/'; }
 vc="$(verof "$repo/plugins/pstack/.claude-plugin/plugin.json")"
 vx="$(verof "$repo/plugins/pstack/.codex-plugin/plugin.json")"

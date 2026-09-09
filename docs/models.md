@@ -52,7 +52,7 @@ In Claude Code: `/pstack:setup-pstack`. In Codex: ask for `pstack:setup-pstack`.
 
 Setup loads the catalog and the current sheet. It shows current selections plus every cataloged offering, including alternate providers for the same logical model. Each offering appears with its label, selector, supported efforts in catalog order, default effort, and a copyable `provider:selector@effort` value for every supported effort. Rolling aliases are labeled "(rolling alias)". Resolution evidence appears only when setup has it (see [Rolling aliases versus explicit pins](#rolling-aliases-versus-explicit-pins)); otherwise it prints unknown.
 
-Setup asks which **named** roles or panel lanes to change. Empty input keeps everything. `how critics[3]` changes one panel lane without walking the whole list. For a changed role, setup offers that offering's efforts in catalog order and accepts the default effort on empty input.
+Setup asks which **named** roles or panel lanes to change. Empty input keeps everything. `arena runners[3]` changes one panel lane without walking the whole list. For a changed role, setup offers that offering's efforts in catalog order and accepts the default effort on empty input.
 
 It then probes the exact unique descriptors from the current parent harness. A failed probe leaves the active sheet and parent integration bytes unchanged and reports the failing descriptor. After confirmation it writes the Claude include, the Codex bounded block, or the Cursor rule.
 
