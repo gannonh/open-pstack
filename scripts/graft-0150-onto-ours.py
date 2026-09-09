@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Restore HEAD copies of conflicted files, then apply ancestor→0.15.0 edits
+"""Restore pre-merge ours copies of conflicted files, then apply ancestor→0.15.0 edits
 onto the adapted open-pstack text.
 
 Looks up each upstream hunk after running the mechanical Cursor→open-pstack
 substitutions. Unapplied hunks are listed so they can be finished by hand.
+
+Ours is the open-pstack commit that was HEAD when the 0.15.0 merge started.
+Babysit stays TAKE-OURS and is not grafted.
 """
 from __future__ import annotations
 
@@ -11,10 +14,10 @@ import difflib
 import subprocess
 from pathlib import Path
 
-REPO = Path("/workspace")
+REPO = Path(__file__).resolve().parents[1]
 ANCESTOR = "7314f723a487ec406b6369fe5865ba034cfed166"
 THEIRS = "71ed0d1076fec562c1b74ee353121a8d00f75382"
-OURS_HEAD = Path("/tmp/ours-head")
+OURS = "992fe78f6eb3f3419d6e927234a1daa5b997fb49"
 
 CONFLICTED = [
     "plugins/pstack/skills/arena/SKILL.md",
@@ -26,7 +29,6 @@ CONFLICTED = [
     "plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
     "plugins/pstack/skills/poteto-mode/playbooks/autopilot-full.md",
     "plugins/pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
-    "plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
     "plugins/pstack/skills/poteto-mode/playbooks/bug-fix.md",
     "plugins/pstack/skills/poteto-mode/playbooks/eval.md",
     "plugins/pstack/skills/poteto-mode/playbooks/feature.md",
@@ -51,9 +53,20 @@ CONFLICTED = [
     "plugins/pstack/skills/why/references/sources/databricks.md",
 ]
 
+TAKE_OURS = (
+    "plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
+)
+
 
 def git_show(rev_path: str) -> str:
     return subprocess.check_output(["git", "show", rev_path], cwd=REPO).decode()
+
+
+def require_commit(rev: str) -> None:
+    subprocess.check_call(
+        ["git", "cat-file", "-e", f"{rev}^{{commit}}"],
+        cwd=REPO,
+    )
 
 
 def cursor_path(rel: str) -> str:
@@ -104,7 +117,6 @@ def apply_opcodes(working: str, ancestor: str, theirs: str, rel: str) -> list[st
         elif tag == "insert":
             if new and new in working:
                 continue
-            # insert after adapted ancestor context line
             if i1 > 0:
                 ctx = adapt("".join(a[i1 - 1 : i1]))
                 if ctx and ctx in working:
@@ -116,11 +128,19 @@ def apply_opcodes(working: str, ancestor: str, theirs: str, rel: str) -> list[st
 
 
 def main() -> None:
+    take_ours = frozenset(TAKE_OURS)
+    overlap = take_ours.intersection(CONFLICTED)
+    if overlap:
+        raise SystemExit(f"TAKE-OURS paths must not be grafted: {sorted(overlap)}")
+    require_commit(OURS)
     missed: list[str] = []
     for rel in CONFLICTED:
-        src = OURS_HEAD / rel
+        if rel in take_ours:
+            raise SystemExit(f"TAKE-OURS path listed as conflicted: {rel}")
+        working = git_show(f"{OURS}:{rel}")
         dest = REPO / rel
-        dest.write_text(src.read_text())
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(working)
         ancestor = git_show(f"{ANCESTOR}:{cursor_path(rel)}")
         theirs = git_show(f"{THEIRS}:{cursor_path(rel)}")
         missed.extend(apply_opcodes(dest.read_text(), ancestor, theirs, rel))

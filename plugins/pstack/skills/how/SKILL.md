@@ -28,7 +28,7 @@ Each explorer gets the prompt in `references/explorer-prompt.md` with its angle 
 
 Dispatch one read-only lane that explores and explains in one pass using your configured how-explainer descriptor from the model sheet, or the `how explainer` role from `catalog/role-defaults.json` when the sheet is absent.
 
-Build its prompt from `references/explainer-prompt.md` without the explorer-findings section. Go to Step 4.
+Build its prompt from `references/direct-explainer-prompt.md`. That prompt tells the lane to Glob, Grep, and Read the code itself. Do not build this path from `references/explainer-prompt.md`. Go to Step 4.
 
 ## Step 3. Synthesize (complex questions only)
 
@@ -42,4 +42,4 @@ Present the explainer's output to the user. Light edits for clarity or context f
 
 ## Output Format
 
-The explanation uses the sections defined in `references/explainer-prompt.md`, dropping any that do not apply: Overview, Key Concepts, How It Works, Where Things Live, Gotchas.
+The explanation uses the sections defined in `references/direct-explainer-prompt.md` and `references/explainer-prompt.md`, dropping any that do not apply: Overview, Key Concepts, How It Works, Where Things Live, Gotchas.
