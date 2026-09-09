@@ -28,7 +28,7 @@ MERGE	M	plugins/pstack/skills/poteto-mode/playbooks/authoring-a-skill.md
 CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md
 CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/autopilot-full.md
 CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/autopilot-stack.md
-CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/babysit.md
+TAKE-OURS	M	plugins/pstack/skills/poteto-mode/playbooks/babysit.md
 CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/bug-fix.md
 CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/eval.md
 CONFLICT	M	plugins/pstack/skills/poteto-mode/playbooks/feature.md
