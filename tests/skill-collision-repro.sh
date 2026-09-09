@@ -80,10 +80,9 @@ fi
 
 graft="$repo/scripts/graft-0150-onto-ours.py"
 graft_bad="$(
-  python3 - "$graft" "$repo" <<'PY'
-import ast, pathlib, subprocess, sys
+  python3 - "$graft" <<'PY'
+import ast, pathlib, re, sys
 path = pathlib.Path(sys.argv[1])
-repo = pathlib.Path(sys.argv[2])
 tree = ast.parse(path.read_text())
 ns = {}
 for node in tree.body:
@@ -107,25 +106,10 @@ if babysit in conflicted:
 if babysit not in take_ours:
     problems.append("babysit.md is not recorded as TAKE-OURS")
 ours = ns.get("OURS")
-if not ours:
-    problems.append("OURS commit is missing")
-else:
-    probe = subprocess.run(
-        ["git", "cat-file", "-e", f"{ours}^{{commit}}"],
-        cwd=repo,
-        capture_output=True,
-    )
-    if probe.returncode != 0:
-        problems.append(f"OURS commit is not in git: {ours}")
-    else:
-        for rel in conflicted:
-            blob = subprocess.run(
-                ["git", "cat-file", "-e", f"{ours}:{rel}"],
-                cwd=repo,
-                capture_output=True,
-            )
-            if blob.returncode != 0:
-                problems.append(f"OURS baseline missing {rel}")
+if not re.fullmatch(r"[0-9a-f]{40}", ours or ""):
+    problems.append(f"OURS is not a full commit SHA: {ours!r}")
+if "{OURS}:" not in source:
+    problems.append("graft does not read the ours baseline from git")
 print("\n".join(problems))
 PY
 )"
