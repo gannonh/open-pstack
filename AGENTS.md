@@ -111,7 +111,6 @@ judgment and prose: codex:gpt-6-astra@high
 hardest tasks: codex:gpt-6-astra@max
 how explorer: cursor:cursor-grok-4.6@xhigh
 how explainer: cursor:claude-fable-5-1@high
-how critics: cursor:claude-fable-5-1@xhigh, codex:gpt-6-astra@xhigh, cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@xhigh
 why investigators: inherit-parent
 why synthesizer: inherit-parent
 reflect tooling: inherit-parent

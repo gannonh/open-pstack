@@ -79,7 +79,6 @@ judgment and prose: claude:claude-fable-5.1@max
 hardest tasks: claude:claude-fable-5.1@max
 how explorer: cursor:cursor-grok-4.6@xhigh
 how explainer: claude:claude-fable-5.1@max
-how critics: claude:claude-fable-5.1@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:claude-opus-5@xhigh
 why investigators: inherit-parent
 why synthesizer: inherit-parent
 reflect tooling: inherit-parent

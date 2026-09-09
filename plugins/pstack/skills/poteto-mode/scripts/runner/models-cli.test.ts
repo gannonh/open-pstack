@@ -417,7 +417,7 @@ describe("pstack-models remove", () => {
     const beforeRoles = readFileSync(roleDefaultsFilePath(PLUGIN_ROOT));
     const { stderr, io } = harness();
     expect(await main(["remove", "claude-fable"], io)).toBe(1);
-    expect(stderr.join("")).toContain("how critics[1] claude:fable@max");
+    expect(stderr.join("")).toContain("arena runners[1] claude:fable@max");
     expect(readFileSync(roleDefaultsFilePath(PLUGIN_ROOT)).equals(beforeRoles)).toBe(true);
   });
 });

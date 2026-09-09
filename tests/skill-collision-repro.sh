@@ -33,6 +33,24 @@ else
   note "ok: all principle-* leaves request user-hidden and remain model-readable"
 fi
 
+principle_count="$(find "$repo/plugins/pstack/skills" -maxdepth 1 -type d -name 'principle-*' | wc -l | tr -d ' ')"
+if [ "$principle_count" != "23" ]; then
+  note "FAIL: expected 23 principle-* leaves, found $principle_count"
+  fail=1
+else
+  note "ok: 23 principle-* leaves"
+fi
+
+if grep -Fq '"id": "how critics"' "$repo/plugins/pstack/catalog/role-defaults.json" \
+  || grep -Fq 'how critics' "$repo/plugins/pstack/skills/how/SKILL.md" \
+  || [ -e "$repo/plugins/pstack/skills/how/references/critic-prompt.md" ] \
+  || [ -e "$repo/plugins/pstack/skills/how/references/critique-rubric.md" ]; then
+  note "FAIL: how critique mode or how critics role is still present"
+  fail=1
+else
+  note "ok: how critique mode and how critics role are gone"
+fi
+
 verof() { { grep -m1 '"version"' "$1" || true; } | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/'; }
 vc="$(verof "$repo/plugins/pstack/.claude-plugin/plugin.json")"
 vx="$(verof "$repo/plugins/pstack/.codex-plugin/plugin.json")"

@@ -1,0 +1,6 @@
+ts	phase	decision	why	evidence	result
+2026-09-09T01:22:19Z	frame	rebase onto Cursor pstack 0.15.0 with one shared skill tree	Linear AC plus UPSTREAM incorporate steps. No merge from ericlitman.	KAT-3309 UPSTREAM.md	framed
+2026-09-09T01:22:19Z	take-skip	take three pstack commits, skip docs/guide and Cursor plugin.json version	standing exclusions unchanged. how critics removal is a take.	docs/upstream-0.15.0-take-skip.md	recorded
+2026-09-09T01:22:19Z	merge	3-way merge then graft 0.15.0 edits onto adapted HEAD	preserve catalog and forge adaptations while taking density cuts	scripts/merge-cursor-pstack.py scripts/graft-0150-onto-ours.py	32 conflicts then grafted
+2026-09-09T01:22:19Z	how	rewrite how without critique mode and drop how critics role	0.15.0 deleted critique. keeping the role would leave a dead panel.	plugins/pstack/skills/how/SKILL.md plugins/pstack/catalog/role-defaults.json	landed
+2026-09-09T01:22:19Z	version	keep open-pstack at 1.6.3. recommend 1.7.0 after merge	AC forbids tagging from this ticket. Cursor and Open Pstack versions stay independent.	UPSTREAM.md CHANGES.md	decided

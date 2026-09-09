@@ -232,12 +232,12 @@ describe("proposeEdit", () => {
 });
 
 describe("proposeRemove", () => {
-  it("rejects claude-fable and lists role rows including how critics[1]", () => {
+  it("rejects claude-fable and lists role rows including arena runners[1]", () => {
     const catalog = loadModelCatalog();
     const proposal = proposeRemove(catalog, "claude-fable", loadRoleDefaults(catalog));
     expect(proposal.kind).toBe("rejected");
     if (proposal.kind !== "rejected") return;
-    expect(proposal.message).toContain("how critics[1] claude:fable@max");
+    expect(proposal.message).toContain("arena runners[1] claude:fable@max");
     expect(proposal.message).toContain("judgment and prose[1] claude:fable@max");
     expect(proposal.message).toContain("legacyMigrations");
   });

@@ -560,7 +560,6 @@ judgment and prose: claude:fable@high
 hardest tasks: claude:fable@max
 how explorer: cursor:cursor-grok-4.6@xhigh
 how explainer: claude:fable@max
-how critics: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
 why investigators: inherit-parent
 why synthesizer: inherit-parent
 reflect tooling: auto
@@ -678,20 +677,20 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
   it("can change a named panel lane without rewriting the others", () => {
     const changed = replacePanelLane(
       [...roles.roles],
-      "how critics",
+      "arena runners",
       0,
       "cursor:claude-fable-5-1@max",
       catalog
     );
-    const critics = changed.find((role) => role.id === "how critics");
-    expect(critics?.descriptors[0]).toBe("cursor:claude-fable-5-1@max");
-    expect(critics?.descriptors.slice(1)).toEqual([
+    const runners = changed.find((role) => role.id === "arena runners");
+    expect(runners?.descriptors[0]).toBe("cursor:claude-fable-5-1@max");
+    expect(runners?.descriptors.slice(1)).toEqual([
       "codex:gpt-5.6-sol@max",
       "cursor:cursor-grok-4.6@xhigh",
       "claude:opus@xhigh",
     ]);
-    expect(parseLaneEdit("how critics[3]")).toEqual({
-      roleId: "how critics",
+    expect(parseLaneEdit("arena runners[3]")).toEqual({
+      roleId: "arena runners",
       laneIndex: 2,
     });
     expect(
@@ -771,7 +770,7 @@ describe("catalog-driven native agents and skill invariants", () => {
     expect(setup).toContain("catalog/models.json");
     expect(setup).toContain("catalog/role-defaults.json");
     expect(setup).toContain("Which named roles or panel lanes do you want to change?");
-    expect(setup).toContain("how critics[3]");
+    expect(setup).toContain("arena runners[3]");
     expect(setup).not.toContain("Ask exactly four effort questions");
     expect(setup).not.toContain("one requested effort per family");
     expect(setup).not.toContain("Probe only the four selected");
