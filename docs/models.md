@@ -79,6 +79,9 @@ The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent c
 | `cursor:claude-fable-5-1-thinking@high` | `claude-fable-5-1-thinking-high` | `claude-fable-5-1-thinking-high` |
 | `cursor:gpt-5.6-sol@max` | `gpt-5.6-sol-max` | `gpt-5.6-sol-max` |
 | `cursor:claude-opus-5@high` | `claude-opus-5-high` | `claude-opus-5-high` |
+| `cursor:claude-sonnet-5@high` | `claude-sonnet-5-high` | `claude-sonnet-5-high` |
+| `cursor:claude-sonnet-5-thinking@max` | `claude-sonnet-5-thinking-max` | `claude-sonnet-5-thinking-max` |
+| `cursor:claude-opus-5-thinking@high` | `claude-opus-5-thinking-high` | `claude-opus-5-thinking-high` |
 
 Native `Task` runs only when the mapped slug is an exact allowlist token. Otherwise the parent runs `pstack-runner --parent cursor --provider cursor` and `cursor-agent -p --model` still receives the composed CLI id. A listed `-fast` slug is not a substitute. A rejected native dispatch names the composed id, the mapped slug, and the allowlist. Codex and Claude parents keep the external `cursor:*` path they already use.
 
@@ -295,6 +298,11 @@ Each offering declares `supportedEfforts` as an ordered list of safe identifiers
 | `cursor:gpt-5.6-luna` | `high`, `low`, `medium`, `xhigh`, `max` | `medium` |
 | `cursor:claude-fable-5-1-thinking` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
 | `cursor:claude-opus-5` | `low`, `medium`, `high` | `high` |
+| `claude:default` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
+| `claude:sonnet` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
+| `cursor:claude-sonnet-5` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
+| `cursor:claude-sonnet-5-thinking` | `high`, `xhigh`, `low`, `medium`, `max` | `max` |
+| `cursor:claude-opus-5-thinking` | `high`, `low`, `medium`, `xhigh`, `max` | `max` |
 
 An effort outside the bound offering's list fails at every layer with no substitution. Sheet validation and setup reject the row. The runner rejects the `(provider, model, effort)` tuple before preflight. A Claude-native agent file exists only for listed efforts, so an unlisted effort has no agent to dispatch. Nothing rounds `ultra` down to `max` or `max` up to `ultra`.
 
