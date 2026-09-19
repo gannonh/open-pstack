@@ -16,6 +16,10 @@ The babysit density cut that writes `origin pr … <pr>` into executable templat
 
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
+## 1.6.5 catalogs Claude Sonnet rolling aliases and Cursor Sonnet 5 / Opus 5 thinking
+
+`pstack-models discover` on 2026-09-19 advertised Claude `default` and `sonnet` (both resolve to `claude-sonnet-5`, efforts `low` through `max`) and Cursor stems `claude-sonnet-5`, `claude-sonnet-5-thinking`, and `claude-opus-5-thinking`. Those offerings are now in `catalog/models.json`. Claude default effort is `high` because discover did not advertise one. Cursor Sonnet 5 default is `high`; both thinking stems default to `max`. Role defaults are unchanged. Native Task slugs for the new Cursor stems are identity with the composed CLI id.
+
 ## 1.6.3 catalogs Codex Sol ultra plus Claude opus[1m] and Cursor Sol/Terra/Luna/Fable thinking/Opus 5
 
 `pstack-models discover --provider codex` on 2026-09-07 advertised `gpt-5.6-sol` efforts `low` through `ultra`. The shipped offering now lists `ultra`. Default effort stays `max`. Role defaults stay `codex:gpt-5.6-sol@max`.

@@ -24,6 +24,11 @@ export const ADDED_OFFERING_IDS = [
   "cursor-gpt-5-6-luna",
   "cursor-claude-fable-5-1-thinking",
   "cursor-claude-opus-5",
+  "claude-default",
+  "claude-sonnet",
+  "cursor-claude-sonnet-5",
+  "cursor-claude-sonnet-5-thinking",
+  "cursor-claude-opus-5-thinking",
 ] as const;
 
 export function baseCatalog(): ModelCatalog {
