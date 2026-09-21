@@ -74,6 +74,7 @@ The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent c
 | Descriptor | Composed CLI id | Native Task slug |
 | --- | --- | --- |
 | `cursor:cursor-grok-4.6@xhigh` | `cursor-grok-4.6-xhigh` | `cursor-grok-4.6-xhigh` |
+| `cursor:grok-4.7@xhigh` | `grok-4.7-xhigh` | `grok-4.7-xhigh` |
 | `cursor:claude-fable-5-1@high` | `claude-fable-5-1-high` | `claude-fable-5-1-thinking-high` |
 | `cursor:claude-fable-5-1@xhigh` | `claude-fable-5-1-xhigh` | `claude-fable-5-1-thinking-xhigh` |
 | `cursor:claude-fable-5-1-thinking@high` | `claude-fable-5-1-thinking-high` | `claude-fable-5-1-thinking-high` |
@@ -288,6 +289,7 @@ Each offering declares `supportedEfforts` as an ordered list of safe identifiers
 | --- | --- | --- |
 | `claude:fable` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
 | `cursor:cursor-grok-4.6` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
+| `cursor:grok-4.7` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
 | `codex:gpt-5.6-sol` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `max` |
 | `codex:gpt-6-astra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
 | `codex:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |

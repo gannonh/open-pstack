@@ -16,6 +16,10 @@ The babysit density cut that writes `origin pr … <pr>` into executable templat
 
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
+## 1.6.6 catalogs Cursor Grok 4.7
+
+`pstack-models discover --provider cursor` on 2026-09-21 advertised `grok-4.7` (display name `Grok 4.7`, efforts `low`, `medium`, `high`, `xhigh`). That offering is now `cursor:grok-4.7`. Default effort is `xhigh` because discover did not advertise one; the effort list ends at `xhigh`, matching `cursor:cursor-grok-4.6`. Role defaults are unchanged. The native Task slug is identity with the composed CLI id (`grok-4.7-<effort>`). `-fast` variants stay uncataloged.
+
 ## 1.6.5 catalogs Claude Sonnet rolling aliases and Cursor Sonnet 5 / Opus 5 thinking
 
 `pstack-models discover` on 2026-09-19 advertised Claude `default` and `sonnet` (both resolve to `claude-sonnet-5`, efforts `low` through `max`) and Cursor stems `claude-sonnet-5`, `claude-sonnet-5-thinking`, and `claude-opus-5-thinking`. Those offerings are now in `catalog/models.json`. Claude default effort is `high` because discover did not advertise one. Cursor Sonnet 5 default is `high`; both thinking stems default to `max`. Role defaults are unchanged. Native Task slugs for the new Cursor stems are identity with the composed CLI id.

@@ -554,6 +554,7 @@ export const NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID: Readonly<
   "cursor-claude-sonnet-5": "identity",
   "cursor-claude-sonnet-5-thinking": "identity",
   "cursor-claude-opus-5-thinking": "identity",
+  "cursor-grok-4-7": "identity",
 };
 
 export interface NativeTaskSlugEntry {
