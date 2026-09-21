@@ -336,6 +336,22 @@
       "deprecated": false,
       "successorId": null,
       "notes": "Discovered via cursor-agent models on 2026-09-19T15:23:44.817Z."
+    },
+    {
+      "id": "cursor-grok-4-7",
+      "family": "grok",
+      "displayName": "Grok 4.7",
+      "provider": "cursor",
+      "selector": "grok-4.7",
+      "selectorComposition": "effort-suffix",
+      "supportedEfforts": ["low", "medium", "high", "xhigh"],
+      "defaultEffort": "xhigh",
+      "nativeAgentStem": null,
+      "nativeAgentTitle": null,
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Discovered via cursor-agent models on 2026-09-21T17:38:37.449Z."
     }
   ],
   "legacyMigrations": [

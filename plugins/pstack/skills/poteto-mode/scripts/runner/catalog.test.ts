@@ -106,6 +106,7 @@ describe("model catalog", () => {
       "cursor-claude-sonnet-5",
       "cursor-claude-sonnet-5-thinking",
       "cursor-claude-opus-5-thinking",
+      "cursor-grok-4-7",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -131,6 +132,7 @@ describe("model catalog", () => {
       "cursor:claude-sonnet-5",
       "cursor:claude-sonnet-5-thinking",
       "cursor:claude-opus-5-thinking",
+      "cursor:grok-4.7",
     ]);
   });
 
@@ -238,6 +240,14 @@ describe("model catalog", () => {
     expect(bindDescriptor(catalog, "cursor:claude-opus-5-thinking@max").offering?.id).toBe(
       "cursor-claude-opus-5-thinking"
     );
+
+    const cursorGrok47 = findOffering(catalog, "cursor", "grok-4.7");
+    expect(cursorGrok47?.id).toBe("cursor-grok-4-7");
+    expect(cursorGrok47?.displayName).toBe("Grok 4.7");
+    expect(cursorGrok47?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh"]);
+    expect(cursorGrok47?.defaultEffort).toBe("xhigh");
+    expect(bindDescriptor(catalog, "cursor:grok-4.7@xhigh").offering?.id).toBe("cursor-grok-4-7");
+    expect(() => bindDescriptor(catalog, "cursor:grok-4.7@max")).toThrow("unsupported effort max");
 
     const pin = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
     expect(pin?.displayName).toBe("Fable 5.1");
@@ -507,6 +517,9 @@ describe("model catalog", () => {
     expect(
       nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5-thinking")!, "high")
     ).toBe("claude-opus-5-thinking-high");
+    expect(nativeTaskSlug(findOffering(catalog, "cursor", "grok-4.7")!, "xhigh")).toBe(
+      "grok-4.7-xhigh"
+    );
     for (const row of nativeTaskSlugTable(catalog)) {
       expect(row.taskSlug.includes("-fast")).toBe(false);
       expect(row.taskSlug.endsWith(`-${row.effort}`)).toBe(true);
