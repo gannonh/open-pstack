@@ -1,16 +1,8 @@
-# Upstream synchronization
+# Content upstream
 
-This repository is `gannonh/open-pstack`. In this repository, "upstream" means Lauren Tan's Cursor pstack. The tree lives at [cursor/plugins `pstack/`](https://github.com/cursor/plugins/tree/main/pstack). Fetch it from the `cursor` remote, path `pstack/`.
+This repository is `gannonh/open-pstack`. Its content upstream is [Cursor's pstack tree](https://github.com/cursor/plugins/tree/main/pstack), in the `cursor/plugins` repository at path `pstack/`. Maintainers review upstream commits and integrate selected changes. This does not require a persistent Git remote or a GitHub fork relationship to Cursor.
 
-Do not name a remote `upstream`. `origin` points to this repository. Gannon decided that Cursor pstack is the only current content-sync source. The project history and attribution are recorded in [NOTICE.md](NOTICE.md) and [CHANGES.md](CHANGES.md).
-
-## Add remotes
-
-`git clone https://github.com/gannonh/open-pstack.git` already creates `origin`. Add the Cursor remote when you need to fetch upstream content:
-
-```shell
-git remote add cursor https://github.com/cursor/plugins.git
-```
+Do not name a remote `upstream`. The `origin` remote points to `gannonh/open-pstack`. GitHub's fork metadata is separate from the content source. The project history and attribution are recorded in [NOTICE.md](NOTICE.md) and [CHANGES.md](CHANGES.md).
 
 ## Current sync point
 
@@ -33,14 +25,14 @@ The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves
 
 ## Check for changes
 
-The `cursor` remote is needed only when you sync upstream content. A fresh clone has only `origin`; add `cursor` once as shown in [Add remotes](#add-remotes).
+Fetch the Cursor branch directly when you check for changes. This updates `FETCH_HEAD` and does not add a remote to the checkout.
 
 Fetch and inspect only commits that touched pstack after the recorded sync point:
 
 ```shell
-git fetch cursor main
-git log --oneline 71ed0d1076fec562c1b74ee353121a8d00f75382..cursor/main -- pstack
-git diff --stat 71ed0d1076fec562c1b74ee353121a8d00f75382..cursor/main -- pstack
+git fetch https://github.com/cursor/plugins.git main
+git log --oneline 71ed0d1076fec562c1b74ee353121a8d00f75382..FETCH_HEAD -- pstack
+git diff --stat 71ed0d1076fec562c1b74ee353121a8d00f75382..FETCH_HEAD -- pstack
 ```
 
 No output means the tracked pstack tree has not changed. This comparison does not need a polling service or generated mirror branch.
