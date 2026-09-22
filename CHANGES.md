@@ -16,11 +16,11 @@ The babysit density cut that writes `origin pr … <pr>` into executable templat
 
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
-## 1.6.7 catalogs Codex GPT-6 Sol/Luna and Cursor Claude Opus 5.5
+## 1.6.7 catalogs Codex GPT-6 Sol/Luna and Claude Opus 5.5
 
 Targeted discovery on 2026-09-22 advertised Codex `gpt-6-sol` and `gpt-6-luna`, plus Cursor `claude-opus-5-5`, as supported and not cataloged. Codex reported `low`, `medium`, `high`, `xhigh`, `max`, and `ultra` for Sol, with default `medium`. Luna supports `low` through `max`, with default `medium`.
 
-Cursor reported `low` through `max` for Opus 5.5 and no default. The catalog uses `high`, matching the existing Cursor Opus 5 offering. Claude's `default` and `opus[1m]` entries resolved to Opus 5, so Opus 5.5 is cataloged under Cursor only. The Cursor Task slug matches the composed CLI id (`claude-opus-5-5-<effort>`). Role defaults are unchanged.
+Cursor reported `low` through `max` for Opus 5.5 and no default. The catalog uses `high`, matching the existing Cursor Opus 5 offering. Claude Code 2.1.280 now reports both `default` and `opus[1m]` resolving to `claude-opus-5-5[1m]`, with efforts `low` through `max`. That exact resolved selector also passed a direct Claude Code invocation, so the catalog includes a pinned native Claude offering alongside the rolling aliases and Cursor offering. The Cursor Task slug matches the composed CLI id (`claude-opus-5-5-<effort>`). Role defaults are unchanged.
 
 ## 1.6.6 catalogs Cursor Grok 4.7
 

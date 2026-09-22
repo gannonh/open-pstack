@@ -110,6 +110,7 @@ describe("model catalog", () => {
       "codex-gpt-6-sol",
       "codex-gpt-6-luna",
       "cursor-claude-opus-5-5",
+      "claude-claude-opus-5-5-1m",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -139,10 +140,11 @@ describe("model catalog", () => {
       "codex:gpt-6-sol",
       "codex:gpt-6-luna",
       "cursor:claude-opus-5-5",
+      "claude:claude-opus-5-5[1m]",
     ]);
   });
 
-  it("catalogs GPT-6 Sol and Luna plus Cursor Claude Opus 5.5", () => {
+  it("catalogs GPT-6 Sol and Luna plus native and Cursor Claude Opus 5.5", () => {
     const sol = findOffering(catalog, "codex", "gpt-6-sol");
     expect(sol?.displayName).toBe("GPT-6-Sol");
     expect(sol?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
@@ -169,6 +171,15 @@ describe("model catalog", () => {
     expect(bindDescriptor(catalog, "cursor:claude-opus-5-5@high").offering?.id).toBe(
       "cursor-claude-opus-5-5"
     );
+
+    const nativeOpus55 = findOffering(catalog, "claude", "claude-opus-5-5[1m]");
+    expect(nativeOpus55?.displayName).toBe("Claude Opus 5.5 1M");
+    expect(nativeOpus55?.supportedEfforts).toEqual(FIVE_EFFORTS);
+    expect(nativeOpus55?.defaultEffort).toBe("high");
+    expect(nativeOpus55?.rollingAlias).toBe(false);
+    expect(
+      bindDescriptor(catalog, "claude:claude-opus-5-5[1m]@high").offering?.id
+    ).toBe("claude-claude-opus-5-5-1m");
   });
 
   it("catalogs GPT-6 Astra with ultra and the explicit Fable 5.1 [1m] pin without touching role defaults", () => {

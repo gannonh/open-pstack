@@ -33,6 +33,7 @@ export const ADDED_OFFERING_IDS = [
   "codex-gpt-6-sol",
   "codex-gpt-6-luna",
   "cursor-claude-opus-5-5",
+  "claude-claude-opus-5-5-1m",
 ] as const;
 
 export function baseCatalog(): ModelCatalog {
