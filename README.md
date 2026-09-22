@@ -219,21 +219,21 @@ This repository also keeps:
 
 ## Staying close to Lauren's pstack
 
-Open Pstack 1.6.3 tracks pstack 0.15.0 at Cursor commit [`71ed0d1076fec562c1b74ee353121a8d00f75382`](https://github.com/cursor/plugins/commit/71ed0d1076fec562c1b74ee353121a8d00f75382).
+Open Pstack 1.6.6 tracks pstack 0.15.0 at Cursor commit [`71ed0d1076fec562c1b74ee353121a8d00f75382`](https://github.com/cursor/plugins/commit/71ed0d1076fec562c1b74ee353121a8d00f75382).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Cursor, Claude Code, and Codex package built from it.
 
-In this repository, "upstream" means Lauren's Cursor pstack. Open Pstack does not promise instant updates. It records the exact version it follows and reviews new changes in order. It changes only what Cursor, Claude Code, and Codex require. New pstack behavior belongs in Lauren's official Cursor plugin first whenever possible.
+In this repository, content upstream is [Cursor's pstack tree](https://github.com/cursor/plugins/tree/main/pstack). We will continue to review upstream changes and integrate selected updates into Open Pstack. We record the last integrated commit and version in [UPSTREAM.md](UPSTREAM.md). This does not require a persistent Git remote or a GitHub fork relationship to Cursor. GitHub's fork metadata is separate from the content source.
 
 ## Lineage
 
 Open Pstack began as Michael Denyer's [`pstack-claude`](https://github.com/michael-denyer/pstack-claude) port of Lauren's pstack. [`ericlitman/open-pstack`](https://github.com/ericlitman/open-pstack) later became the canonical distribution. That event is recorded under 1.1.0 in [CHANGES.md](CHANGES.md).
 
-This repository is `gannonh/open-pstack`. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. Cursor pstack is the only content-sync source. The optional `ericlitman` git remote is an archive. Never merge from it. Do not name a remote `upstream` that points at ericlitman.
+This repository is `gannonh/open-pstack`. The `origin` remote points to this repository. Maintainers fetch Cursor's pstack tree directly when integrating content; no persistent `cursor` remote is required. GitHub fork metadata is separate from the content source. See [UPSTREAM.md](UPSTREAM.md) for the sync point and integration steps.
 
 ## Contributing
 
-Product work stays in Linear project Open Pstack and in this repository. GitHub Issues are inbound reports only. Do not use them for planning. Do not file product issues on `ericlitman/open-pstack` by default. If a change belongs in Lauren's official Cursor plugin `pstack`, send it there.
+Product work stays in Linear project Open Pstack and in this repository. GitHub Issues are inbound reports only. Do not use them for planning. If a change belongs in Lauren's official Cursor plugin `pstack`, send it there.
 
 Read [UPSTREAM.md](UPSTREAM.md) before changing content brought over from Lauren's pstack. Pull requests must keep one shared skill tree for Cursor, Claude Code, and Codex. They must pass the repository's tests, type checks, plugin validation, and static checks.
 
