@@ -16,6 +16,12 @@ The babysit density cut that writes `origin pr … <pr>` into executable templat
 
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
+## 1.6.7 catalogs Codex GPT-6 Sol/Luna and Cursor Claude Opus 5.5
+
+Targeted discovery on 2026-09-22 advertised Codex `gpt-6-sol` and `gpt-6-luna`, plus Cursor `claude-opus-5-5`, as supported and not cataloged. Codex reported `low`, `medium`, `high`, `xhigh`, `max`, and `ultra` for Sol, with default `medium`. Luna supports `low` through `max`, with default `medium`.
+
+Cursor reported `low` through `max` for Opus 5.5 and no default. The catalog uses `high`, matching the existing Cursor Opus 5 offering. Claude's `default` and `opus[1m]` entries resolved to Opus 5, so Opus 5.5 is cataloged under Cursor only. The Cursor Task slug matches the composed CLI id (`claude-opus-5-5-<effort>`). Role defaults are unchanged.
+
 ## 1.6.6 catalogs Cursor Grok 4.7
 
 `pstack-models discover --provider cursor` on 2026-09-21 advertised `grok-4.7` (display name `Grok 4.7`, efforts `low`, `medium`, `high`, `xhigh`). That offering is now `cursor:grok-4.7`. Default effort is `xhigh` because discover did not advertise one; the effort list ends at `xhigh`, matching `cursor:cursor-grok-4.6`. Role defaults are unchanged. The native Task slug is identity with the composed CLI id (`grok-4.7-<effort>`). `-fast` variants stay uncataloged.

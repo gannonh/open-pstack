@@ -107,6 +107,9 @@ describe("model catalog", () => {
       "cursor-claude-sonnet-5-thinking",
       "cursor-claude-opus-5-thinking",
       "cursor-grok-4-7",
+      "codex-gpt-6-sol",
+      "codex-gpt-6-luna",
+      "cursor-claude-opus-5-5",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -133,7 +136,39 @@ describe("model catalog", () => {
       "cursor:claude-sonnet-5-thinking",
       "cursor:claude-opus-5-thinking",
       "cursor:grok-4.7",
+      "codex:gpt-6-sol",
+      "codex:gpt-6-luna",
+      "cursor:claude-opus-5-5",
     ]);
+  });
+
+  it("catalogs GPT-6 Sol and Luna plus Cursor Claude Opus 5.5", () => {
+    const sol = findOffering(catalog, "codex", "gpt-6-sol");
+    expect(sol?.displayName).toBe("GPT-6-Sol");
+    expect(sol?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    expect(sol?.defaultEffort).toBe("medium");
+    expect(bindDescriptor(catalog, "codex:gpt-6-sol@ultra").offering?.id).toBe(
+      "codex-gpt-6-sol"
+    );
+
+    const luna = findOffering(catalog, "codex", "gpt-6-luna");
+    expect(luna?.displayName).toBe("GPT-6-Luna");
+    expect(luna?.supportedEfforts).toEqual(FIVE_EFFORTS);
+    expect(luna?.defaultEffort).toBe("medium");
+    expect(bindDescriptor(catalog, "codex:gpt-6-luna@max").offering?.id).toBe(
+      "codex-gpt-6-luna"
+    );
+    expect(() => bindDescriptor(catalog, "codex:gpt-6-luna@ultra")).toThrow(
+      "unsupported effort ultra"
+    );
+
+    const opus55 = findOffering(catalog, "cursor", "claude-opus-5-5");
+    expect(opus55?.displayName).toBe("Claude Opus 5.5 1M");
+    expect(opus55?.supportedEfforts).toEqual(FIVE_EFFORTS);
+    expect(opus55?.defaultEffort).toBe("high");
+    expect(bindDescriptor(catalog, "cursor:claude-opus-5-5@high").offering?.id).toBe(
+      "cursor-claude-opus-5-5"
+    );
   });
 
   it("catalogs GPT-6 Astra with ultra and the explicit Fable 5.1 [1m] pin without touching role defaults", () => {
@@ -508,6 +543,9 @@ describe("model catalog", () => {
     expect(nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5")!, "high")).toBe(
       "claude-opus-5-high"
     );
+    expect(
+      nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5-5")!, "high")
+    ).toBe("claude-opus-5-5-high");
     expect(nativeTaskSlug(findOffering(catalog, "cursor", "claude-sonnet-5")!, "high")).toBe(
       "claude-sonnet-5-high"
     );
