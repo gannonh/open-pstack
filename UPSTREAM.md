@@ -2,16 +2,14 @@
 
 This repository is `gannonh/open-pstack`. In this repository, "upstream" means Lauren Tan's Cursor pstack. The tree lives at [cursor/plugins `pstack/`](https://github.com/cursor/plugins/tree/main/pstack). Fetch it from the `cursor` remote, path `pstack/`.
 
-Do not name a remote `upstream`. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. Gannon decided that Cursor pstack is the only content-sync source. `ericlitman/open-pstack` and `michael-denyer/pstack-claude` are historical lineage. An `ericlitman` remote is an optional archive. Never merge from it.
+Do not name a remote `upstream`. `origin` points to this repository. Gannon decided that Cursor pstack is the only current content-sync source. The project history and attribution are recorded in [NOTICE.md](NOTICE.md) and [CHANGES.md](CHANGES.md).
 
 ## Add remotes
 
-`git clone https://github.com/gannonh/open-pstack.git` already creates `origin`. Add the remaining remotes once per clone:
+`git clone https://github.com/gannonh/open-pstack.git` already creates `origin`. Add the Cursor remote when you need to fetch upstream content:
 
 ```shell
 git remote add cursor https://github.com/cursor/plugins.git
-# optional archive only; never merge from it
-git remote add ericlitman https://github.com/ericlitman/open-pstack.git
 ```
 
 ## Current sync point
@@ -35,7 +33,7 @@ The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves
 
 ## Check for changes
 
-The maintainer checkout already has the `cursor` remote. A fresh clone has only `origin`; add `cursor` once as shown in [Add remotes](#add-remotes).
+The `cursor` remote is needed only when you sync upstream content. A fresh clone has only `origin`; add `cursor` once as shown in [Add remotes](#add-remotes).
 
 Fetch and inspect only commits that touched pstack after the recorded sync point:
 
@@ -49,7 +47,7 @@ No output means the tracked pstack tree has not changed. This comparison does no
 
 ## Incorporate a change
 
-1. Create or update the Linear issue that specs the sync. Branch from current `main`. Product work stays in Linear project Open Pstack and in this repository. GitHub Issues are inbound reports only. Do not file product work on `ericlitman/open-pstack`.
+1. Create or update the Linear issue that specs the sync. Branch from current `main`. Product work stays in Linear project Open Pstack and in this repository. GitHub Issues are inbound reports only.
 2. Read each upstream pstack commit in order. Bring over its intent and content. Then apply only the Claude Code and Codex substitutions documented in `CHANGES.md`.
 3. Keep one shared `plugins/pstack/skills/` tree. Put harness translation in the existing `codex-tools.md` and `cursor-tools.md` and provider routing in `provider-dispatch.md`. Do not fork a skill per harness. The Cursor plugin `open-pstack` reads the same tree through `plugins/pstack/.cursor-plugin/plugin.json`.
 4. Update the commit and version in this file, the affected provenance rows in `NOTICE.md`, and `README-UPSTREAM.md` when upstream changes it.
