@@ -551,6 +551,7 @@ export const NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID: Readonly<
   "cursor-gpt-5-6-luna": "identity",
   "cursor-claude-fable-5-1-thinking": "identity",
   "cursor-claude-opus-5": "identity",
+  "cursor-claude-opus-5-5": "identity",
   "cursor-claude-sonnet-5": "identity",
   "cursor-claude-sonnet-5-thinking": "identity",
   "cursor-claude-opus-5-thinking": "identity",
