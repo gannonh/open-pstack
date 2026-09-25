@@ -31,7 +31,7 @@ Eight commits, 45 paths, +137/−157. The merge report is [upstream-0.15.5-merge
 
 **Reading the model rule.** Upstream gives each routed skill the same paragraph. The paragraph reads a `pstack-models.mdc` line, uses a Cursor slug default, and falls back to the closest valid `Task` slug. Open Pstack already routes every skill through `provider-dispatch.md` with no fallback. The take is naming the exact role id in each skill: `why investigators`, `why synthesizer`, `reflect tooling`, `reflect judgment, divergent, synthesizer`, and the code playbook roles in poteto-mode.
 
-**Interrogate reviewer count.** Upstream shrinks the default panel to three reviewers. Open Pstack takes the panel size from the `interrogate reviewers` role, so the default stays whatever `catalog/role-defaults.json` lists.
+**Interrogate reviewer count.** Upstream shrinks the default panel to three reviewers, one per model family. Open Pstack takes the same step in `catalog/role-defaults.json`. The `interrogate reviewers` default drops `claude:fable@max` and keeps `claude:opus@xhigh`, `codex:gpt-5.6-sol@max`, and `cursor:cursor-grok-4.6@xhigh`. The panel size still comes from the role, so an existing sheet keeps its lanes.
 
 ## Skip (standing exclusions, unchanged)
 

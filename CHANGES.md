@@ -10,6 +10,8 @@ Setup-pstack asks for a budget (`unlimited`, `large`, `medium`, `small`) before 
 
 Poteto-mode gains the evidence-label reply rule and the full-autonomy grant rule. Autopilot-full verifies each round whose push changes the patch. Merge prep waits for CI on the rebased head. Autopilot owners babysit their own PRs. The playbooks refer to the operator without gendered pronouns. Instruction cuts from `b0b9c7a` and `70b2dc8` land in interrogate, reflect, tdd, figure-it-out, technical-writing, unslop, five principles, and the feature, bug-fix, and refactoring playbooks.
 
+The first-run `interrogate reviewers` panel follows upstream from four lanes to three, one per model family: `claude:opus@xhigh`, `codex:gpt-5.6-sol@max`, and `cursor:cursor-grok-4.6@xhigh`. Existing sheets keep their lanes until the operator edits that role.
+
 Upstream default slugs and Cursor `Task`-slug fallbacks are skipped. Routed skills still resolve roles through `provider-dispatch.md`.
 
 `scripts/merge-cursor-pstack.py` now takes the ancestor, theirs, and report label as arguments.

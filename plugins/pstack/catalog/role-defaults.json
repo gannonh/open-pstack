@@ -105,10 +105,9 @@
       "id": "interrogate reviewers",
       "kind": "panel",
       "descriptors": [
-        "claude:fable@max",
+        "claude:opus@xhigh",
         "codex:gpt-5.6-sol@max",
-        "cursor:cursor-grok-4.6@xhigh",
-        "claude:opus@xhigh"
+        "cursor:cursor-grok-4.6@xhigh"
       ]
     }
   ]
