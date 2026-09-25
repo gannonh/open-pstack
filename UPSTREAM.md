@@ -10,17 +10,18 @@ Do not name a remote `upstream`. The `origin` remote points to `gannonh/open-pst
 | --- | --- |
 | Repository | `https://github.com/cursor/plugins.git` |
 | Path | `pstack/` |
-| Commit | `71ed0d1076fec562c1b74ee353121a8d00f75382` |
-| Upstream version | `0.15.0` |
+| Commit | `12d587dfb20741cafc376c42c696c5f6e2a64487` |
+| Upstream version | `0.15.5` |
 | open-pstack version | `1.6.7` |
 
-The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance. The 0.14.8→0.15.0 take vs skip record is [docs/upstream-0.15.0-take-skip.md](docs/upstream-0.15.0-take-skip.md).
+The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance. The 0.15.0→0.15.5 take vs skip record is [docs/upstream-0.15.5-take-skip.md](docs/upstream-0.15.5-take-skip.md). Earlier records use the same `docs/upstream-<version>-take-skip.md` name.
 
 ## Upstream-only exclusions
 
 - Commits `799151d` and `6fecddb` add and relocate `make-bot-ui`. It depends on Cursor routines, webhook events, and UI primitives that Claude Code and Codex do not share.
 - Four `disable-model-invocation: true` lines from `73f8be4` are not applied to `how`, `why`, `unslop`, or `typescript-best-practices`. Poteto-mode invokes those skills by name, and the flag blocks that route on Claude Code.
-- The `23a56e2` default-model hunks for `bug-fix`, `perf-issue`, and `hillclimb` are not applied. Those frequent code-writing roles stay on `codex:gpt-5.6-sol@max` for cost.
+- The `23a56e2` default-model hunks for `bug-fix`, `perf-issue`, and `hillclimb` are not applied. Those frequent code-writing roles stay on `codex:gpt-5.6-sol@max` for cost. The same holds for the `889ec4b` and `70b2dc8` default-model hunks.
+- Upstream Cursor `Task`-slug defaults and "closest valid slug" fallbacks in routed skills are not applied. Routed skills read their role from the model sheet or `catalog/role-defaults.json`, and provider dispatch fails closed with a dropout.
 - The Claude manifest does not take the logo field from `efa2a53` because Claude Code has no schema for it. The shared asset is exposed through the Codex manifest instead.
 
 ## Check for changes
@@ -31,8 +32,8 @@ Fetch and inspect only commits that touched pstack after the recorded sync point
 
 ```shell
 git fetch https://github.com/cursor/plugins.git main
-git log --oneline 71ed0d1076fec562c1b74ee353121a8d00f75382..FETCH_HEAD -- pstack
-git diff --stat 71ed0d1076fec562c1b74ee353121a8d00f75382..FETCH_HEAD -- pstack
+git log --oneline 12d587dfb20741cafc376c42c696c5f6e2a64487..FETCH_HEAD -- pstack
+git diff --stat 12d587dfb20741cafc376c42c696c5f6e2a64487..FETCH_HEAD -- pstack
 ```
 
 No output means the tracked pstack tree has not changed. This comparison does not need a polling service or generated mirror branch.

@@ -2,6 +2,18 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Sync to Cursor pstack 0.15.5
+
+Tracks Cursor pstack 0.15.5 at `12d587dfb20741cafc376c42c696c5f6e2a64487`. Take vs skip: [docs/upstream-0.15.5-take-skip.md](docs/upstream-0.15.5-take-skip.md).
+
+Setup-pstack asks for a budget (`unlimited`, `large`, `medium`, `small`) before named edits. It sets every offering lane's effort to the budget target, or to that offering's highest supported effort below it, and writes `# budget: <label> (<effort>)` under the sheet title. A sheet without that line is `unlimited`. Setup drops rows for the retired roles `how critics`, `why investigators, synthesizer`, and `reflect tooling, judgment, divergent, synthesizer` and lists them at confirmation. `parseSheet` reports those rows as `retired role:`. Other unknown rows still fail.
+
+Poteto-mode gains the evidence-label reply rule and the full-autonomy grant rule. Autopilot-full verifies each round whose push changes the patch. Merge prep waits for CI on the rebased head. Autopilot owners babysit their own PRs. The playbooks refer to the operator without gendered pronouns. Instruction cuts from `b0b9c7a` and `70b2dc8` land in interrogate, reflect, tdd, figure-it-out, technical-writing, unslop, five principles, and the feature, bug-fix, and refactoring playbooks.
+
+Upstream default slugs and Cursor `Task`-slug fallbacks are skipped. Routed skills still resolve roles through `provider-dispatch.md`.
+
+`scripts/merge-cursor-pstack.py` now takes the ancestor, theirs, and report label as arguments.
+
 ## Sync to Cursor pstack 0.15.0 (open-pstack version stays 1.6.3)
 
 Tracks Cursor pstack 0.15.0 at `71ed0d1076fec562c1b74ee353121a8d00f75382`. Take vs skip: [docs/upstream-0.15.0-take-skip.md](docs/upstream-0.15.0-take-skip.md).
