@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """3-way merge Cursor pstack into plugins/pstack, then report conflicts.
 
+Usage: merge-cursor-pstack.py <ancestor> <theirs> <label>
+
 Ancestor: recorded UPSTREAM.md sync commit.
 Theirs: Cursor pstack tip that touched pstack/.
 Ours: current open-pstack files (Claude/Codex/Cursor adaptations).
+Report: docs/upstream-<label>-merge-report.tsv.
 
 Skips docs/guide (Cursor tutorial) and upstream plugin.json (independent versions).
 New principle leaves swap disable-model-invocation for user-invocable: false.
@@ -15,9 +18,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-ANCESTOR = "7314f723a487ec406b6369fe5865ba034cfed166"
-THEIRS = "71ed0d1076fec562c1b74ee353121a8d00f75382"
-WORKDIR = Path("/tmp/pstack-0150-merge")
+WORKDIR = Path("/tmp/pstack-merge")
 
 SKIP_PREFIXES = ("pstack/docs/guide/",)
 SKIP_EXACT = {"pstack/.cursor-plugin/plugin.json"}
@@ -48,7 +49,7 @@ def principle_frontmatter(data: bytes) -> bytes:
     return text.encode()
 
 
-def main() -> int:
+def main(ANCESTOR: str, THEIRS: str, label: str) -> int:
     WORKDIR.mkdir(parents=True, exist_ok=True)
     status = run(
         ["git", "diff", "--name-status", ANCESTOR, THEIRS, "--", "pstack"]
@@ -102,7 +103,7 @@ def main() -> int:
         else:
             conflicts += 1
             report.append(f"CONFLICT\t{st}\t{ours.relative_to(REPO)}")
-    out = REPO / "docs" / "upstream-0.15.0-merge-report.tsv"
+    out = REPO / "docs" / f"upstream-{label}-merge-report.tsv"
     out.write_text("result\tstatus\tpath\n" + "\n".join(report) + "\n")
     print(f"wrote {out} ({len(report)} rows, {conflicts} conflicts)")
     for row in report:
@@ -112,4 +113,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    if len(sys.argv) != 4:
+        sys.exit(__doc__)
+    sys.exit(main(*sys.argv[1:]))
