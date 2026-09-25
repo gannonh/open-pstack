@@ -8,7 +8,7 @@ Open Pstack is one repository with one shared skill tree and catalog, and three 
 - Claude Code plugin id: `pstack` via marketplace `open-pstack`.
 - Codex plugin id: `pstack` via marketplace `open-pstack`.
 
-The shared tree is `plugins/pstack/skills/` plus `plugins/pstack/catalog/`. Grok remains available as a model-provider lane. Open Pstack 1.6.3 tracks Cursor pstack v0.15.0 at `71ed0d1076fec562c1b74ee353121a8d00f75382`. See [UPSTREAM.md](../UPSTREAM.md) for the exact sync contract.
+The shared tree is `plugins/pstack/skills/` plus `plugins/pstack/catalog/`. Grok remains available as a model-provider lane. Open Pstack tracks Cursor pstack v0.15.5 at `12d587dfb20741cafc376c42c696c5f6e2a64487`. See [UPSTREAM.md](../UPSTREAM.md) for the exact sync contract.
 
 Original by [Lauren Tan (@poteto)](https://x.com/poteto). [pstack](https://github.com/cursor/plugins/tree/main/pstack) is the content-sync upstream. `michael-denyer/pstack-claude` and `ericlitman/open-pstack` are historical lineage. Soft-fork tracking of `ericlitman/open-pstack` ended 2026-09-06. This distribution retains that history and MIT attribution. It imports seven MIT-licensed skills from [cursor-team-kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit): `deslop`, `thermo-nuclear-code-quality-review`, `make-pr-easy-to-review`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `what-did-i-get-done`.
 

@@ -42,6 +42,8 @@ judgment and prose: claude:claude-fable-5-1[1m]@max
 
 Effort is per role and per panel lane. Each offering defines its own ordered effort list, so two roles on different offerings may use efforts that only one of those offerings lists. Every entry in a panel list runs. List order is fan-out order, and no entry is a fallback for another.
 
+A sheet row for a retired role (`how critics`, `why investigators, synthesizer`, `reflect tooling, judgment, divergent, synthesizer`) is dropped on the next setup run, and its replacement roles come from the role map. Any other unknown row still stops setup.
+
 Existing sheets that already use the rolling Claude aliases, GPT-5.6 Sol, Cursor Grok 4.6, `inherit-parent`, and `auto` keep their assignments. Uncataloged predecessor version pins migrate in memory to the cataloged rolling alias; setup persists that after probes. A cataloged explicit version stays unchanged.
 
 An invalid or unavailable descriptor is a validation or probe failure. Setup does not write. Runtime availability failures are dropouts with receipts. There is no automatic quota-aware reroute.
@@ -52,7 +54,9 @@ In Claude Code: `/pstack:setup-pstack`. In Codex: ask for `pstack:setup-pstack`.
 
 Setup loads the catalog and the current sheet. It shows current selections plus every cataloged offering, including alternate providers for the same logical model. Each offering appears with its label, selector, supported efforts in catalog order, default effort, and a copyable `provider:selector@effort` value for every supported effort. Rolling aliases are labeled "(rolling alias)". Resolution evidence appears only when setup has it (see [Rolling aliases versus explicit pins](#rolling-aliases-versus-explicit-pins)); otherwise it prints unknown.
 
-Setup asks which **named** roles or panel lanes to change. Empty input keeps everything. `arena runners[3]` changes one panel lane without walking the whole list. For a changed role, setup offers that offering's efforts in catalog order and accepts the default effort on empty input.
+Setup first asks for a budget: `unlimited`, `large` (xhigh), `medium` (high), or `small` (medium). A role still on its default offerings restarts from the default efforts. A role you moved to another offering, lane list, or alias keeps it. Every offering lane then drops to the budget's effort, or to its offering's highest supported effort below that. Aliases do not change. The sheet records the choice as `# budget: <label> (<effort>)` under its title. A sheet without that line is `unlimited`.
+
+Setup then asks which **named** roles or panel lanes to change. Empty input keeps everything. `arena runners[3]` changes one panel lane without walking the whole list. For a changed role, setup offers that offering's efforts in catalog order and accepts the default effort on empty input.
 
 It then probes the exact unique descriptors from the current parent harness. A failed probe leaves the active sheet and parent integration bytes unchanged and reports the failing descriptor. After confirmation it writes the Claude include, the Codex bounded block, or the Cursor rule.
 

@@ -14,6 +14,12 @@ import {
 
 export const SHEET_TITLE = "# pstack model configuration";
 
+export const RETIRED_ROLE_IDS: ReadonlySet<string> = new Set([
+  "how critics",
+  "why investigators, synthesizer",
+  "reflect tooling, judgment, divergent, synthesizer",
+]);
+
 export interface SheetLane {
   readonly raw: string;
   readonly bound: ParsedDescriptor;
@@ -100,7 +106,7 @@ export function parseSheet(
     if (known === undefined) {
       issues.push({
         roleId: id,
-        message: `unknown role: ${id}`,
+        message: RETIRED_ROLE_IDS.has(id) ? `retired role: ${id}` : `unknown role: ${id}`,
         line: trimmed,
       });
       continue;

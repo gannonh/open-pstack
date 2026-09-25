@@ -725,6 +725,38 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     ).toBe("inherit-parent");
   });
 
+  it("reports retired role rows apart from unknown ones", () => {
+    const stale = firstRunSheet(catalog, roles)
+      .replace(
+        "why investigators: inherit-parent\nwhy synthesizer: inherit-parent\n",
+        "why investigators, synthesizer: inherit-parent\n"
+      )
+      .concat("how critics: claude:fable@max\nhow reviewers: claude:fable@max\n");
+    const messages = parseSheet(stale, catalog, roles).issues.map((issue) => issue.message);
+    expect(messages).toEqual([
+      "retired role: why investigators, synthesizer",
+      "retired role: how critics",
+      "unknown role: how reviewers",
+      "missing documented role: why investigators",
+      "missing documented role: why synthesizer",
+    ]);
+  });
+
+  it("parses a sheet rendered with a budget line under the title", () => {
+    const [title, ...rest] = roles.preamble;
+    const budgeted = renderSheet({
+      ...roles,
+      preamble: [title, "# budget: medium (high)", ...rest],
+    });
+    expect(budgeted.startsWith("# pstack model configuration\n# budget: medium (high)\n")).toBe(
+      true
+    );
+    const parsed = parseSheet(budgeted, catalog, roles);
+    expect(parsed.issues).toEqual([]);
+    expect(parsed.sheet?.preamble[1]).toBe("# budget: medium (high)");
+    expect(parsed.sheet?.roles.length).toBe(roles.roles.length);
+  });
+
   it("rejects combined Why and Reflect role ids", () => {
     const collapsed = firstRunSheet(catalog, roles)
       .replace(
@@ -739,8 +771,8 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     expect(parsed.sheet).toBeNull();
     expect(parsed.issues.map((issue) => issue.message)).toEqual(
       expect.arrayContaining([
-        "unknown role: why investigators, synthesizer",
-        "unknown role: reflect tooling, judgment, divergent, synthesizer",
+        "retired role: why investigators, synthesizer",
+        "retired role: reflect tooling, judgment, divergent, synthesizer",
         "missing documented role: why investigators",
         "missing documented role: why synthesizer",
         "missing documented role: reflect tooling",

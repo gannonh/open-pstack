@@ -31,17 +31,17 @@ For each candidate, read the first JSONL line and check that `message.content[0]
 
 Start all three read-only lanes in one fan-out phase through provider dispatch. Reviewers need MCP access for context lookups (tickets, chat threads, observability traces referenced in the transcript), so keep them native to the parent. The prompt forbids file writes; the parent applies edits.
 
-| Lens | Model descriptor | Prompt template |
+| Lens | Role line (default `inherit-parent`) | Prompt template |
 |---|---|---|
-| Judgment | your configured reflect-judgment choice (default `inherit-parent`) | `references/judgment-reviewer.md` |
-| Tooling | your configured reflect-tooling choice (default `inherit-parent`) | `references/tooling-reviewer.md` |
-| Divergent | your configured reflect-judgment choice (default `inherit-parent`) | `references/divergent-reviewer.md` |
+| Judgment | `reflect judgment, divergent, synthesizer` | `references/judgment-reviewer.md` |
+| Tooling | `reflect tooling` | `references/tooling-reviewer.md` |
+| Divergent | `reflect judgment, divergent, synthesizer` | `references/divergent-reviewer.md` |
 
 Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings in the `Agent` response body.
 
 ### 3. Synthesize
 
-Dispatch one lane using your configured reflect-judgment descriptor (default `inherit-parent`). Preserve relevant MCP access because the synthesizer spot-verifies citations. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
+Dispatch one lane through the `reflect judgment, divergent, synthesizer` role (default `inherit-parent`). Preserve relevant MCP access because the synthesizer spot-verifies citations. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
 
 ### 4. Structural enforcement check
 

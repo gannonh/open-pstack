@@ -188,7 +188,7 @@ In Cursor, skills carry no prefix: `/architect`. Plugin skills include `pstack:`
 
 Some pstack workflows use one model. Skills such as `architect`, `arena`, and `interrogate` can run several models in parallel. Each model run uses the subscription and token allowance of its own command-line tool.
 
-`setup-pstack` lets you choose provider, model, and effort per role or panel lane from the catalog. A model from the app you are using runs inside that app. Other models run through their own command-line tools. Open Pstack does not quietly replace a failed model with a weaker one.
+`setup-pstack` lets you choose a reasoning budget, then provider, model, and effort per role or panel lane from the catalog. A model from the app you are using runs inside that app. Other models run through their own command-line tools. Open Pstack does not quietly replace a failed model with a weaker one.
 
 ## Cursor, Claude Code, and Codex
 
@@ -219,7 +219,7 @@ This repository also keeps:
 
 ## Staying close to Lauren's pstack
 
-Open Pstack 1.6.6 tracks pstack 0.15.0 at Cursor commit [`71ed0d1076fec562c1b74ee353121a8d00f75382`](https://github.com/cursor/plugins/commit/71ed0d1076fec562c1b74ee353121a8d00f75382).
+Open Pstack tracks pstack 0.15.5 at Cursor commit [`12d587dfb20741cafc376c42c696c5f6e2a64487`](https://github.com/cursor/plugins/commit/12d587dfb20741cafc376c42c696c5f6e2a64487).
 
 The two projects have separate version numbers. The pstack version identifies Lauren's upstream content. The Open Pstack version identifies the Cursor, Claude Code, and Codex package built from it.
 
