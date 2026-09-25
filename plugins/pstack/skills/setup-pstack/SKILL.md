@@ -1,6 +1,6 @@
 ---
 name: setup-pstack
-description: Configure pstack's provider-qualified models and per-role efforts from the installed catalog. Verifies native and external lanes before writing the override sheet. Use for /setup-pstack, "configure pstack models", or changing pstack's model choices.
+description: Configure pstack's provider-qualified models, per-role efforts, and reasoning budget from the installed catalog. Verifies native and external lanes before writing the override sheet. Use for /setup-pstack, "configure pstack models", "pstack budget", or changing pstack's model choices.
 ---
 
 # Setup pstack
@@ -50,7 +50,7 @@ Read `catalog/models.json` and `catalog/role-defaults.json`. Then read the curre
 
 Look up every descriptor in the catalog before applying any migration. A cataloged selector, including an explicit version, is valid loaded state and must be preserved verbatim. Only uncataloged predecessor pins from `legacyMigrations` migrate: Claude `claude-fable-<digits>` becomes `fable`, and `claude-opus-<digits>` becomes `opus`. Preserve provider, effort, role, and lane order. Record each original and migrated descriptor for the confirmation in step 7.
 
-Overlay loaded rows on the complete role map from `role-defaults.json`. Materialize any missing documented role row from that map on the next successful write. A duplicate or unknown role row is inconsistent state; report it and resolve it before probing. A bare host-native slug from an older sheet is also invalid because it does not say which provider owns it. If the sheet is missing, use the complete role-defaults map, including its efforts.
+Read the sheet's `# budget:` line as the current budget. A sheet without one is `unlimited`. Overlay loaded rows on the complete role map from `role-defaults.json`. Materialize any missing documented role row from that map on the next successful write. A row whose role is retired (`how critics`, `why investigators, synthesizer`, `reflect tooling, judgment, divergent, synthesizer`) is dropped. Its replacement roles come from the role map, and step 7 lists each dropped row. A duplicate or unknown role row is inconsistent state; report it and resolve it before probing. A bare host-native slug from an older sheet is also invalid because it does not say which provider owns it. If the sheet is missing, use the complete role-defaults map, including its efforts.
 
 A hand-edited sheet is accepted when every descriptor is `inherit-parent`, `auto`, or a cataloged offering with a supported effort. Running this skill is optional for such a sheet; this run still probes before rewriting files.
 
@@ -73,9 +73,18 @@ Do not hide a cataloged Cursor offering when a Claude offering shares the same d
 
 A hand-edited descriptor is validated by the same catalog binding as a selection made here. An offering that appears only in a discovery inventory, or that discovery reported as unsupported or unrepresentable, is not selectable. Do not guess a replacement selector for it. It becomes selectable when a maintainer catalogs it with `pstack-models add`.
 
-### 4. Collect named role and lane edits
+### 4. Choose a budget, then collect named role and lane edits
 
-Ask: **Which named roles or panel lanes do you want to change?** Empty input keeps every current assignment, including lane order and per-lane efforts. That is the common path. Do not walk every role or every panel lane with a question.
+**(a) Ask for a budget.** Prefer AskUserQuestion over free text. Offer these four options with these exact labels, and name the current budget.
+
+- `unlimited: keep catalog efforts`
+- `large: xhigh reasoning`
+- `medium: high reasoning`
+- `small: medium reasoning`
+
+**(b) Apply it.** Start from the role map in step 2. A role that still uses its role-defaults offerings, lane for lane, is rebuilt from `role-defaults.json` with its default efforts, so `unlimited` on a rerun restores them. A role the operator moved to another offering, lane list, or alias keeps those choices and its current efforts. `unlimited` stops there. `large`, `medium`, and `small` then set every offering lane's effort, panel lanes included, to `xhigh`, `high`, or `medium`. When the offering's `supportedEfforts` lacks the target, use its highest supported effort below the target on the ladder `low` < `medium` < `high` < `xhigh` < `max` < `ultra`. When it has none at or below the target, mark the lane as needing a choice in (c). The provider and selector never change, and `inherit-parent` and `auto` lanes stay as they are. So `medium` turns an `@max` lane into `@high`, and turns an `@xhigh` lane whose offering stops at `medium` into `@medium`.
+
+**(c) Collect edits.** Ask: **Which named roles or panel lanes do you want to change?** Empty input keeps every assignment from (b), including lane order and per-lane efforts. That is the common path. Do not walk every role or every panel lane with a question.
 
 On a first run, state that empty input keeps the catalog role-defaults map. On a rerun, state the loaded assignments without offering to reset a customized sheet to first-run defaults.
 
@@ -103,8 +112,10 @@ Receipts and native transcripts prove the requested effort and the route. They d
 
 Build the new sheet in memory. Do not write it yet.
 
-- First run with no named edits: render `catalog/role-defaults.json`.
-- Otherwise: start from the migrated complete role map from step 2, apply only the named role and lane edits from step 4, and keep every other descriptor verbatim, including mixed efforts and panel order.
+- First run with an `unlimited` budget and no named edits: render `catalog/role-defaults.json`.
+- Otherwise: start from the role map that step 4 (b) produced, apply only the named role and lane edits from step 4 (c), and keep every other descriptor verbatim, including mixed efforts and panel order.
+
+Write the `# budget:` line directly under the `# pstack model configuration` title, with the chosen label and its target effort: `# budget: unlimited (catalog)`, `# budget: large (xhigh)`, `# budget: medium (high)`, or `# budget: small (medium)`.
 
 Why and Reflect require the parent's live MCP surface. Keep their investigator, reviewer, and synthesizer roles on `inherit-parent` or `auto` unless the operator explicitly names a different cataloged offering; the bounded external runner deliberately omits ambient MCPs. `inherit-parent` and `auto` always validate, but say when they reduce a panel's provider diversity. For panel roles, one lane runs per entry. The list length is the fan-out count. `arena cross-judge pool` is a list from which Arena chooses a provider different from the parent and base candidate when possible. `swarm workers` is the default for every worker unless a race explicitly assigns another descriptor.
 
@@ -112,7 +123,7 @@ Refuse an unqualified slug, an unavailable route, or a descriptor that is not in
 
 ### 7. Confirm and commit
 
-Show any predecessor-pin migrations as original and normalized descriptors. Then show the route table for this parent and every rendered role and descriptor. Ask for confirmation before writing.
+Show any predecessor-pin migrations as original and normalized descriptors, and each retired row that step 2 dropped. Show the budget and every lane it clamped below its target. Then show the route table for this parent and every rendered role and descriptor. Ask for confirmation before writing.
 
 Every non-alias value must match `<provider>:<model>@<effort>` and must have passed step 5.
 
