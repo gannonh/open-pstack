@@ -12,7 +12,7 @@ Do not name a remote `upstream`. The `origin` remote points to `gannonh/open-pst
 | Path | `pstack/` |
 | Commit | `12d587dfb20741cafc376c42c696c5f6e2a64487` |
 | Upstream version | `0.15.5` |
-| open-pstack version | `1.6.7` |
+| open-pstack version | `1.6.8` |
 
 The table above is the current Cursor sync point. `README-UPSTREAM.md` preserves its pstack README verbatim. `CHANGES.md` and `NOTICE.md` describe the adaptations and provenance. The 0.15.0→0.15.5 take vs skip record is [docs/upstream-0.15.5-take-skip.md](docs/upstream-0.15.5-take-skip.md). Earlier records use the same `docs/upstream-<version>-take-skip.md` name.
 
