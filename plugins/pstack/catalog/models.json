@@ -416,6 +416,22 @@
       "deprecated": false,
       "successorId": null,
       "notes": "Pinned selector derived from Claude 2.1.280 initialize resolution claude-opus-5-5[1m] for default and opus[1m]; direct Claude Code invocation succeeded on 2026-09-22."
+    },
+    {
+      "id": "claude-claude-sonnet-5-5",
+      "family": "sonnet",
+      "displayName": "Claude Sonnet 5.5",
+      "provider": "claude",
+      "selector": "claude-sonnet-5-5",
+      "selectorComposition": "effort-flag",
+      "supportedEfforts": ["low", "medium", "high", "xhigh", "max"],
+      "defaultEffort": "high",
+      "nativeAgentStem": "sonnet-5-5",
+      "nativeAgentTitle": "pstack Claude Sonnet 5.5 lane",
+      "rollingAlias": false,
+      "deprecated": false,
+      "successorId": null,
+      "notes": "Pinned selector derived from Claude 2.1.284 initialize resolution claude-sonnet-5-5 for sonnet; direct Claude Code invocation succeeded on 2026-09-28."
     }
   ],
   "legacyMigrations": [

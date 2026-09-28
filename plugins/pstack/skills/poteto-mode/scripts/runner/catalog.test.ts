@@ -111,6 +111,7 @@ describe("model catalog", () => {
       "codex-gpt-6-luna",
       "cursor-claude-opus-5-5",
       "claude-claude-opus-5-5-1m",
+      "claude-claude-sonnet-5-5",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
@@ -141,7 +142,20 @@ describe("model catalog", () => {
       "codex:gpt-6-luna",
       "cursor:claude-opus-5-5",
       "claude:claude-opus-5-5[1m]",
+      "claude:claude-sonnet-5-5",
     ]);
+  });
+
+  it("catalogs a pinned Claude Sonnet 5.5 beside the Sonnet rolling alias", () => {
+    const sonnet55 = findOffering(catalog, "claude", "claude-sonnet-5-5");
+    expect(sonnet55?.displayName).toBe("Claude Sonnet 5.5");
+    expect(sonnet55?.supportedEfforts).toEqual(FIVE_EFFORTS);
+    expect(sonnet55?.defaultEffort).toBe("high");
+    expect(sonnet55?.rollingAlias).toBe(false);
+    expect(bindDescriptor(catalog, "claude:claude-sonnet-5-5@high").offering?.id).toBe(
+      "claude-claude-sonnet-5-5"
+    );
+    expect(bindDescriptor(catalog, "claude:sonnet@high").offering?.id).toBe("claude-sonnet");
   });
 
   it("catalogs GPT-6 Sol and Luna plus native and Cursor Claude Opus 5.5", () => {

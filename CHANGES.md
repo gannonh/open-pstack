@@ -30,6 +30,10 @@ The babysit density cut that writes `origin pr … <pr>` into executable templat
 
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
+## 1.6.9 catalogs a pinned Claude Sonnet 5.5
+
+Claude Code 2.1.284 reports `sonnet` resolving to `claude-sonnet-5-5`, with efforts `low` through `max`. Discovery lists no separate pinned row, so the selector follows the Opus 5.5 precedent: it is derived from the alias resolution, and a direct Claude Code invocation with `--model claude-sonnet-5-5` succeeded on 2026-09-28. The pinned `claude:claude-sonnet-5-5` offering (default `high`) sits beside the `claude:sonnet` rolling alias, which keeps tracking the newest Sonnet. The release ships generated `pstack-sonnet-5-5-<effort>` native agents. Cursor does not advertise Sonnet 5.5 yet. Role defaults are unchanged.
+
 ## 1.6.7 catalogs Codex GPT-6 Sol/Luna and Claude Opus 5.5
 
 Targeted discovery on 2026-09-22 advertised Codex `gpt-6-sol` and `gpt-6-luna`, plus Cursor `claude-opus-5-5`, as supported and not cataloged. Codex reported `low`, `medium`, `high`, `xhigh`, `max`, and `ultra` for Sol, with default `medium`. Luna supports `low` through `max`, with default `medium`.
