@@ -27,9 +27,9 @@ const FIXED_NOW = () => new Date("2026-09-05T00:00:00.000Z");
 
 const CODEX_PAGE_1 = [
   {
-    id: "gpt-5.6-sol",
-    model: "gpt-5.6-sol",
-    displayName: "GPT-5.6 Sol",
+    id: "gpt-6.1-sol",
+    model: "gpt-6.1-sol",
+    displayName: "GPT-6.1-Sol",
     hidden: false,
     isDefault: true,
     defaultReasoningEffort: "medium",
@@ -50,7 +50,7 @@ const CODEX_PAGE_1 = [
     isDefault: false,
     defaultReasoningEffort: "low",
     supportedReasoningEfforts: [{ reasoningEffort: "low", description: "Low" }],
-    upgrade: "gpt-5.6-sol",
+    upgrade: "gpt-6.1-sol",
   },
 ];
 
@@ -104,7 +104,7 @@ const CLAUDE_MODELS = [
 
 const CURSOR_LISTING = `Available models
 
-cursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High
+grok-4.7-xhigh - Grok 4.7 Extra High
 claude-fable-5-1-max - Claude Fable 5.1 Max
 claude-fable-5-1-turbo - Claude Fable 5.1 Turbo
 auto - Auto`;
@@ -245,7 +245,7 @@ describe("parseCursorModelsListing", () => {
   it("parses composed ids and skips headers", () => {
     const listing = parseCursorModelsListing(CURSOR_LISTING);
     expect(listing).toEqual([
-      { id: "cursor-grok-4.6-xhigh", displayName: "Cursor Grok 4.6 Extra High" },
+      { id: "grok-4.7-xhigh", displayName: "Grok 4.7 Extra High" },
       { id: "claude-fable-5-1-max", displayName: "Claude Fable 5.1 Max" },
       { id: "claude-fable-5-1-turbo", displayName: "Claude Fable 5.1 Turbo" },
       { id: "auto", displayName: "Auto" },
@@ -265,17 +265,17 @@ describe("parseGrokModelsListing", () => {
 describe("codexEntriesFromModelList", () => {
   it("preserves fields, effort order, upgrade variants, and membership", () => {
     const entries = codexEntriesFromModelList([...CODEX_PAGE_1, ...CODEX_PAGE_2], catalog);
-    const sol = entries.find((entry) => entry.providerId === "gpt-5.6-sol");
-    expect(sol?.displayName).toBe("GPT-5.6 Sol");
+    const sol = entries.find((entry) => entry.providerId === "gpt-6.1-sol");
+    expect(sol?.displayName).toBe("GPT-6.1-Sol");
     expect(sol?.hidden).toBe(false);
     expect(sol?.isDefault).toBe(true);
     expect(sol?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
     expect(sol?.defaultEffort).toBe("medium");
-    expect(sol?.membership?.offeringId).toBe("codex-gpt-5-6-sol");
+    expect(sol?.membership?.offeringId).toBe("codex-gpt-6-1-sol");
     expect(sol?.variants).toEqual([]);
 
     const upgraded = entries.find((entry) => entry.providerId === "gpt-5.4-mini");
-    expect(upgraded?.variants).toEqual(["gpt-mini", "upgrade:gpt-5.6-sol"]);
+    expect(upgraded?.variants).toEqual(["gpt-mini", "upgrade:gpt-6.1-sol"]);
     expect(upgraded?.hidden).toBe(true);
 
     const astra = entries.find((entry) => entry.providerId === "gpt-6-astra");
@@ -329,15 +329,15 @@ describe("discoverProvider codex", () => {
     const result = await discoverProvider("codex", opts(["codex"]));
     expect(result.status).toBe("ok");
     expect(result.source.method).toBe("codex app-server model/list");
-    const sol = result.entries.find((entry) => entry.providerId === "gpt-5.6-sol");
-    expect(sol?.displayName).toBe("GPT-5.6 Sol");
+    const sol = result.entries.find((entry) => entry.providerId === "gpt-6.1-sol");
+    expect(sol?.displayName).toBe("GPT-6.1-Sol");
     expect(sol?.hidden).toBe(false);
     expect(sol?.isDefault).toBe(true);
     expect(sol?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
-    expect(sol?.membership?.offeringId).toBe("codex-gpt-5-6-sol");
+    expect(sol?.membership?.offeringId).toBe("codex-gpt-6-1-sol");
     expect(result.entries.find((entry) => entry.providerId === "gpt-5.4-mini")?.variants).toEqual([
       "gpt-mini",
-      "upgrade:gpt-5.6-sol",
+      "upgrade:gpt-6.1-sol",
     ]);
     expect(
       result.entries.find((entry) => entry.providerId === "gpt-6-astra")?.membership?.offeringId
@@ -492,8 +492,8 @@ describe("discoverProvider cursor", () => {
     const result = await discoverProvider("cursor", opts(["cursor"]));
     expect(result.status).toBe("ok");
     expect(result.source.method).toBe("cursor-agent models");
-    const grok = result.entries.find((entry) => entry.providerId === "cursor-grok-4.6");
-    expect(grok?.membership?.offeringId).toBe("cursor-grok-4-6");
+    const grok = result.entries.find((entry) => entry.providerId === "grok-4.7");
+    expect(grok?.membership?.offeringId).toBe("cursor-grok-4-7");
     const turbo = result.entries.find((entry) => entry.providerId === "claude-fable-5-1-turbo");
     expect(turbo?.descriptor.supported).toBe(false);
     expect(turbo?.membership).toBeNull();

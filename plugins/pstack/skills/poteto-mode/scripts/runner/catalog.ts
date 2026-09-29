@@ -545,16 +545,12 @@ export const NATIVE_TASK_SLUG_RULE_BY_OFFERING_ID: Readonly<
   Record<string, NativeTaskSlugRule>
 > = {
   "cursor-fable-5-1": "thinking-infix",
-  "cursor-grok-4-6": "identity",
   "cursor-gpt-5-6-sol": "identity",
   "cursor-gpt-5-6-terra": "identity",
   "cursor-gpt-5-6-luna": "identity",
   "cursor-claude-fable-5-1-thinking": "identity",
-  "cursor-claude-opus-5": "identity",
   "cursor-claude-opus-5-5": "identity",
-  "cursor-claude-sonnet-5": "identity",
-  "cursor-claude-sonnet-5-thinking": "identity",
-  "cursor-claude-opus-5-thinking": "identity",
+  "cursor-claude-sonnet-5-5": "identity",
   "cursor-grok-4-7": "identity",
 };
 

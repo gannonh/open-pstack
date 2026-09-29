@@ -19,7 +19,7 @@ describe("cursor listing composition", () => {
         { id: "claude-fable-5-1-low", displayName: "Claude Fable 5.1 Low" },
         { id: "claude-fable-5-1-max", displayName: "Claude Fable 5.1 Max" },
         { id: "claude-fable-5-1-turbo", displayName: "Claude Fable 5.1 Turbo" },
-        { id: "cursor-grok-4.6-xhigh", displayName: "Cursor Grok 4.6 Extra High" },
+        { id: "grok-4.7-xhigh", displayName: "Grok 4.7 Extra High" },
         { id: "auto", displayName: "Auto" },
         { id: "gpt-5.6-sol", displayName: "GPT-5.6 Sol" },
       ],
@@ -50,8 +50,8 @@ describe("cursor listing composition", () => {
     expect(turbo?.supportedEfforts).toBeNull();
     expect(turbo?.membership).toBeNull();
 
-    const grok = entries.find((entry) => entry.providerId === "cursor-grok-4.6");
-    expect(grok?.membership?.offeringId).toBe("cursor-grok-4-6");
+    const grok = entries.find((entry) => entry.providerId === "grok-4.7");
+    expect(grok?.membership?.offeringId).toBe("cursor-grok-4-7");
     expect(grok?.supportedEfforts).toEqual(["xhigh"]);
 
     for (const id of ["auto", "gpt-5.6-sol"]) {

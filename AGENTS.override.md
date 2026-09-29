@@ -18,21 +18,21 @@
 
 Provider-qualified per-role choices. Read the installed pstack provider-dispatch reference before dispatching a configured role. Every documented role remains present. `inherit-parent` and `auto` use the parent model natively and still count as one panel lane.
 
-feature, refactoring: codex:gpt-6-sol@medium
-bug-fix: codex:gpt-6-sol@medium
-perf-issue: codex:gpt-6-sol@medium
+feature, refactoring: codex:gpt-6.1-sol@medium
+bug-fix: codex:gpt-6.1-sol@medium
+perf-issue: codex:gpt-6.1-sol@medium
 hillclimb: codex:gpt-6-luna@max
-judgment and prose: codex:gpt-6-sol@medium
-hardest tasks: codex:gpt-6-sol@high
+judgment and prose: codex:gpt-6.1-sol@medium
+hardest tasks: codex:gpt-6.1-sol@high
 how explorer: codex:gpt-6-luna@max
-how explainer: codex:gpt-6-sol@medium
+how explainer: codex:gpt-6.1-sol@medium
 why investigators: inherit-parent
 why synthesizer: inherit-parent
 reflect tooling: inherit-parent
 reflect judgment, divergent, synthesizer: inherit-parent
-arena runners: codex:gpt-6-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
-arena cross-judge pool: codex:gpt-6-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
+arena runners: codex:gpt-6.1-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
+arena cross-judge pool: codex:gpt-6.1-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
 swarm workers: codex:gpt-6-luna@max
-architect runners: codex:gpt-6-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
-interrogate reviewers: codex:gpt-6-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
+architect runners: codex:gpt-6.1-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
+interrogate reviewers: codex:gpt-6.1-sol@xhigh, codex:gpt-6-luna@max, claude:opus@high, cursor:grok-4.7@xhigh
 <!-- pstack:models:end -->

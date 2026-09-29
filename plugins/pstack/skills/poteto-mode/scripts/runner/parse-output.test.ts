@@ -51,8 +51,8 @@ describe("parseProviderOutput", () => {
           },
         }),
       ].join("\n"),
-      "model: gpt-5.6-sol\nreasoning effort: max\n",
-      "gpt-5.6-sol"
+      "model: gpt-6.1-sol\nreasoning effort: max\n",
+      "gpt-6.1-sol"
     );
     expect(parsed).toMatchObject({
       text: "CODEX_OK",
@@ -109,7 +109,7 @@ describe("parseProviderOutput", () => {
         JSON.stringify({
           type: "system",
           subtype: "init",
-          model: "Cursor Grok 4.6 Extra High",
+          model: "Grok 4.7 Extra High",
           session_id: "cursor-session",
           permissionMode: "plan",
         }),
@@ -128,11 +128,11 @@ describe("parseProviderOutput", () => {
         }),
       ].join("\n"),
       "",
-      "cursor-grok-4.6"
+      "grok-4.7"
     );
     expect(parsed).toMatchObject({
       text: "CURSOR_OK",
-      reportedModel: "cursor-grok-4.6-extra-high",
+      reportedModel: "grok-4.7-extra-high",
       sessionId: "cursor-session",
       usage: {
         inputTokens: 25,
@@ -144,14 +144,14 @@ describe("parseProviderOutput", () => {
     });
     expect(
       reportedCursorComposedModelMatches(
-        "cursor-grok-4.6-xhigh",
+        "grok-4.7-xhigh",
         parsed.reportedModel
       )
     ).toBe(true);
     expect(
       reportedCursorComposedModelMatches(
-        "cursor-grok-4.6-xhigh",
-        "cursor-grok-4.6-xhigh-fast"
+        "grok-4.7-xhigh",
+        "grok-4.7-xhigh-fast"
       )
     ).toBe(false);
   });
@@ -227,19 +227,19 @@ describe("parseProviderOutput", () => {
     expect(
       reportedCursorComposedModelMatches(
         "claude-fable-5-1-high",
-        "cursor-grok-4.6-extra-high"
+        "grok-4.7-extra-high"
       )
     ).toBe(false);
     expect(
       reportedCursorComposedModelMatches(
-        "cursor-grok-4.6-xhigh",
-        "cursor-grok-4.6-extra-high"
+        "grok-4.7-xhigh",
+        "grok-4.7-extra-high"
       )
     ).toBe(true);
     expect(
       reportedCursorComposedModelMatches(
-        "cursor-grok-4.6-xhigh",
-        "cursor-grok-4.6-xhigh-fast"
+        "grok-4.7-xhigh",
+        "grok-4.7-xhigh-fast"
       )
     ).toBe(false);
   });
@@ -276,7 +276,7 @@ describe("parseProviderOutput", () => {
           result: "boom",
         }),
         "",
-        "cursor-grok-4.6"
+        "grok-4.7"
       )
     ).toThrow("error result");
   });
@@ -355,7 +355,7 @@ describe("parseProviderOutput", () => {
         "codex",
         JSON.stringify({ type: "turn.completed" }),
         "",
-        "gpt-5.6-sol"
+        "gpt-6.1-sol"
       )
     ).toThrow("final agent message");
   });

@@ -30,6 +30,20 @@ The babysit density cut that writes `origin pr … <pr>` into executable templat
 
 Open Pstack version stays `1.6.3` in this change. Recommended post-merge bump is `1.7.0` (new principles plus how role deletion). Do not tag from the sync ticket.
 
+## 1.6.10 catalogs Codex GPT-6.1 Sol and prunes superseded offerings
+
+Targeted discovery on 2026-09-29 advertised Codex `gpt-6.1-sol` (efforts `low` through `ultra`, default `low`) and Cursor `claude-sonnet-5-5`, both supported and not cataloged. Both are now offerings.
+
+The catalog now keeps the newest offering per family on each provider, plus the Claude rolling aliases. It no longer carries:
+
+* Codex `gpt-5.6-sol`, `gpt-6-sol` (superseded by `gpt-6.1-sol`) and `gpt-5.6-luna` (superseded by `gpt-6-luna`)
+* Cursor `cursor-grok-4.6` (superseded by `grok-4.7`), `claude-opus-5` and `claude-opus-5-thinking` (superseded by `claude-opus-5-5`), `claude-sonnet-5` and `claude-sonnet-5-thinking` (superseded by `claude-sonnet-5-5`)
+* Claude pins `claude-opus-5-5[1m]`, `claude-sonnet-5-5`, and `claude-fable-5-1[1m]`, which duplicate the `opus`, `sonnet`, and `fable` aliases. Their generated `pstack-opus-5-5-1m-*`, `pstack-sonnet-5-5-*`, and `pstack-fable-5-1-1m-*` native agents are gone. The `claude:fable` alias resolves to `claude-fable-5-1` on Claude Code today.
+
+First-run role defaults move from `codex:gpt-5.6-sol@max` to `codex:gpt-6.1-sol@max` and from `cursor:cursor-grok-4.6@xhigh` to `cursor:grok-4.7@xhigh`.
+
+Sheets that name a removed offering fail validation on the next parent run. Replace `codex:gpt-5.6-sol` and `codex:gpt-6-sol` with `codex:gpt-6.1-sol`, `cursor:cursor-grok-4.6` with `cursor:grok-4.7`, and any Claude pin with `claude:opus`, `claude:sonnet`, or `claude:fable`. No new `legacyMigrations` ship. Codex and Cursor serve no alias that tracks the newest model in a family, so those offerings still change by `add` and `remove`.
+
 ## 1.6.9 catalogs a pinned Claude Sonnet 5.5
 
 Claude Code 2.1.284 reports `sonnet` resolving to `claude-sonnet-5-5`, with efforts `low` through `max`. Discovery lists no separate pinned row, so the selector follows the Opus 5.5 precedent: it is derived from the alias resolution, and a direct Claude Code invocation with `--model claude-sonnet-5-5` succeeded on 2026-09-28. The pinned `claude:claude-sonnet-5-5` offering (default `high`) sits beside the `claude:sonnet` rolling alias, which keeps tracking the newest Sonnet. The release ships generated `pstack-sonnet-5-5-<effort>` native agents. Cursor does not advertise Sonnet 5.5 yet. Role defaults are unchanged.

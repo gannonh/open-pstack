@@ -265,7 +265,7 @@ describe("pstack-models edit", () => {
           "claude-fable",
           "--deprecated",
           "--successor",
-          "codex-gpt-5-6-sol",
+          "claude-opus",
           "--yes",
         ],
         deprecateIo.io
@@ -275,7 +275,7 @@ describe("pstack-models edit", () => {
       (row) => row.id === "claude-fable"
     );
     expect(offering?.deprecated).toBe(true);
-    expect(offering?.successorId).toBe("codex-gpt-5-6-sol");
+    expect(offering?.successorId).toBe("claude-opus");
 
     const clearSuccessorIo = harness(root);
     expect(

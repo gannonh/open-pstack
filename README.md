@@ -22,7 +22,7 @@ Open Pstack is an unofficial community project. If you want Lauren's Cursor-nati
 
 ## Product facts
 
-**Grok runs through Cursor's CLI.** The external model runner includes a `cursor` provider, so the Grok family can run through `cursor-agent` on a Cursor subscription. The descriptor is `cursor:cursor-grok-4.6@<effort>`. The runner invokes `cursor-agent -p --model cursor-grok-4.6-<effort>`. It proves availability through the `cursor-agent models` listing before the model starts. It verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
+**Grok runs through Cursor's CLI.** The external model runner includes a `cursor` provider, so the Grok family can run through `cursor-agent` on a Cursor subscription. The descriptor is `cursor:grok-4.7@<effort>`. The runner invokes `cursor-agent -p --model grok-4.7-<effort>`. It proves availability through the `cursor-agent models` listing before the model starts. It verifies the served model from the CLI's stream-json init event. Cursor serves no `max` tier for that stem, so selectable efforts stop at `xhigh`. The standalone `grok` provider still works when that CLI is installed and authenticated.
 
 **Model routing is catalog-driven.** Offerings and first-run role assignments live in `plugins/pstack/catalog/`. Setup can assign any cataloged provider, model, and effort per role. That includes Cursor Fable 5.1 (`cursor:claude-fable-5-1`) alongside Claude's rolling `fable` selector. See [docs/models.md](docs/models.md).
 

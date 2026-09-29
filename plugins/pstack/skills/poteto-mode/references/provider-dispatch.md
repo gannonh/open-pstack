@@ -17,7 +17,7 @@ The installed plugin owns two canonical JSON files:
 
 Read those files. Do not copy model slugs into workflow skills. Do not rewrite a valid cataloged descriptor into another model. Adding an offering for an existing provider is a catalog change; it does not add a runner switch case or a setup family question.
 
-Each offering has a human `displayName` separate from its provider `selector`. The Fable family currently has three offerings. Claude's rolling `fable` selector is labeled "(rolling alias)"; the revision it serves is discovery or execution evidence, never catalog data. Claude's explicit `claude-fable-5-1[1m]` selector is a separate offering with its own `nativeAgentStem`; the bracketed context modifier is passed to Claude unchanged. Cursor's `claude-fable-5-1` stem composes its final CLI id with the effort suffix. Multiple offerings may share a family. Multiple versions may exist on one provider. A rolling alias and an explicit version are never rewritten into each other.
+Each offering has a human `displayName` separate from its provider `selector`. The Fable family currently has three offerings. Claude's rolling `fable` selector is labeled "(rolling alias)"; the revision it serves is discovery or execution evidence, never catalog data. A Claude selector may carry one bracketed context modifier (`opus[1m]`), passed to Claude unchanged. Cursor's `claude-fable-5-1` stem composes its final CLI id with the effort suffix. Multiple offerings may share a family. Multiple versions may exist on one provider. A rolling alias and an explicit version are never rewritten into each other.
 
 Providers stay predefined and adapter-backed: `claude`, `codex`, `cursor`, and `grok`. Arbitrary provider strings are invalid.
 

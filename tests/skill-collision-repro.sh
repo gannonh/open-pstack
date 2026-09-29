@@ -569,7 +569,7 @@ if [ -z "$sol_descriptor" ]; then
   solo_code_bad="could not read solo code roles from $catalog_roles"$'\n'
 fi
 case "$sol_descriptor" in
-  codex:gpt-5.6-sol@*) ;;
+  codex:gpt-6.1-sol@*) ;;
   *) solo_code_bad="${solo_code_bad}solo code roles are not on Sol: [$sol_descriptor]"$'\n' ;;
 esac
 for role in bug-fix perf-issue hillclimb; do

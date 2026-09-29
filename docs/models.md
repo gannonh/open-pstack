@@ -34,17 +34,17 @@ Example: move judgment from Claude's rolling Fable alias to Cursor Fable 5.1 aft
 judgment and prose: cursor:claude-fable-5-1@max
 ```
 
-Example: pin judgment to the explicit Claude Fable 5.1 offering with the 1M context modifier.
+Example: run judgment on Claude's rolling Opus alias with the 1M context modifier.
 
 ```text
-judgment and prose: claude:claude-fable-5-1[1m]@max
+judgment and prose: claude:opus[1m]@max
 ```
 
 Effort is per role and per panel lane. Each offering defines its own ordered effort list, so two roles on different offerings may use efforts that only one of those offerings lists. Every entry in a panel list runs. List order is fan-out order, and no entry is a fallback for another.
 
 A sheet row for a retired role (`how critics`, `why investigators, synthesizer`, `reflect tooling, judgment, divergent, synthesizer`) is dropped on the next setup run, and its replacement roles come from the role map. Any other unknown row still stops setup.
 
-Existing sheets that already use the rolling Claude aliases, GPT-5.6 Sol, Cursor Grok 4.6, `inherit-parent`, and `auto` keep their assignments. Uncataloged predecessor version pins migrate in memory to the cataloged rolling alias; setup persists that after probes. A cataloged explicit version stays unchanged.
+Existing sheets that already use the rolling Claude aliases, cataloged offerings, `inherit-parent`, and `auto` keep their assignments. Uncataloged predecessor Claude version pins that match a `legacyMigrations` pattern migrate in memory to the cataloged rolling alias; setup persists that after probes. A descriptor naming a removed offering, such as `codex:gpt-5.6-sol` or `cursor:cursor-grok-4.6`, fails validation and needs a cataloged replacement.
 
 An invalid or unavailable descriptor is a validation or probe failure. Setup does not write. Runtime availability failures are dropouts with receipts. There is no automatic quota-aware reroute.
 
@@ -77,16 +77,13 @@ The same sheet is interpreted from Cursor, Claude Code, and Codex. Each parent c
 
 | Descriptor | Composed CLI id | Native Task slug |
 | --- | --- | --- |
-| `cursor:cursor-grok-4.6@xhigh` | `cursor-grok-4.6-xhigh` | `cursor-grok-4.6-xhigh` |
 | `cursor:grok-4.7@xhigh` | `grok-4.7-xhigh` | `grok-4.7-xhigh` |
 | `cursor:claude-fable-5-1@high` | `claude-fable-5-1-high` | `claude-fable-5-1-thinking-high` |
 | `cursor:claude-fable-5-1@xhigh` | `claude-fable-5-1-xhigh` | `claude-fable-5-1-thinking-xhigh` |
 | `cursor:claude-fable-5-1-thinking@high` | `claude-fable-5-1-thinking-high` | `claude-fable-5-1-thinking-high` |
 | `cursor:gpt-5.6-sol@max` | `gpt-5.6-sol-max` | `gpt-5.6-sol-max` |
-| `cursor:claude-opus-5@high` | `claude-opus-5-high` | `claude-opus-5-high` |
-| `cursor:claude-sonnet-5@high` | `claude-sonnet-5-high` | `claude-sonnet-5-high` |
-| `cursor:claude-sonnet-5-thinking@max` | `claude-sonnet-5-thinking-max` | `claude-sonnet-5-thinking-max` |
-| `cursor:claude-opus-5-thinking@high` | `claude-opus-5-thinking-high` | `claude-opus-5-thinking-high` |
+| `cursor:claude-opus-5-5@high` | `claude-opus-5-5-high` | `claude-opus-5-5-high` |
+| `cursor:claude-sonnet-5-5@high` | `claude-sonnet-5-5-high` | `claude-sonnet-5-5-high` |
 
 Native `Task` runs only when the mapped slug is an exact allowlist token. Otherwise the parent runs `pstack-runner --parent cursor --provider cursor` and `cursor-agent -p --model` still receives the composed CLI id. A listed `-fast` slug is not a substitute. A rejected native dispatch names the composed id, the mapped slug, and the allowlist. Codex and Claude parents keep the external `cursor:*` path they already use.
 
@@ -119,7 +116,7 @@ alwaysApply: true
 
 Provider-qualified per-role choices. ...
 
-feature, refactoring: cursor:cursor-grok-4.6@xhigh
+feature, refactoring: cursor:grok-4.7@xhigh
 ...
 ```
 
@@ -265,9 +262,11 @@ Claude serves rolling aliases such as `fable` and `opus`. The alias name stays f
 | observed at execution | a runner receipt's `reportedModel` | the revision Claude served during a real run |
 | unknown | neither supplied | no claim |
 
-An explicit Claude version is a separate offering with its own selector. This release catalogs `claude:claude-fable-5-1[1m]`, display name `Fable 5.1`, with the `[1m]` context modifier passed to Claude unchanged and native agent stem `fable-5-1-1m`. An operator who wants a fixed revision selects that offering. An operator who wants Claude's current Fable selects `claude:fable`. `claude:opus[1m]` is the rolling Opus alias with the same modifier; report matching strips `[1m]` from the requested selector and accepts a concrete `claude-opus-*` revision.
+The Claude offerings are the rolling aliases `default`, `fable`, `opus`, `opus[1m]`, and `sonnet`. The catalog does not pin Claude versions: a new Claude release moves the alias, and operators who want the newest model already have it. `claude:opus[1m]` is the rolling Opus alias with the 1M context modifier; report matching strips `[1m]` from the requested selector and accepts a concrete `claude-opus-*` revision.
 
-The two are never rewritten into each other. A sheet that names `claude:fable` keeps the alias. A sheet that names `claude:claude-fable-5-1[1m]` keeps the pin. Only uncataloged predecessor pins that match a `legacyMigrations` pattern migrate, and only to the rolling alias.
+Cursor lists explicit versions, so its offerings are versioned stems (`claude-fable-5-1`, `claude-opus-5-5`, `claude-sonnet-5-5`). Neither Codex nor Cursor serves an alias that tracks the newest model in a family, so those offerings change by `add` when a new version ships and by `remove` when a newer one supersedes it.
+
+Only uncataloged predecessor Claude pins that match a `legacyMigrations` pattern migrate, and only to the rolling alias.
 
 A selector may carry one bracketed modifier. It stays in the selector through the sheet, argv, and native-agent generation. Report verification strips it from both the requested selector and the reported model before comparing, and still rejects a different concrete version.
 
@@ -292,25 +291,25 @@ Each offering declares `supportedEfforts` as an ordered list of safe identifiers
 | Offering | Efforts | Default |
 | --- | --- | --- |
 | `claude:fable` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
-| `cursor:cursor-grok-4.6` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
 | `cursor:grok-4.7` | `low`, `medium`, `high`, `xhigh` | `xhigh` |
-| `codex:gpt-5.6-sol` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `max` |
+| `codex:gpt-6.1-sol` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `low` |
 | `codex:gpt-6-astra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
 | `codex:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | `medium` |
-| `codex:gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` |
 | `claude:opus[1m]` | `low`, `medium`, `high`, `xhigh`, `max` | `xhigh` |
 | `cursor:gpt-5.6-sol` | `high`, `xhigh`, `low`, `medium`, `max` | `max` |
 | `cursor:gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` |
 | `cursor:gpt-5.6-luna` | `high`, `low`, `medium`, `xhigh`, `max` | `medium` |
 | `cursor:claude-fable-5-1-thinking` | `low`, `medium`, `high`, `xhigh`, `max` | `max` |
-| `cursor:claude-opus-5` | `low`, `medium`, `high` | `high` |
 | `claude:default` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
 | `claude:sonnet` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
-| `cursor:claude-sonnet-5` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
-| `cursor:claude-sonnet-5-thinking` | `high`, `xhigh`, `low`, `medium`, `max` | `max` |
-| `cursor:claude-opus-5-thinking` | `high`, `low`, `medium`, `xhigh`, `max` | `max` |
+| `cursor:claude-sonnet-5-5` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
+| `cursor:claude-opus-5-5` | `low`, `medium`, `high`, `xhigh`, `max` | `high` |
 
 An effort outside the bound offering's list fails at every layer with no substitution. Sheet validation and setup reject the row. The runner rejects the `(provider, model, effort)` tuple before preflight. A Claude-native agent file exists only for listed efforts, so an unlisted effort has no agent to dispatch. Nothing rounds `ultra` down to `max` or `max` up to `ultra`.
+
+### Keep the catalog current
+
+The catalog holds the newest offering per family on each provider, plus the Claude rolling aliases. When discovery shows a newer version of a cataloged family on the same provider, `add` it, move any role default that named the old one, and `remove` the old one in the same change. A family with no newer version on a provider stays. Legacy versions are not kept for their own sake.
 
 ### Publish through the shared catalog
 
