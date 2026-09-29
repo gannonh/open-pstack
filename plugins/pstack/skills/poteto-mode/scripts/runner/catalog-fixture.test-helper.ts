@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   PLUGIN_ROOT,
+  bindDescriptor,
   catalogToJson,
   formatCatalogJson,
   loadModelCatalog,
@@ -15,26 +16,19 @@ import {
 // exercise the add path start from the tree as it was before them.
 export const ADDED_OFFERING_IDS = [
   "codex-gpt-6-astra",
-  "claude-claude-fable-5-1-1m",
   "codex-gpt-5-6-terra",
-  "codex-gpt-5-6-luna",
   "claude-opus-long-context",
   "cursor-gpt-5-6-sol",
   "cursor-gpt-5-6-terra",
   "cursor-gpt-5-6-luna",
   "cursor-claude-fable-5-1-thinking",
-  "cursor-claude-opus-5",
   "claude-default",
   "claude-sonnet",
-  "cursor-claude-sonnet-5",
-  "cursor-claude-sonnet-5-thinking",
-  "cursor-claude-opus-5-thinking",
   "cursor-grok-4-7",
-  "codex-gpt-6-sol",
   "codex-gpt-6-luna",
   "cursor-claude-opus-5-5",
-  "claude-claude-opus-5-5-1m",
-  "claude-claude-sonnet-5-5",
+  "codex-gpt-6-1-sol",
+  "cursor-claude-sonnet-5-5",
 ] as const;
 
 export function baseCatalog(): ModelCatalog {
@@ -49,6 +43,27 @@ export function baseCatalog(): ModelCatalog {
   );
 }
 
+// The shipped role defaults name added offerings, so the base tree runs those
+// lanes as inherit-parent until the adds land.
+export function baseRoleDefaultsText(): string {
+  const base = baseCatalog();
+  const shipped = JSON.parse(
+    readFileSync(join(PLUGIN_ROOT, "catalog", "role-defaults.json"), "utf8")
+  ) as { roles: Array<{ descriptors: string[] }> };
+  const roles = shipped.roles.map((role) => ({
+    ...role,
+    descriptors: role.descriptors.map((descriptor) => {
+      try {
+        bindDescriptor(base, descriptor);
+        return descriptor;
+      } catch {
+        return "inherit-parent";
+      }
+    }),
+  }));
+  return `${JSON.stringify({ ...shipped, roles }, null, 2)}\n`;
+}
+
 export function copyPluginTree(scratches: string[], prefix: string): string {
   const root = mkdtempSync(join(tmpdir(), prefix));
   scratches.push(root);
@@ -57,10 +72,7 @@ export function copyPluginTree(scratches: string[], prefix: string): string {
   mkdirSync(join(root, ".claude-plugin"), { recursive: true });
   const base = baseCatalog();
   writeFileSync(join(root, "catalog", "models.json"), formatCatalogJson(catalogToJson(base)));
-  writeFileSync(
-    join(root, "catalog", "role-defaults.json"),
-    readFileSync(join(PLUGIN_ROOT, "catalog", "role-defaults.json"))
-  );
+  writeFileSync(join(root, "catalog", "role-defaults.json"), baseRoleDefaultsText());
   writeFileSync(
     join(root, ".claude-plugin", "plugin.json"),
     readFileSync(join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"))

@@ -9,7 +9,7 @@ function argv(extra: readonly string[] = []): string[] {
     "--provider",
     "codex",
     "--model",
-    "gpt-5.6-sol",
+    "gpt-6.1-sol",
     "--effort",
     "max",
     "--mode",
@@ -55,8 +55,8 @@ describe("runner CLI parsing", () => {
     expect(parseArgs(args)?.effort).toBe("ultra");
     args[args.indexOf("--effort") + 1] = "Max!";
     expect(() => parseArgs(args)).toThrow("catalog effort identifier");
-    args[args.indexOf("--model") + 1] = "claude-fable-5-1[1m]";
+    args[args.indexOf("--model") + 1] = "opus[1m]";
     args[args.indexOf("--effort") + 1] = "max";
-    expect(parseArgs(args)?.model).toBe("claude-fable-5-1[1m]");
+    expect(parseArgs(args)?.model).toBe("opus[1m]");
   });
 });

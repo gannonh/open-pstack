@@ -87,86 +87,90 @@ describe("model catalog", () => {
     expect(catalog.offerings.map((row) => row.id)).toEqual([
       "claude-fable",
       "cursor-fable-5-1",
-      "codex-gpt-5-6-sol",
-      "cursor-grok-4-6",
       "grok-grok-4-6",
       "claude-opus",
       "codex-gpt-6-astra",
-      "claude-claude-fable-5-1-1m",
       "codex-gpt-5-6-terra",
-      "codex-gpt-5-6-luna",
       "claude-opus-long-context",
       "cursor-gpt-5-6-sol",
       "cursor-gpt-5-6-terra",
       "cursor-gpt-5-6-luna",
       "cursor-claude-fable-5-1-thinking",
-      "cursor-claude-opus-5",
       "claude-default",
       "claude-sonnet",
-      "cursor-claude-sonnet-5",
-      "cursor-claude-sonnet-5-thinking",
-      "cursor-claude-opus-5-thinking",
       "cursor-grok-4-7",
-      "codex-gpt-6-sol",
       "codex-gpt-6-luna",
       "cursor-claude-opus-5-5",
-      "claude-claude-opus-5-5-1m",
-      "claude-claude-sonnet-5-5",
+      "codex-gpt-6-1-sol",
+      "cursor-claude-sonnet-5-5",
     ]);
     expect(
       catalog.offerings.map((row) => `${row.provider}:${row.selector}`)
     ).toEqual([
       "claude:fable",
       "cursor:claude-fable-5-1",
-      "codex:gpt-5.6-sol",
-      "cursor:cursor-grok-4.6",
       "grok:grok-4.6",
       "claude:opus",
       "codex:gpt-6-astra",
-      "claude:claude-fable-5-1[1m]",
       "codex:gpt-5.6-terra",
-      "codex:gpt-5.6-luna",
       "claude:opus[1m]",
       "cursor:gpt-5.6-sol",
       "cursor:gpt-5.6-terra",
       "cursor:gpt-5.6-luna",
       "cursor:claude-fable-5-1-thinking",
-      "cursor:claude-opus-5",
       "claude:default",
       "claude:sonnet",
-      "cursor:claude-sonnet-5",
-      "cursor:claude-sonnet-5-thinking",
-      "cursor:claude-opus-5-thinking",
       "cursor:grok-4.7",
-      "codex:gpt-6-sol",
       "codex:gpt-6-luna",
       "cursor:claude-opus-5-5",
-      "claude:claude-opus-5-5[1m]",
-      "claude:claude-sonnet-5-5",
+      "codex:gpt-6.1-sol",
+      "cursor:claude-sonnet-5-5",
     ]);
   });
 
-  it("catalogs a pinned Claude Sonnet 5.5 beside the Sonnet rolling alias", () => {
-    const sonnet55 = findOffering(catalog, "claude", "claude-sonnet-5-5");
-    expect(sonnet55?.displayName).toBe("Claude Sonnet 5.5");
-    expect(sonnet55?.supportedEfforts).toEqual(FIVE_EFFORTS);
-    expect(sonnet55?.defaultEffort).toBe("high");
-    expect(sonnet55?.rollingAlias).toBe(false);
-    expect(bindDescriptor(catalog, "claude:claude-sonnet-5-5@high").offering?.id).toBe(
-      "claude-claude-sonnet-5-5"
-    );
+  it("catalogs GPT-6.1 Sol with ultra and Cursor Claude Sonnet 5.5 beside the Sonnet rolling alias", () => {
+    const sol = findOffering(catalog, "codex", "gpt-6.1-sol");
+    expect(sol?.displayName).toBe("GPT-6.1-Sol");
+    expect(sol?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    expect(sol?.defaultEffort).toBe("low");
+    const cursorSonnet55 = findOffering(catalog, "cursor", "claude-sonnet-5-5");
+    expect(cursorSonnet55?.displayName).toBe("Claude Sonnet 5.5");
+    expect(cursorSonnet55?.supportedEfforts).toEqual(FIVE_EFFORTS);
+    expect(cursorSonnet55?.defaultEffort).toBe("high");
+    expect(composedCliModel(cursorSonnet55!, "max")).toBe("claude-sonnet-5-5-max");
     expect(bindDescriptor(catalog, "claude:sonnet@high").offering?.id).toBe("claude-sonnet");
+
+    const edited = firstRunSheet(catalog, roles)
+      .replace("bug-fix: codex:gpt-6.1-sol@max", "bug-fix: codex:gpt-6.1-sol@ultra")
+      .replace("swarm workers: cursor:grok-4.7@xhigh", "swarm workers: cursor:claude-sonnet-5-5@max");
+    const parsed = parseSheet(edited, catalog, roles);
+    expect(parsed.issues).toEqual([]);
+    const bugFix = parsed.sheet?.roles.find((role) => role.id === "bug-fix")?.lanes[0];
+    expect(bugFix?.raw).toBe("codex:gpt-6.1-sol@ultra");
+    expect(bugFix?.bound.offering?.id).toBe("codex-gpt-6-1-sol");
+    const swarm = parsed.sheet?.roles.find((role) => role.id === "swarm workers")?.lanes[0];
+    expect(swarm?.raw).toBe("cursor:claude-sonnet-5-5@max");
+    expect(swarm?.bound.offering?.id).toBe("cursor-claude-sonnet-5-5");
   });
 
-  it("catalogs GPT-6 Sol and Luna plus native and Cursor Claude Opus 5.5", () => {
-    const sol = findOffering(catalog, "codex", "gpt-6-sol");
-    expect(sol?.displayName).toBe("GPT-6-Sol");
-    expect(sol?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
-    expect(sol?.defaultEffort).toBe("medium");
-    expect(bindDescriptor(catalog, "codex:gpt-6-sol@ultra").offering?.id).toBe(
-      "codex-gpt-6-sol"
+  it("rejects a sheet row that names a pruned offering", () => {
+    const edited = firstRunSheet(catalog, roles).replace(
+      "bug-fix: codex:gpt-6.1-sol@max",
+      "bug-fix: codex:gpt-5.6-sol@max"
     );
+    const parsed = parseSheet(edited, catalog, roles);
+    expect(parsed.sheet).toBeNull();
+    expect(parsed.issues).toEqual([
+      {
+        line: "bug-fix: codex:gpt-5.6-sol@max",
+        message:
+          "codex:gpt-5.6-sol@max is not a cataloged offering. Add it to catalog/models.json or pick a listed provider/model/effort.",
+        roleId: "bug-fix",
+      },
+    ]);
+  });
 
+  it("catalogs GPT-6 Luna and Cursor Claude Opus 5.5", () => {
     const luna = findOffering(catalog, "codex", "gpt-6-luna");
     expect(luna?.displayName).toBe("GPT-6-Luna");
     expect(luna?.supportedEfforts).toEqual(FIVE_EFFORTS);
@@ -185,46 +189,20 @@ describe("model catalog", () => {
     expect(bindDescriptor(catalog, "cursor:claude-opus-5-5@high").offering?.id).toBe(
       "cursor-claude-opus-5-5"
     );
-
-    const nativeOpus55 = findOffering(catalog, "claude", "claude-opus-5-5[1m]");
-    expect(nativeOpus55?.displayName).toBe("Claude Opus 5.5 1M");
-    expect(nativeOpus55?.supportedEfforts).toEqual(FIVE_EFFORTS);
-    expect(nativeOpus55?.defaultEffort).toBe("high");
-    expect(nativeOpus55?.rollingAlias).toBe(false);
-    expect(
-      bindDescriptor(catalog, "claude:claude-opus-5-5[1m]@high").offering?.id
-    ).toBe("claude-claude-opus-5-5-1m");
   });
 
-  it("catalogs GPT-6 Astra with ultra and the explicit Fable 5.1 [1m] pin without touching role defaults", () => {
+  it("catalogs GPT-6 Astra with ultra and the Claude and Cursor long tail without touching role defaults", () => {
     const astra = findOffering(catalog, "codex", "gpt-6-astra");
     expect(astra?.displayName).toBe("GPT-6 Astra");
     expect(astra?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
     expect(astra?.defaultEffort).toBe("medium");
     expect(bindDescriptor(catalog, "codex:gpt-6-astra@ultra").offering?.id).toBe("codex-gpt-6-astra");
-    expect(findOffering(catalog, "codex", "gpt-5.6-sol")?.supportedEfforts).toEqual([
-      "low",
-      "medium",
-      "high",
-      "xhigh",
-      "max",
-      "ultra",
-    ]);
-    expect(findOffering(catalog, "codex", "gpt-5.6-sol")?.defaultEffort).toBe("max");
-    expect(bindDescriptor(catalog, "codex:gpt-5.6-sol@ultra").offering?.id).toBe("codex-gpt-5-6-sol");
 
     const terra = findOffering(catalog, "codex", "gpt-5.6-terra");
     expect(terra?.displayName).toBe("GPT-5.6-Terra");
     expect(terra?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
     expect(terra?.defaultEffort).toBe("medium");
     expect(bindDescriptor(catalog, "codex:gpt-5.6-terra@ultra").offering?.id).toBe("codex-gpt-5-6-terra");
-
-    const luna = findOffering(catalog, "codex", "gpt-5.6-luna");
-    expect(luna?.displayName).toBe("GPT-5.6-Luna");
-    expect(luna?.supportedEfforts).toEqual(["low", "medium", "high", "xhigh", "max"]);
-    expect(luna?.defaultEffort).toBe("medium");
-    expect(bindDescriptor(catalog, "codex:gpt-5.6-luna@max").offering?.id).toBe("codex-gpt-5-6-luna");
-    expect(() => bindDescriptor(catalog, "codex:gpt-5.6-luna@ultra")).toThrow("unsupported effort ultra");
 
     const opus1m = findOffering(catalog, "claude", "opus[1m]");
     expect(opus1m?.id).toBe("claude-opus-long-context");
@@ -245,12 +223,6 @@ describe("model catalog", () => {
     expect(bindDescriptor(catalog, "cursor:claude-fable-5-1-thinking@max").offering?.id).toBe(
       "cursor-claude-fable-5-1-thinking"
     );
-    expect(bindDescriptor(catalog, "cursor:claude-opus-5@high").offering?.id).toBe(
-      "cursor-claude-opus-5"
-    );
-    expect(() => bindDescriptor(catalog, "cursor:claude-opus-5@xhigh")).toThrow(
-      "unsupported effort xhigh"
-    );
 
     const claudeDefault = findOffering(catalog, "claude", "default");
     expect(claudeDefault?.id).toBe("claude-default");
@@ -268,39 +240,6 @@ describe("model catalog", () => {
     expect(claudeSonnet?.nativeAgentStem).toBe("sonnet");
     expect(bindDescriptor(catalog, "claude:sonnet@high").offering?.id).toBe("claude-sonnet");
 
-    const cursorSonnet = findOffering(catalog, "cursor", "claude-sonnet-5");
-    expect(cursorSonnet?.supportedEfforts).toEqual(FIVE_EFFORTS);
-    expect(cursorSonnet?.defaultEffort).toBe("high");
-    expect(bindDescriptor(catalog, "cursor:claude-sonnet-5@high").offering?.id).toBe(
-      "cursor-claude-sonnet-5"
-    );
-
-    const cursorSonnetThinking = findOffering(catalog, "cursor", "claude-sonnet-5-thinking");
-    expect(cursorSonnetThinking?.supportedEfforts).toEqual([
-      "high",
-      "xhigh",
-      "low",
-      "medium",
-      "max",
-    ]);
-    expect(cursorSonnetThinking?.defaultEffort).toBe("max");
-    expect(bindDescriptor(catalog, "cursor:claude-sonnet-5-thinking@max").offering?.id).toBe(
-      "cursor-claude-sonnet-5-thinking"
-    );
-
-    const cursorOpusThinking = findOffering(catalog, "cursor", "claude-opus-5-thinking");
-    expect(cursorOpusThinking?.supportedEfforts).toEqual([
-      "high",
-      "low",
-      "medium",
-      "xhigh",
-      "max",
-    ]);
-    expect(cursorOpusThinking?.defaultEffort).toBe("max");
-    expect(bindDescriptor(catalog, "cursor:claude-opus-5-thinking@max").offering?.id).toBe(
-      "cursor-claude-opus-5-thinking"
-    );
-
     const cursorGrok47 = findOffering(catalog, "cursor", "grok-4.7");
     expect(cursorGrok47?.id).toBe("cursor-grok-4-7");
     expect(cursorGrok47?.displayName).toBe("Grok 4.7");
@@ -309,21 +248,12 @@ describe("model catalog", () => {
     expect(bindDescriptor(catalog, "cursor:grok-4.7@xhigh").offering?.id).toBe("cursor-grok-4-7");
     expect(() => bindDescriptor(catalog, "cursor:grok-4.7@max")).toThrow("unsupported effort max");
 
-    const pin = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
-    expect(pin?.displayName).toBe("Fable 5.1");
-    expect(pin?.rollingAlias).toBe(false);
-    expect(pin?.nativeAgentStem).toBe("fable-5-1-1m");
-    expect(offeringLabel(pin!)).toBe("Fable 5.1");
-    expect(bindDescriptor(catalog, "claude:claude-fable-5-1[1m]@max").selector).toBe(
-      "claude-fable-5-1[1m]"
-    );
-
     const defaultDescriptors = new Set(roles.roles.flatMap((role) => role.descriptors));
     expect([...defaultDescriptors].sort()).toEqual([
       "claude:fable@max",
       "claude:opus@xhigh",
-      "codex:gpt-5.6-sol@max",
-      "cursor:cursor-grok-4.6@xhigh",
+      "codex:gpt-6.1-sol@max",
+      "cursor:grok-4.7@xhigh",
       "inherit-parent",
     ]);
   });
@@ -346,17 +276,17 @@ describe("model catalog", () => {
     expect(
       formatDescriptor(
         "codex",
-        "gpt-5.6-sol",
-        findOffering(catalog, "codex", "gpt-5.6-sol")?.defaultEffort ?? "low"
+        "gpt-6.1-sol",
+        findOffering(catalog, "codex", "gpt-6.1-sol")?.defaultEffort ?? "max"
       )
-    ).toBe("codex:gpt-5.6-sol@max");
+    ).toBe("codex:gpt-6.1-sol@low");
     expect(
       formatDescriptor(
         "cursor",
-        "cursor-grok-4.6",
-        findOffering(catalog, "cursor", "cursor-grok-4.6")?.defaultEffort ?? "low"
+        "grok-4.7",
+        findOffering(catalog, "cursor", "grok-4.7")?.defaultEffort ?? "low"
       )
-    ).toBe("cursor:cursor-grok-4.6@xhigh");
+    ).toBe("cursor:grok-4.7@xhigh");
     const cursorFable = findOffering(catalog, "cursor", "claude-fable-5-1");
     expect(cursorFable).not.toBeNull();
     expect(cursorFable?.displayName).toBe("Fable 5.1");
@@ -396,6 +326,7 @@ describe("model catalog", () => {
     const extra = cloneCatalog();
     extra.offerings.push({
       ...extra.offerings[2],
+      provider: "codex",
       id: "codex-gpt-7-test",
       selector: "gpt-7-test",
       displayName: "GPT-7 Test",
@@ -410,7 +341,7 @@ describe("model catalog", () => {
     expect(bindDescriptor(parsed, "codex:gpt-7-test@minimal").offering?.id).toBe(
       "codex-gpt-7-test"
     );
-    expect(() => bindDescriptor(parsed, "codex:gpt-5.6-sol@turbo")).toThrow(
+    expect(() => bindDescriptor(parsed, "codex:gpt-6.1-sol@turbo")).toThrow(
       "unsupported effort turbo"
     );
     expect(catalogEffortVocabulary(parsed).has("turbo")).toBe(true);
@@ -437,50 +368,43 @@ describe("model catalog", () => {
     const unlistedDefault = cloneCatalog();
     unlistedDefault.offerings[2] = { ...unlistedDefault.offerings[2], defaultEffort: "turbo" };
     expect(() => parseModelCatalog(unlistedDefault)).toThrow("defaultEffort is not selectable");
-    expect(() => bindDescriptor(catalog, "codex:gpt-5.6-sol@Max")).toThrow("invalid descriptor");
+    expect(() => bindDescriptor(catalog, "codex:gpt-6.1-sol@Max")).toThrow("invalid descriptor");
   });
 
   it("carries a Claude contextual selector unchanged through parsing, sheet, argv, and agents", () => {
     expect(proposeNativeAgentStem("claude-fable-5-1[1m]")).toBe("fable-5-1-1m");
     expect(proposeNativeAgentStem("claude-opus-5[1m]")).toBe("opus-5-1m");
     expect(proposeNativeAgentStem("fable")).toBe("fable");
-    const offering = findOffering(catalog, "claude", "claude-fable-5-1[1m]");
-    expect(offering?.nativeAgentStem).toBe("fable-5-1-1m");
-    const bound = bindDescriptor(catalog, "claude:claude-fable-5-1[1m]@max");
-    expect(bound.selector).toBe("claude-fable-5-1[1m]");
-    expect(bound.offering?.id).toBe("claude-claude-fable-5-1-1m");
-    expect(migrateDescriptorText(catalog, "claude:claude-fable-5-1[1m]@max")).toEqual({
-      descriptor: "claude:claude-fable-5-1[1m]@max",
+    const offering = findOffering(catalog, "claude", "opus[1m]");
+    expect(offering?.nativeAgentStem).toBe("opus-1m");
+    const bound = bindDescriptor(catalog, "claude:opus[1m]@max");
+    expect(bound.selector).toBe("opus[1m]");
+    expect(bound.offering?.id).toBe("claude-opus-long-context");
+    expect(migrateDescriptorText(catalog, "claude:opus[1m]@max")).toEqual({
+      descriptor: "claude:opus[1m]@max",
       migratedFrom: null,
     });
-    expect(composedCliModel(offering!, "max")).toBe("claude-fable-5-1[1m]");
+    expect(composedCliModel(offering!, "max")).toBe("opus[1m]");
     const agent = renderNativeAgent(offering!, "max");
-    expect(agent).toContain("name: pstack-fable-5-1-1m-max");
-    expect(agent).toContain("model: claude-fable-5-1[1m]");
-    expect(agent).toContain("claude:claude-fable-5-1[1m]@max");
+    expect(agent).toContain("name: pstack-opus-1m-max");
+    expect(agent).toContain("model: opus[1m]");
+    expect(agent).toContain("claude:opus[1m]@max");
 
     const edited = renderSheet({
       ...roles,
-      roles: replaceRoleLanes(
-        roles.roles,
-        "judgment and prose",
-        ["claude:claude-fable-5-1[1m]@high"],
-        catalog
-      ),
+      roles: replaceRoleLanes(roles.roles, "judgment and prose", ["claude:opus[1m]@high"], catalog),
     });
-    expect(edited).toContain("judgment and prose: claude:claude-fable-5-1[1m]@high");
+    expect(edited).toContain("judgment and prose: claude:opus[1m]@high");
     const reparsed = parseSheet(edited, catalog, roles);
     expect(reparsed.issues).toEqual([]);
     expect(
       reparsed.sheet?.roles.find((role) => role.id === "judgment and prose")?.lanes[0]?.raw
-    ).toBe("claude:claude-fable-5-1[1m]@high");
-    expect(uniqueOfferingDescriptors(reparsed.sheet!)).toContain(
-      "claude:claude-fable-5-1[1m]@high"
-    );
-    expect(() => bindDescriptor(catalog, "claude:claude-fable-5-1[1m][2m]@high")).toThrow(
+    ).toBe("claude:opus[1m]@high");
+    expect(uniqueOfferingDescriptors(reparsed.sheet!)).toContain("claude:opus[1m]@high");
+    expect(() => bindDescriptor(catalog, "claude:opus[1m][2m]@high")).toThrow(
       "invalid descriptor"
     );
-    expect(() => bindDescriptor(catalog, "claude:claude-fable-5-2[1m]@high")).toThrow(
+    expect(() => bindDescriptor(catalog, "claude:opus[2m]@high")).toThrow(
       "not a cataloged offering"
     );
   });
@@ -505,7 +429,7 @@ describe("model catalog", () => {
   });
 
   it("rejects unsupported efforts and unknown providers", () => {
-    expect(() => bindDescriptor(catalog, "cursor:cursor-grok-4.6@max")).toThrow(
+    expect(() => bindDescriptor(catalog, "cursor:grok-4.7@max")).toThrow(
       "unsupported effort max"
     );
     expect(() => bindDescriptor(catalog, "claude:fable@nope")).toThrow(
@@ -535,13 +459,13 @@ describe("model catalog", () => {
   it("composes provider-specific CLI selectors from catalog data", () => {
     const claude = findOffering(catalog, "claude", "fable");
     const cursorFable = findOffering(catalog, "cursor", "claude-fable-5-1");
-    const cursorGrok = findOffering(catalog, "cursor", "cursor-grok-4.6");
+    const cursorGrok = findOffering(catalog, "cursor", "grok-4.7");
     expect(claude).not.toBeNull();
     expect(cursorFable).not.toBeNull();
     expect(cursorGrok).not.toBeNull();
     expect(composedCliModel(claude!, "max")).toBe("fable");
     expect(composedCliModel(cursorFable!, "max")).toBe("claude-fable-5-1-max");
-    expect(composedCliModel(cursorGrok!, "xhigh")).toBe("cursor-grok-4.6-xhigh");
+    expect(composedCliModel(cursorGrok!, "xhigh")).toBe("grok-4.7-xhigh");
     expect(() =>
       requireCatalogedLane(catalog, "cursor", "missing-model", "xhigh")
     ).toThrow(UsageError);
@@ -549,11 +473,11 @@ describe("model catalog", () => {
 
   it("maps Cursor parent Task slugs for the preferred-sheet composed ids", () => {
     const cursorFable = findOffering(catalog, "cursor", "claude-fable-5-1");
-    const cursorGrok = findOffering(catalog, "cursor", "cursor-grok-4.6");
+    const cursorGrok = findOffering(catalog, "cursor", "grok-4.7");
     expect(cursorFable).not.toBeNull();
     expect(cursorGrok).not.toBeNull();
-    expect(composedCliModel(cursorGrok!, "xhigh")).toBe("cursor-grok-4.6-xhigh");
-    expect(nativeTaskSlug(cursorGrok!, "xhigh")).toBe("cursor-grok-4.6-xhigh");
+    expect(composedCliModel(cursorGrok!, "xhigh")).toBe("grok-4.7-xhigh");
+    expect(nativeTaskSlug(cursorGrok!, "xhigh")).toBe("grok-4.7-xhigh");
     expect(composedCliModel(cursorFable!, "high")).toBe("claude-fable-5-1-high");
     expect(nativeTaskSlug(cursorFable!, "high")).toBe("claude-fable-5-1-thinking-high");
     expect(composedCliModel(cursorFable!, "xhigh")).toBe("claude-fable-5-1-xhigh");
@@ -565,24 +489,12 @@ describe("model catalog", () => {
     expect(nativeTaskSlug(findOffering(catalog, "cursor", "gpt-5.6-sol")!, "max")).toBe(
       "gpt-5.6-sol-max"
     );
-    expect(nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5")!, "high")).toBe(
-      "claude-opus-5-high"
-    );
     expect(
       nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5-5")!, "high")
     ).toBe("claude-opus-5-5-high");
-    expect(nativeTaskSlug(findOffering(catalog, "cursor", "claude-sonnet-5")!, "high")).toBe(
-      "claude-sonnet-5-high"
-    );
     expect(
-      nativeTaskSlug(findOffering(catalog, "cursor", "claude-sonnet-5-thinking")!, "max")
-    ).toBe("claude-sonnet-5-thinking-max");
-    expect(
-      nativeTaskSlug(findOffering(catalog, "cursor", "claude-opus-5-thinking")!, "high")
-    ).toBe("claude-opus-5-thinking-high");
-    expect(nativeTaskSlug(findOffering(catalog, "cursor", "grok-4.7")!, "xhigh")).toBe(
-      "grok-4.7-xhigh"
-    );
+      nativeTaskSlug(findOffering(catalog, "cursor", "claude-sonnet-5-5")!, "high")
+    ).toBe("claude-sonnet-5-5-high");
     for (const row of nativeTaskSlugTable(catalog)) {
       expect(row.taskSlug.includes("-fast")).toBe(false);
       expect(row.taskSlug.endsWith(`-${row.effort}`)).toBe(true);
@@ -597,11 +509,11 @@ describe("model catalog", () => {
 
   it("resolves Cursor parent cursor:* to native Task or external cursor-agent", () => {
     const cursorFable = findOffering(catalog, "cursor", "claude-fable-5-1")!;
-    const cursorGrok = findOffering(catalog, "cursor", "cursor-grok-4.6")!;
+    const cursorGrok = findOffering(catalog, "cursor", "grok-4.7")!;
     const thinkingAllowlist = [
       "claude-fable-5-1-thinking-high",
       "claude-fable-5-1-thinking-xhigh",
-      "cursor-grok-4.6-xhigh-fast",
+      "grok-4.7-xhigh-fast",
     ];
     expect(
       resolveCursorDescriptorRoute({
@@ -636,8 +548,8 @@ describe("model catalog", () => {
       })
     ).toEqual({
       kind: "external-cursor-agent",
-      composedCliId: "cursor-grok-4.6-xhigh",
-      taskSlug: "cursor-grok-4.6-xhigh",
+      composedCliId: "grok-4.7-xhigh",
+      taskSlug: "grok-4.7-xhigh",
       nativeIneligibleReason: "mapped-slug-absent-from-allowlist",
     });
     expect(
@@ -660,7 +572,7 @@ describe("model catalog", () => {
     });
     expect(miss).toContain("claude-fable-5-1-xhigh");
     expect(miss).toContain("claude-fable-5-1-thinking-xhigh");
-    expect(miss).toContain("cursor-grok-4.6-xhigh-fast");
+    expect(miss).toContain("grok-4.7-xhigh-fast");
     expect(miss.includes("counted as success")).toBe(false);
   });
 
@@ -702,23 +614,23 @@ describe("model catalog", () => {
   it("preserves a 1.3.1 sheet including mixed per-role efforts", () => {
     const sheetText = `${roles.preamble.join("\n")}
 
-feature, refactoring: cursor:cursor-grok-4.6@xhigh
-bug-fix: codex:gpt-5.6-sol@max
-perf-issue: codex:gpt-5.6-sol@high
-hillclimb: codex:gpt-5.6-sol@max
+feature, refactoring: cursor:grok-4.7@xhigh
+bug-fix: codex:gpt-6.1-sol@max
+perf-issue: codex:gpt-6.1-sol@high
+hillclimb: codex:gpt-6.1-sol@max
 judgment and prose: claude:fable@high
 hardest tasks: claude:fable@max
-how explorer: cursor:cursor-grok-4.6@xhigh
+how explorer: cursor:grok-4.7@xhigh
 how explainer: claude:fable@max
 why investigators: inherit-parent
 why synthesizer: inherit-parent
 reflect tooling: auto
 reflect judgment, divergent, synthesizer: inherit-parent
-arena runners: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
-arena cross-judge pool: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
-swarm workers: cursor:cursor-grok-4.6@xhigh
-architect runners: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
-interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh
+arena runners: claude:fable@max, codex:gpt-6.1-sol@max, cursor:grok-4.7@xhigh, claude:opus@xhigh
+arena cross-judge pool: claude:fable@max, codex:gpt-6.1-sol@max, cursor:grok-4.7@xhigh, claude:opus@xhigh
+swarm workers: cursor:grok-4.7@xhigh
+architect runners: claude:fable@max, codex:gpt-6.1-sol@max, cursor:grok-4.7@xhigh, claude:opus@xhigh
+interrogate reviewers: claude:fable@max, codex:gpt-6.1-sol@max, cursor:grok-4.7@xhigh, claude:opus@xhigh
 `;
     const parsed = parseSheet(sheetText, catalog, roles);
     expect(parsed.issues).toEqual([]);
@@ -728,7 +640,7 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     expect(judgment?.lanes[0]?.raw).toBe("claude:fable@high");
     expect(hardest?.lanes[0]?.raw).toBe("claude:fable@max");
     expect(parsed.sheet?.roles.find((role) => role.id === "perf-issue")?.lanes[0]?.raw).toBe(
-      "codex:gpt-5.6-sol@high"
+      "codex:gpt-6.1-sol@high"
     );
     expect(parsed.sheet?.roles.find((role) => role.id === "reflect tooling")?.lanes[0]?.raw).toBe(
       "auto"
@@ -799,10 +711,10 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     const edited = firstRunSheet(catalog, roles)
       .replace(
         "why investigators: inherit-parent",
-        "why investigators: cursor:cursor-grok-4.6@xhigh"
+        "why investigators: cursor:grok-4.7@xhigh"
       )
       .replace("why synthesizer: inherit-parent", "why synthesizer: claude:fable@max")
-      .replace("reflect tooling: inherit-parent", "reflect tooling: codex:gpt-5.6-sol@max")
+      .replace("reflect tooling: inherit-parent", "reflect tooling: codex:gpt-6.1-sol@max")
       .replace(
         "reflect judgment, divergent, synthesizer: inherit-parent",
         "reflect judgment, divergent, synthesizer: auto"
@@ -810,13 +722,13 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     const parsed = parseSheet(edited, catalog, roles);
     expect(parsed.issues).toEqual([]);
     expect(parsed.sheet?.roles.find((role) => role.id === "why investigators")?.lanes[0]?.raw).toBe(
-      "cursor:cursor-grok-4.6@xhigh"
+      "cursor:grok-4.7@xhigh"
     );
     expect(parsed.sheet?.roles.find((role) => role.id === "why synthesizer")?.lanes[0]?.raw).toBe(
       "claude:fable@max"
     );
     expect(parsed.sheet?.roles.find((role) => role.id === "reflect tooling")?.lanes[0]?.raw).toBe(
-      "codex:gpt-5.6-sol@max"
+      "codex:gpt-6.1-sol@max"
     );
     expect(
       parsed.sheet?.roles.find((role) => role.id === "reflect judgment, divergent, synthesizer")
@@ -850,8 +762,8 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     const arena = parsed.sheet?.roles.find((role) => role.id === "arena runners");
     expect(arena?.lanes.map((lane) => lane.raw)).toEqual([
       "claude:fable@max",
-      "codex:gpt-5.6-sol@max",
-      "cursor:cursor-grok-4.6@xhigh",
+      "codex:gpt-6.1-sol@max",
+      "cursor:grok-4.7@xhigh",
       "claude:opus@xhigh",
     ]);
   });
@@ -867,8 +779,8 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
     const runners = changed.find((role) => role.id === "arena runners");
     expect(runners?.descriptors[0]).toBe("cursor:claude-fable-5-1@max");
     expect(runners?.descriptors.slice(1)).toEqual([
-      "codex:gpt-5.6-sol@max",
-      "cursor:cursor-grok-4.6@xhigh",
+      "codex:gpt-6.1-sol@max",
+      "cursor:grok-4.7@xhigh",
       "claude:opus@xhigh",
     ]);
     expect(parseLaneEdit("arena runners[3]")).toEqual({
@@ -906,7 +818,7 @@ interrogate reviewers: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-gr
 
   it("rejects an invalid hand-edited descriptor without producing a sheet", () => {
     const edited = firstRunSheet(catalog, roles).replace(
-      "bug-fix: codex:gpt-5.6-sol@max",
+      "bug-fix: codex:gpt-6.1-sol@max",
       "bug-fix: claude:not-a-model@max"
     );
     const parsed = parseSheet(edited, catalog, roles);
@@ -980,9 +892,9 @@ describe("catalog-driven native agents and skill invariants", () => {
 
   it("renders first-run defaults from the role map", () => {
     const sheet = firstRunSheet(catalog, roles);
-    expect(sheet).toContain("feature, refactoring: cursor:cursor-grok-4.6@xhigh");
+    expect(sheet).toContain("feature, refactoring: cursor:grok-4.7@xhigh");
     expect(sheet).toContain(
-      "arena runners: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh"
+      "arena runners: claude:fable@max, codex:gpt-6.1-sol@max, cursor:grok-4.7@xhigh, claude:opus@xhigh"
     );
     expect(sheet).toContain(
       [

@@ -64,16 +64,16 @@ describe("Cursor always-applied model rule", () => {
 
   it("rejects an invalid descriptor so setup has nothing to write", () => {
     const unsupportedEffort = cursorRule().replace(
-      "feature, refactoring: cursor:cursor-grok-4.6@xhigh",
-      "feature, refactoring: cursor:cursor-grok-4.6@max"
+      "feature, refactoring: cursor:grok-4.7@xhigh",
+      "feature, refactoring: cursor:grok-4.7@max"
     );
     const parsed = parseSheet(unsupportedEffort, catalog, roles);
     expect(parsed.sheet).toBeNull();
     expect(parsed.issues.map((issue) => issue.roleId)).toContain("feature, refactoring");
 
     const bareSlug = cursorRule().replace(
-      "swarm workers: cursor:cursor-grok-4.6@xhigh",
-      "swarm workers: cursor-grok-4.6-xhigh"
+      "swarm workers: cursor:grok-4.7@xhigh",
+      "swarm workers: grok-4.7-xhigh"
     );
     expect(parseSheet(bareSlug, catalog, roles).sheet).toBeNull();
   });
@@ -85,8 +85,8 @@ describe("Cursor always-applied model rule", () => {
         "hardest tasks: cursor:claude-fable-5-1@max"
       )
       .replace(
-        "arena runners: claude:fable@max, codex:gpt-5.6-sol@max, cursor:cursor-grok-4.6@xhigh, claude:opus@xhigh",
-        "arena runners: cursor:cursor-grok-4.6@xhigh, codex:gpt-5.6-sol@high, claude:opus@xhigh, claude:fable@max"
+        "arena runners: claude:fable@max, codex:gpt-6.1-sol@max, cursor:grok-4.7@xhigh, claude:opus@xhigh",
+        "arena runners: cursor:grok-4.7@xhigh, codex:gpt-6.1-sol@high, claude:opus@xhigh, claude:fable@max"
       );
     const parsed = parseSheet(first, catalog, roles);
     expect(parsed.issues).toEqual([]);

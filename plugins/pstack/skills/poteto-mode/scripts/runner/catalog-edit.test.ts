@@ -19,6 +19,7 @@ import { supportedDescriptor, type InventoryEntry, type InventorySource } from "
 import {
   ADDED_OFFERING_IDS,
   baseCatalog,
+  baseRoleDefaultsText,
   copyPluginTree as copyBaseTree,
 } from "./catalog-fixture.test-helper.ts";
 import {
@@ -121,7 +122,7 @@ describe("proposeFromInventory", () => {
     expect("offering" in completed).toBe(true);
     if (!("offering" in completed)) return;
     expect(completed.offering.supportedEfforts).toContain("ultra");
-    const added = proposeAdd(catalog, completed.offering);
+    const added = proposeAdd(catalog, completed.offering, copyPluginTree());
     expect(added.kind).toBe("change");
     if (added.kind !== "change") return;
     const astra = added.catalog.offerings.find((row) => row.id === "codex-gpt-6-astra");
@@ -156,7 +157,7 @@ describe("proposeFromInventory", () => {
     const completed = completeOffering({ ...proposal, family: "fable" });
     expect("offering" in completed).toBe(true);
     if (!("offering" in completed)) return;
-    expect(proposeAdd(catalog, completed.offering).kind).toBe("change");
+    expect(proposeAdd(catalog, completed.offering, copyPluginTree()).kind).toBe("change");
   });
 });
 
@@ -165,7 +166,7 @@ describe("proposeAdd", () => {
     const offering = completeFable1m();
     expect(offering.nativeAgentStem).toBe("fable-5-1-1m");
     expect(offering.nativeAgentTitle).toBe("pstack Fable 5.1 lane");
-    const proposal = proposeAdd(baseCatalog(), offering);
+    const proposal = proposeAdd(baseCatalog(), offering, copyPluginTree());
     expect(proposal.kind).toBe("change");
     if (proposal.kind !== "change") return;
     const added = [...proposal.agents.keys()].filter((name) =>
@@ -210,19 +211,19 @@ describe("proposeAdd", () => {
 
 describe("proposeEdit", () => {
   it("changes efforts and default", () => {
-    const proposal = proposeEdit(loadModelCatalog(), "codex-gpt-5-6-sol", {
+    const proposal = proposeEdit(loadModelCatalog(), "codex-gpt-6-1-sol", {
       supportedEfforts: [...ASTRA_EFFORTS],
       defaultEffort: "ultra",
     });
     expect(proposal.kind).toBe("change");
     if (proposal.kind !== "change") return;
-    const edited = proposal.catalog.offerings.find((row) => row.id === "codex-gpt-5-6-sol");
+    const edited = proposal.catalog.offerings.find((row) => row.id === "codex-gpt-6-1-sol");
     expect(edited?.supportedEfforts).toEqual([...ASTRA_EFFORTS]);
     expect(edited?.defaultEffort).toBe("ultra");
   });
 
   it("rejects an edit that makes the default unlisted", () => {
-    const proposal = proposeEdit(loadModelCatalog(), "codex-gpt-5-6-luna", {
+    const proposal = proposeEdit(loadModelCatalog(), "codex-gpt-6-luna", {
       defaultEffort: "ultra",
     });
     expect(proposal.kind).toBe("rejected");
@@ -410,9 +411,8 @@ describe("shipped catalog provenance", () => {
         readFileSync(join(agentsDirectory(PLUGIN_ROOT), name), "utf8")
       );
     }
+    expect(readFileSync(roleDefaultsFilePath(root), "utf8")).toBe(baseRoleDefaultsText());
+    writeFileSync(roleDefaultsFilePath(root), readFileSync(roleDefaultsFilePath(PLUGIN_ROOT)));
     expect(validateTree(root)).toEqual({ ok: true, problems: [] });
-    expect(readFileSync(roleDefaultsFilePath(root))).toEqual(
-      readFileSync(roleDefaultsFilePath(PLUGIN_ROOT))
-    );
   });
 });

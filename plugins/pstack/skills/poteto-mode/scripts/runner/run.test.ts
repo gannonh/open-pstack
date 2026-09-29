@@ -69,10 +69,10 @@ if (name === "codex" && args[0] === "login") {
 }
 if (name === "cursor-agent" && args[0] === "models") {
   if (process.env.FAKE_CURSOR_MISSING_MODEL === "1") {
-    console.log("Available models\\n\\ncursor-grok-4.5-xhigh - Cursor Grok 4.5 Extra High");
+    console.log("Available models\\n\\ngrok-4.5-xhigh - Grok 4.5 Extra High");
     process.exit(0);
   }
-  console.log("Available models\\n\\ncursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High\\nclaude-fable-5-1-low - Claude Fable 5.1 Low\\nclaude-fable-5-1-medium - Claude Fable 5.1 Medium\\nclaude-fable-5-1-high - Claude Fable 5.1 High\\nclaude-fable-5-1-xhigh - Claude Fable 5.1 Extra High\\nclaude-fable-5-1-max - Claude Fable 5.1 Max");
+  console.log("Available models\\n\\ngrok-4.7-xhigh - Grok 4.7 Extra High\\nclaude-fable-5-1-low - Claude Fable 5.1 Low\\nclaude-fable-5-1-medium - Claude Fable 5.1 Medium\\nclaude-fable-5-1-high - Claude Fable 5.1 High\\nclaude-fable-5-1-xhigh - Claude Fable 5.1 Extra High\\nclaude-fable-5-1-max - Claude Fable 5.1 Max");
   process.exit(0);
 }
 if (name === "grok" && args[0] === "models") {
@@ -133,8 +133,8 @@ function cursorReportedDisplay(model) {
     if (model.endsWith("-low")) return "Claude Fable 5.1 Low";
     return "Claude Fable 5.1 Max";
   }
-  if (model.endsWith("-xhigh")) return "Cursor Grok 4.6 Extra High";
-  return "Cursor Grok 4.6 Extra High";
+  if (model.endsWith("-xhigh")) return "Grok 4.7 Extra High";
+  return "Grok 4.7 Extra High";
 }
 if (stage === "model" && process.env.FAKE_ENV_LOG_PATH) {
   writeFileSync(
@@ -180,9 +180,9 @@ function options(provider: Provider, suffix: string = provider): RunnerOptions {
     provider === "claude"
       ? "fable"
       : provider === "codex"
-        ? "gpt-5.6-sol"
+        ? "gpt-6.1-sol"
         : provider === "cursor"
-          ? "cursor-grok-4.6"
+          ? "grok-4.7"
           : "grok-4.6";
   return {
     parent,
@@ -351,18 +351,18 @@ describe("runLane", () => {
     const recorded = receipt(input.receiptPath);
     expect(recorded).toMatchObject({
       status: "complete",
-      model: "cursor-grok-4.6",
+      model: "grok-4.7",
       effort: "xhigh",
-      reportedModel: "cursor-grok-4.6-extra-high",
+      reportedModel: "grok-4.7-extra-high",
       modelVerified: true,
       modelEvidence: "provider-report",
       preflight: {
         status: "passed",
-        evidence: "authenticated; model cursor-grok-4.6-xhigh available",
+        evidence: "authenticated; model grok-4.7-xhigh available",
       },
     });
     expect(recorded.argv).toEqual(
-      expect.arrayContaining(["--model", "cursor-grok-4.6-xhigh"])
+      expect.arrayContaining(["--model", "grok-4.7-xhigh"])
     );
   });
 
@@ -404,7 +404,7 @@ describe("runLane", () => {
     expect(existsSync(modelStarted)).toBe(false);
     expect(receipt(input.receiptPath)).toMatchObject({
       status: "unavailable-model",
-      model: "cursor-grok-4.6",
+      model: "grok-4.7",
       reportedModel: null,
       modelVerified: false,
       modelEvidence: null,
@@ -418,7 +418,7 @@ describe("runLane", () => {
     expect(result.exitCode).toBe(0);
     expect(receipt(input.receiptPath)).toMatchObject({
       status: "complete",
-      model: "gpt-5.6-sol",
+      model: "gpt-6.1-sol",
       reportedModel: null,
       modelVerified: false,
       modelEvidence: "pinned-argv",
@@ -433,7 +433,7 @@ describe("runLane", () => {
     expect(existsSync(input.outputPath)).toBe(false);
     expect(receipt(input.receiptPath)).toMatchObject({
       status: "unavailable-model",
-      model: "gpt-5.6-sol",
+      model: "gpt-6.1-sol",
       reportedModel: null,
       modelVerified: false,
       modelEvidence: null,
@@ -1025,7 +1025,7 @@ describe("runLane", () => {
       status: "complete",
       parent: "cursor",
       provider: "cursor",
-      model: "cursor-grok-4.6",
+      model: "grok-4.7",
       effort: "xhigh",
       modelVerified: true,
     });
@@ -1093,7 +1093,7 @@ describe("runLane", () => {
 
   it("rejects a cursor-agent fast neighbour for the composed id", async () => {
     process.env.FAKE_CURSOR_REPORTED_DISPLAY =
-      "Cursor Grok 4.6 Extra High Fast";
+      "Grok 4.7 Extra High Fast";
     const input = {
       ...options("cursor", "cursor-parent-grok-fast-neighbour"),
       parent: "cursor" as const,
@@ -1102,7 +1102,7 @@ describe("runLane", () => {
     expect(result.exitCode).not.toBe(0);
     expect(receipt(input.receiptPath)).toMatchObject({
       status: "malformed-output",
-      model: "cursor-grok-4.6",
+      model: "grok-4.7",
       effort: "xhigh",
       modelVerified: false,
     });
@@ -1174,7 +1174,7 @@ describe("runLane", () => {
       error: {
         message: "catalog selection is not executable",
         evidence:
-          "effort max is not supported for cursor:cursor-grok-4.6; supported: low, medium, high, xhigh",
+          "effort max is not supported for cursor:grok-4.7; supported: low, medium, high, xhigh",
       },
     });
     expect(existsSync(input.outputPath)).toBe(false);

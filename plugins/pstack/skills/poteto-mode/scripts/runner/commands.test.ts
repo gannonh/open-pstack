@@ -6,7 +6,7 @@ function options(overrides: Partial<RunnerOptions> = {}): RunnerOptions {
   return {
     parent: "claude",
     provider: "codex",
-    model: "gpt-5.6-sol",
+    model: "gpt-6.1-sol",
     effort: "max",
     mode: "read-only",
     promptPath: "/tmp/prompt.md",
@@ -26,7 +26,7 @@ describe("invocationCommand", () => {
     expect(spec.args).toEqual([
       "exec",
       "--model",
-      "gpt-5.6-sol",
+      "gpt-6.1-sol",
       "--config",
       'model_reasoning_effort="max"',
       "--sandbox",
@@ -115,7 +115,7 @@ describe("invocationCommand", () => {
 
   it("pins Cursor's composed model id, plan mode, and stream-json output", () => {
     const spec = invocationCommand(
-      options({ provider: "cursor", model: "cursor-grok-4.6", effort: "xhigh" })
+      options({ provider: "cursor", model: "grok-4.7", effort: "xhigh" })
     );
     expect(spec.command).toBe("cursor-agent");
     expect(spec.stdin).toBe("prompt");
@@ -124,7 +124,7 @@ describe("invocationCommand", () => {
       "--output-format",
       "stream-json",
       "--model",
-      "cursor-grok-4.6-xhigh",
+      "grok-4.7-xhigh",
       "--mode",
       "plan",
       "--trust",
@@ -154,7 +154,7 @@ describe("invocationCommand", () => {
     const cursor = invocationCommand(
       options({
         provider: "cursor",
-        model: "cursor-grok-4.6",
+        model: "grok-4.7",
         effort: "xhigh",
         mode: "isolated-write",
       })
@@ -186,7 +186,7 @@ describe("invocationCommand", () => {
       },
       {
         provider: "codex" as const,
-        model: "gpt-5.6-sol",
+        model: "gpt-6.1-sol",
         flag: (effort: "low" | "medium" | "high") => [
           "--config",
           `model_reasoning_effort="${effort}"`,
@@ -202,10 +202,10 @@ describe("invocationCommand", () => {
       },
       {
         provider: "cursor" as const,
-        model: "cursor-grok-4.6",
+        model: "grok-4.7",
         flag: (effort: "low" | "medium" | "high") => [
           "--model",
-          `cursor-grok-4.6-${effort}`,
+          `grok-4.7-${effort}`,
         ],
       },
     ];
