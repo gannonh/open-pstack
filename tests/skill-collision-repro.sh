@@ -34,11 +34,11 @@ else
 fi
 
 principle_count="$(find "$repo/plugins/pstack/skills" -maxdepth 1 -type d -name 'principle-*' | wc -l | tr -d ' ')"
-if [ "$principle_count" != "23" ]; then
-  note "FAIL: expected 23 principle-* leaves, found $principle_count"
+if [ "$principle_count" != "24" ]; then
+  note "FAIL: expected 24 principle-* leaves, found $principle_count"
   fail=1
 else
-  note "ok: 23 principle-* leaves"
+  note "ok: 24 principle-* leaves"
 fi
 
 if grep -Fq '"id": "how critics"' "$repo/plugins/pstack/catalog/role-defaults.json" \
