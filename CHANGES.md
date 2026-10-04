@@ -2,6 +2,16 @@
 
 This port applies the Cursor → Claude Code substitutions in skill bodies. Earlier drafts left them flagged; this revision resolves them. A later pass added a Codex build that shares the same skills; see [Codex port](#codex-port) below.
 
+## Sync to Cursor pstack 0.15.9
+
+Tracks Cursor pstack 0.15.9 at `e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a`. Take vs skip: [docs/upstream-0.15.9-take-skip.md](docs/upstream-0.15.9-take-skip.md).
+
+New skills: `benchmark-checklist`, `correct`, and the `principle-explain-the-number` leaf. Poteto-mode routes measured perf claims to `benchmark-checklist`, and perf-issue and hillclimb vet their numbers with it. The two new non-principle skills drop upstream's `disable-model-invocation: true` so poteto-mode can invoke them by name on Claude Code. The principle leaf uses `user-invocable: false`.
+
+Poteto-mode gives new work to fresh subagents by default, and `poteto-agent` says to spawn fresh per task. Autopilot-full, autopilot-stack, and multi-phase-plan drop the program objective in standing orders (our stand-in for `/goal`) and arm an hourly audit tick. On Claude Code that tick is `/loop 1h`. The copied plan skeleton says "hourly" and keeps `/loop` out, because Codex has no `/loop`. Autopilot merge prep adds upstream's `merge-tree` and CI-path check, adapted to `<base-remote>`. Our failure-evidence-only stuck test is unchanged.
+
+Opening-a-pr takes upstream's `##` section headings, `## What changed`, and the built-in PR tool rule. It keeps our fork-PR and draft-rule mechanics. Perf-issue step 2 uses the seven performance mantras. Architect screens candidates as an agent contributor would change them and adds four design red flags. Swarm, technical-writing, and TypeScript patterns take upstream verbatim.
+
 ## Sync to Cursor pstack 0.15.5
 
 Tracks Cursor pstack 0.15.5 at `12d587dfb20741cafc376c42c696c5f6e2a64487`. Take vs skip: [docs/upstream-0.15.5-take-skip.md](docs/upstream-0.15.5-take-skip.md).
@@ -232,7 +242,7 @@ Per the 0.9.8 invariant, all four drop upstream's skill-side `disable-model-invo
 
 **New playbooks** (#185, #187), under `poteto-mode/playbooks/`: `babysit` (drive a PR or stack to merge-ready), `shipping` (verify each PR independently, then land the contiguous verified run), `orchestrate` (a standing multi-day program under one coordinator), `autopilot-full` and `autopilot-stack` (one owner per PR, swarm-verified), and `worktree-cleanup` (safety-gated disk reclamation). They share the new `references/bugbot-triage.md` rubric, which the poteto-mode review-bot trigger now points at.
 
-Substitutions in the six: Cursor cloud agents become local background subagents isolated by worktree; `control-cli` / `control-ui` become the `run` / `verify` built-ins; `Task` becomes `Agent`; `AskQuestion` becomes `AskUserQuestion`; the Cursor agent store becomes `~/.claude/orchestrate/<slug>/`, which outlives the session the way a multi-day program's store has to; a Cursor restart becomes a session restart; the Cursor dashboard becomes the background task list. Cursor's `/goal` has no Claude Code equivalent, so the autopilots keep the program objective in the standing orders and the todolist, and their audit tick re-reads the playbook from the installed plugin instead of `git show origin/main:pstack/...`. Graphite (`gt`) is not Cursor-specific and stays.
+Substitutions in the six: Cursor cloud agents become local background subagents isolated by worktree; `control-cli` / `control-ui` become the `run` / `verify` built-ins; `Task` becomes `Agent`; `AskQuestion` becomes `AskUserQuestion`; the Cursor agent store becomes `~/.claude/orchestrate/<slug>/`, which outlives the session the way a multi-day program's store has to; a Cursor restart becomes a session restart; the Cursor dashboard becomes the background task list. Cursor's `/goal` had no Claude Code equivalent, so the autopilots kept the program objective in the standing orders and the todolist until the 0.15.9 sync dropped `/goal` upstream. Their audit tick re-reads the playbook from the installed plugin instead of `git show origin/main:pstack/...`. Graphite (`gt`) is not Cursor-specific and stays.
 
 **Babysit, skill versus playbook.** Upstream v0.14.0 stopped routing PR-status requests to Cursor's built-in babysit and gave poteto-mode its own playbook. The port's bundled `babysit` skill (the 0.9.2 analog of that built-in) stays as the standalone `/babysit` entry point; inside poteto-mode the playbook supersedes it, and both files say so.
 
