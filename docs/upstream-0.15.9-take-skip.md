@@ -31,6 +31,8 @@ Four commits, 21 paths, +199/−67. The merge report is [upstream-0.15.9-merge-r
 
 **Opening a PR.** Take the description rewrite and the built-in PR tool paragraph. Keep our fork-PR `gh api` path, `--repo "$base_repo"`, and the repository draft rule. The built-in tool's `draft: false` default yields to that draft rule.
 
+**Review fixes.** `benchmark-checklist` lets a one-run ballpark skip the range and limiter, but its Report section required both. The Report section now gives the one-run format and scopes the inconclusive rule to the full procedure. The built-in PR tool rule also reaches autopilot-stack step 6 and the multi-phase-plan forge line, and the merge-prep drift check diffs against `$base_remote/$trunk`, not `main`.
+
 **AskQuestion.** The plain-words alternatives sentence lands with `AskUserQuestion`, our existing substitution.
 
 ## Skip (standing exclusions, unchanged)
